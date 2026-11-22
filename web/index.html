@@ -14,9 +14,16 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Fretwise</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/bricolage-grotesque-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/bricolage-grotesque-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:800;font-display:swap;src:url(fonts/bricolage-grotesque-latin-800-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/jetbrains-mono-latin-600-normal.woff2) format('woff2')}
+</style>
 <style>
 /* Layout: guitar-shop calm. Sticky glass piano strip over a rosewood neck; controls sit in quiet cards below. */
 :root{
@@ -161,6 +168,10 @@ main.lesson-first #panel{order:-1;margin:0 0 14px}
 .pathbox summary::-webkit-details-marker{display:none}
 .pathbox[open] summary{display:none}
 @media (max-width:699px){.pathbox summary{display:block!important}.pathbox summary::after{content:" ▾"}}
+.streakpill{font-weight:600}
+.streakpill[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
+.step.daily{border:1px solid var(--line);margin-bottom:6px}
+.step small{color:var(--muted);margin-left:4px}
 .path{display:flex;flex-direction:column;gap:2px}
 .step{display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:6px 8px;border-radius:10px;cursor:pointer;font-size:14px}
 .step:hover{background:var(--chip)}
@@ -169,8 +180,17 @@ main.lesson-first #panel{order:-1;margin:0 0 14px}
 .step.cur{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:600}
 .step.cur .n{border-color:var(--accent);color:var(--accent)}
 .ntab{border-collapse:collapse;font-size:14px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:699px){.cols2{grid-template-columns:1fr}}
 .ntab th{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:600;padding:4px 8px;text-align:left}
 .ntab td{padding:3px 4px}
+#welcome{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+#welcome[hidden]{display:none}
+.wcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.wart svg{width:100%;max-width:260px;display:block;margin:0 auto 14px}
+.wdots{display:flex;gap:6px;margin-bottom:14px}
+.wdots span{width:22px;height:4px;border-radius:2px;background:var(--line)}
+.wdots span.on{background:var(--accent)}
 #life{position:fixed;inset:0;z-index:30;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #lifecv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
 .ltop,.lbot{position:absolute;left:0;right:0;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);pointer-events:none}
@@ -208,6 +228,7 @@ main.noboard .boardcard{display:none}
       <button role="tab" data-tab="life">Life-size</button>
       <button role="tab" data-tab="tuner">Tuner</button>
     </nav>
+    <button class="chip streakpill" id="daystreak" data-g="daily">Start a streak</button>
     <div class="globals">
       <div class="seg" aria-label="Accidentals"><button id="g-sharp" data-g="acc" data-v="sharp">♯</button><button id="g-flat" data-g="acc" data-v="flat">♭</button></div>
       <button class="chip" id="g-color" data-g="color">Note colors</button>
@@ -226,6 +247,13 @@ main.noboard .boardcard{display:none}
   <section id="panel"></section>
 </main>
 <div id="toast" role="status" hidden></div>
+<div id="welcome" role="dialog" aria-modal="true" aria-labelledby="wtitle" hidden>
+  <div class="wcard">
+    <div class="wdots" id="wdots"></div>
+    <div id="wbody"></div>
+    <div class="row" style="justify-content:space-between;margin-top:18px"><button class="btn ghost" id="wskip">Skip</button><button class="btn" id="wnext">Next</button></div>
+  </div>
+</div>
 <div id="life" hidden>
   <canvas id="lifecv" aria-label="Life-size guitar neck. Swipe to slide along it, tap a string to play."></canvas>
   <div class="ltop">
@@ -434,6 +462,7 @@ function play(m, when = 0, vel = 1, opts = {}){
   else src.buffer = pluckBuf(m);
   const g = ac.createGain(); g.gain.value = (k != null ? 1.0 : 0.8) * vel; src.connect(g); g.connect(master);
   src.start(ac.currentTime + when);
+  if (typeof Mic !== 'undefined' && Mic.on) Mic.quietUntil = Math.max(Mic.quietUntil, performance.now() + when * 1000 + 1300);
   if (!warned) setTimeout(() => { if (ac.state !== 'running' && !warned){ warned = true; toast('Sound is blocked by the browser. Tap the fretboard again, and turn up your volume.'); } }, 400);
   return { src, g };
 }
@@ -447,8 +476,15 @@ function whoosh(strength = 1, up = true){
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22 * Math.min(1, strength), t + 0.08); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
   src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + len + .05);
 }
+function haptic(kind){
+  try {
+    const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+    if (H){ if (kind === 'success') H.notification({ type:'SUCCESS' }); else if (kind === 'error') H.notification({ type:'ERROR' }); else H.impact({ style: kind === 'tick' ? 'LIGHT' : 'MEDIUM' }); return; }
+    if (navigator.vibrate) navigator.vibrate(kind === 'error' ? [25, 40, 25] : kind === 'tick' ? 6 : 14);
+  } catch(e){}
+}
 function toast(t){ const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 4500); }
-const strum = (ms, gap = 0.04) => ms.forEach((m, i) => play(m, i * gap, 0.75));
+const strum = (ms, gap = 0.04, base = 0) => ms.forEach((m, i) => play(m, base + i * gap, 0.75));
 const arp = (ms, gap = 0.24) => ms.forEach((m, i) => play(m, i * gap, 0.85));
 
 /* ---------- fretboard ---------- */
@@ -733,12 +769,12 @@ const Drill = {
           let cls = ''; if (this.answered != null){ if (pc === correct) cls = 'good'; else if (pc === this.answered) cls = 'bad'; }
           const lab = NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`;
           return `<button class="key ${cls}" data-act="ans" data-v="${pc}" aria-label="${both(pc)}">${lab}</button>`; }).join('')}</div>
-        <p class="hint" style="margin-top:8px">Keyboard: press A–G, add Shift for sharps.</p>`;
+        ${Ear.button('listen')}<p class="hint" style="margin-top:4px">Keyboard: press A–G, add Shift for sharps.</p>`;
     } else {
       const left = this.targets.length - this.found.size;
       play = `<div class="prompt">Find every <em>${both(this.cur.pc)}</em> in the lit area.</div>
         <div class="fb ${this.fb ? this.fb.cls : ''}" style="margin-top:6px">${this.fb ? this.fb.t : `${this.found.size} of ${this.targets.length} found`}</div>
-        <div class="row" style="margin-top:8px"><button class="btn ghost" data-act="reveal" ${left ? '' : 'disabled'}>Show the rest</button><button class="btn" data-act="skip">Next note</button></div>`;
+        <div class="row" style="margin-top:8px"><button class="btn ghost" data-act="reveal" ${left ? '' : 'disabled'}>Show the rest</button><button class="btn" data-act="skip">Next note</button></div>${Ear.button('listen')}`;
     }
     $('#panel').innerHTML = `
       <div class="card c7 stack"><div>${play}</div>
@@ -764,7 +800,7 @@ const Drill = {
     const ss = this.sess; ss.n++;
     if (ok){ ss.ok++; ss.ms += ms; ss.streak++; if (ss.streak > stats.best) stats.best = ss.streak; this.fb = {cls:'good', t:`${both(correct)}. ${(ms/1000).toFixed(1)}s`}; }
     else { ss.streak = 0; this.fb = {cls:'bad', t:`That was ${both(correct)}, not ${both(pc)}.`}; }
-    saveStats(); play(m);
+    saveStats(); play(m); haptic(ok ? 'success' : 'error');
     this.answered = pc; this.lock = true; this.render();
     this.timer = setTimeout(() => { this.next(); this.render(true); }, ok ? 700 : 1700);
   },
@@ -774,14 +810,14 @@ const Drill = {
     const k = s + '-' + f, pc = pcOf(midiAt(s,f)); play(midiAt(s,f));
     if (pc === this.cur.pc){
       if (!this.found.has(k)){ this.found.add(k); this.sess.n++; this.sess.ok++; this.sess.streak++; if (this.sess.streak > stats.best){ stats.best = this.sess.streak; saveStats(); } }
-      this.fb = null; this.flash = null;
+      this.fb = null; this.flash = null; haptic('success');
       if (this.found.size === this.targets.length){
         const t = ((performance.now() - this.t0) / 1000).toFixed(1); this.sess.ms += performance.now() - this.t0;
         this.fb = {cls:'good', t:`All ${this.targets.length} found in ${t}s.`}; this.lock = true;
         this.timer = setTimeout(() => { this.next(); this.render(); }, 1100);
       }
     } else {
-      this.sess.n++; this.sess.streak = 0; this.flash = {s, f}; this.fb = {cls:'bad', t:`That's ${both(pc)}.`};
+      this.sess.n++; this.sess.streak = 0; this.flash = {s, f}; haptic('error'); this.fb = {cls:'bad', t:`That's ${both(pc)}.`};
       clearTimeout(this.timer); this.timer = setTimeout(() => { this.flash = null; this.render(); }, 900);
     }
     this.render();
@@ -789,6 +825,7 @@ const Drill = {
   act(a, v){
     const d = S.drill;
     if (a === 'ans'){ this.answer(+v); return; }
+    if (a === 'listen'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
     if (a === 'type'){ d.type = v; this.cur = null; this.revealed = false; }
     if (a === 'str'){ const s = +v; if (d.strings.includes(s)){ if (d.strings.length > 1) d.strings = d.strings.filter(x => x !== s); } else d.strings = [...d.strings, s].sort(); this.cur = null; }
     if (a === 'range'){ d.range = v.split('-').map(Number); this.cur = null; }
@@ -800,6 +837,15 @@ const Drill = {
     if (!this.cur) this.next();
     save(); this.render(a === 'type' || a === 'skip');
   },
+  heard(r){
+    if (!this.cur || this.lock) return;
+    const pc = pcOf(r);
+    if (S.drill.type === 'name'){ this.answer(pc); return; }
+    const open = this.targets.filter(c => !this.found.has(c.s + '-' + c.f));
+    const hit = open.find(c => midiAt(c.s, c.f) === r) || open.find(c => pcOf(midiAt(c.s, c.f)) === pc);
+    if (hit) this.cell(hit.s, hit.f);
+    else if (pc !== this.cur.pc){ this.sess.n++; this.sess.streak = 0; this.fb = { cls:'bad', t:`Heard ${both(pc)}.` }; this.render(); }
+  },
   key(e){
     if (S.drill.type !== 'name' || e.metaKey || e.ctrlKey || e.altKey) return;
     const i = 'cdefgab'.indexOf(e.key.toLowerCase()); if (i < 0) return;
@@ -807,7 +853,7 @@ const Drill = {
     if (S.drill.naturals && !NAT[pc]) return;
     e.preventDefault(); this.answer(pc);
   },
-  leave(){ clearTimeout(this.timer); this.lock = false; if (this.answered != null) this.next(); $('#main').classList.remove('docked'); }
+  leave(){ Ear.stop(); clearTimeout(this.timer); this.lock = false; if (this.answered != null) this.next(); $('#main').classList.remove('docked'); }
 };
 
 /* ================= CHORDS ================= */
@@ -859,7 +905,20 @@ const Chords = {
         <div><p class="lbl">Root</p><div class="row">${[...Array(12).keys()].map(p => chip('root', p, chordRoot(p), p === r, 'sq')).join('')}</div></div>
         <div><p class="lbl">Quality</p><div class="row">${CQ_MAIN.map(k => chip('q', k, k === 'maj' ? 'Major' : k === 'min' ? 'Minor' : CQ[k].sym, k === q)).join('')}</div></div>
         <div class="row">${seg('labels', c.labels, [['int','Intervals'],['note','Note names']])}${toggle('map', 'Chord tones on the whole neck', c.map)}</div>
-      </div>`;
+      </div>
+      <div class="card">${this.capoCard()}</div>`;
+  },
+  capoCard(){
+    const c = S.chords, capo = c.capo ?? 2, key = c.capoKey ?? 9, SHP = [7,0,2,9,4];
+    const opts = SHP.map(sh => ({ sh, fret:(key - sh + 12) % 12 })).filter(o => o.fret <= 7).sort((a,b) => a.fret - b.fret);
+    return `<p class="lbl">Capo helper</p>
+      <div class="cols2">
+        <div class="stack" style="gap:8px"><span class="sub">Capo on fret</span><div class="row">${[0,1,2,3,4,5,6,7].map(n => chip('capo', n, n || 'None', n === capo, 'sq')).join('')}</div>
+          <table class="ntab"><thead><tr><th>Shapes you play</th><th>Sounds in</th></tr></thead><tbody>${SHP.map(sh => `<tr><td><b>${chordRoot(sh)}</b> shapes</td><td>${chordRoot((sh + capo) % 12)}</td></tr>`).join('')}</tbody></table></div>
+        <div class="stack" style="gap:8px"><span class="sub">The song is in</span><div class="row">${[...Array(12).keys()].map(p => chip('capokey', p, chordRoot(p), p === key, 'sq')).join('')}</div>
+          <p style="margin:0">${opts.map(o => o.fret ? `Play <b>${chordRoot(o.sh)}</b> shapes with the capo on fret <b>${o.fret}</b>` : `Play <b>${chordRoot(o.sh)}</b> shapes, no capo`).join('<br>')}</p></div>
+      </div>
+      <p class="hint">Bluegrass guitarists mostly play G, C, D and A shapes and capo to match the singer. A key of A is often capo 2 with G shapes, B is capo 4 with G or capo 2 with A.</p>`;
   },
   newQuiz(){
     const c = S.chords; let r, q, vs;
@@ -908,6 +967,8 @@ const Chords = {
     if (a === 'q'){ c.q = v; c.v = 0; }
     if (a === 'labels') c.labels = v;
     if (a === 'map') c.map = !c.map;
+    if (a === 'capo') c.capo = +v;
+    if (a === 'capokey') c.capoKey = +v;
     const n = genVoicings(c.root, c.q).length || 1;
     if (a === 'vprev') c.v = (c.v - 1 + n) % n;
     if (a === 'vnext') c.v = (c.v + 1) % n;
@@ -919,7 +980,7 @@ const Chords = {
     if (a === 'pick' && this.quiz && this.quiz.picked == null){
       this.quiz.picked = v; const ok = v === this.quiz.answer, sc = this.score;
       sc.n++; if (ok){ sc.ok++; sc.streak++; if (sc.streak > (stats.chordBest || 0)){ stats.chordBest = sc.streak; saveStats(); } } else sc.streak = 0;
-      strum(this.midis(this.quiz.vc));
+      strum(this.midis(this.quiz.vc)); haptic(ok ? 'success' : 'error');
     }
     if (a === 'nextq') this.quiz = null;
     if (['root','q','vprev','vnext'].includes(a) && c.mode === 'study'){ const vc = genVoicings(c.root, c.q)[c.v]; if (vc) strum(this.midis(vc)); }
@@ -1065,6 +1126,14 @@ const LEARN = [
   { id:'alt', part:'Bluegrass rhythm', t:'Alternating bass', kind:'bass', alt:true, set:[[7,'maj'],[0,'maj'],[2,'maj'],[9,'maj'],[4,'maj']], goal:6,
     d:'Real boom-chuck alternates: root, strum, then the 5th of the chord, strum. For G that is G, then D. Tap the root, then the 5th.' },
 
+  { id:'gmaj', part:'Fiddle-tune scales', t:'G major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
+    d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G. Study it, then name each note by position.' },
+  { id:'dmaj', part:'Fiddle-tune scales', t:'D major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
+    d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
+  { id:'ear1', part:'Ear training', t:'Hear I, IV and V', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5], goal:8,
+    d:'Jam changes come fast. You hear the key\'s home chord (I), then a mystery chord. Is it the I again, the IV or the V? The V sounds like it wants to go home; the IV sounds like a lift.' },
+  { id:'ear2', part:'Ear training', t:'Add the 6 minor', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5,6], goal:8,
+    d:'The 6 minor (Em in G) sounds sad next to the bright major chords. Same game, one more choice.' },
   { id:'num1', part:'Theory', t:'Numbers: I, IV and V', kind:'numbers', keys:[7,0,2,9], degrees:[1,4,5], goal:8,
     d:'Bluegrass players call changes by number so a song works in any key: "it\'s a 1-4-5." Count up the major scale from the key: in G, 1 is G, 4 is C, 5 is D.' },
   { id:'num2', part:'Theory', t:'Add the 2 and 6 minors', kind:'numbers', keys:[7,0,2,9], degrees:[1,2,4,5,6], goal:8,
@@ -1072,22 +1141,58 @@ const LEARN = [
 ];
 const MAJ_SEMI = [0,0,2,4,5,7,9,11], DEG_Q = {1:'maj',2:'min',3:'min',4:'maj',5:'maj',6:'min'}, DEG_R = {1:'I',2:'ii',3:'iii',4:'IV',5:'V',6:'vi'};
 const learnProg = store.get('fretwise.learn', { done:{} });
+const days = store.get('fretwise.days', {});
+const todayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const DAILY_GOAL = 15;
+function dayStreak(){
+  let n = 0; const d = new Date();
+  if ((days[todayKey(d)] || 0) < DAILY_GOAL) d.setDate(d.getDate() - 1);
+  while ((days[todayKey(d)] || 0) >= DAILY_GOAL){ n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function renderStreak(){
+  const el = document.getElementById('daystreak'); if (!el) return;
+  const n = dayStreak(), today = days[todayKey()] || 0;
+  el.textContent = n ? `${n}-day streak` : 'Start a streak';
+  el.setAttribute('aria-pressed', today >= DAILY_GOAL);
+  el.title = today >= DAILY_GOAL ? 'Today\'s practice is done' : `Today: ${today} of ${DAILY_GOAL}`;
+}
+const DAILY = { id:'daily', part:'Every day', t:'Today\'s practice', kind:'notes', daily:true, strings:ALL, range:[0,12], nat:true, goal:DAILY_GOAL,
+  d:'A short mixed round from the notes you\'ve learned, weighted toward the ones you miss. Get 15 right (misses don\'t reset the count) to keep your streak going.' };
 const openVoicing = (r, q) => { const vs = genVoicings(r, q); return vs.find(v => v.open && v.lo <= 4) || vs[0]; };
 const Learn = {
   q:null, streak:0, fb:null, lock:false, timer:null, flash:null, step:0,
-  stage(){ return LEARN.find(x => x.id === S.learn.id) || LEARN[0]; },
+  stage(){ if (S.learn.id === 'daily') return DAILY; return LEARN.find(x => x.id === S.learn.id) || LEARN[0]; },
   idx(){ return LEARN.indexOf(this.stage()); },
-  pool(st){ return cellsIn(st.strings, st.range[0], st.range[1]).filter(c => !st.nat || NAT[pcOf(midiAt(c.s,c.f))]); },
+  dailyPool(){
+    const done = LEARN.filter(x => x.kind === 'notes' && learnProg.done[x.id]);
+    const src = done.length ? done : [LEARN[0], LEARN[1]];
+    const seen = new Set(), out = [];
+    for (const x of src) for (const c of this.pool(x)){ const k = c.s + '-' + c.f; if (!seen.has(k)){ seen.add(k); out.push(c); } }
+    return out;
+  },
+  pool(st){ if (st.daily) return this.dailyPool(); return cellsIn(st.strings, st.range[0], st.range[1]).filter(c => { const pc = pcOf(midiAt(c.s,c.f)); return (!st.nat || NAT[pc]) && (!st.pcs || st.pcs.includes(pc)); }); },
   bassArea(s, f){ return s <= 2 && f <= 3; },
   reset(){ clearTimeout(this.timer); this.q = null; this.fb = null; this.lock = false; this.flash = null; this.step = 0; },
   newQ(){
     const st = this.stage(), prev = this.q; this.fb = null; this.lock = false; this.flash = null; this.step = 0;
     const notSame = (arr, same) => { const f = arr.filter(x => !same(x)); return f.length ? f : arr; };
-    if (st.kind === 'notes'){ const c = pick(notSame(this.pool(st), x => prev && prev.s === x.s && prev.f === x.f)); this.q = { s:c.s, f:c.f }; }
+    if (st.kind === 'notes'){
+      const pool = notSame(this.pool(st), x => prev && prev.s === x.s && prev.f === x.f);
+      let c;
+      if (st.daily){ const w = pool.map(x => { const t = stats.c[x.s + '-' + x.f]; return t ? 1 + 4 * (1 - t[1] / t[0]) : 2.5; }); let r = Math.random() * w.reduce((a, b) => a + b, 0), i = 0; while (i < pool.length - 1 && (r -= w[i]) > 0) i++; c = pool[i]; }
+      else c = pick(pool);
+      this.q = { s:c.s, f:c.f };
+    }
     if (st.kind === 'chords' || st.kind === 'bass'){
       const [r, q] = pick(notSame(st.set, x => prev && prev.r === x[0] && prev.cq === x[1]));
       this.q = { r, cq:q, vc:openVoicing(r, q) };
       if (st.kind === 'chords') setTimeout(() => strum(Chords.midis(this.q.vc)), 120);
+    }
+    if (st.kind === 'ear'){
+      const key = pick(st.keys), deg = pick(st.degrees), pc = (key + MAJ_SEMI[deg]) % 12;
+      this.q = { key, deg, r:pc, cq:DEG_Q[deg], vc:openVoicing(pc, DEG_Q[deg]) };
+      this.playEar();
     }
     if (st.kind === 'numbers'){
       const key = pick(st.keys), deg = pick(notSame(st.degrees, d => prev && prev.deg === d)), type = Math.random() < .5 ? 'name' : 'num';
@@ -1097,8 +1202,9 @@ const Learn = {
     }
   },
   render(){
-    const st = this.stage(), ph = S.learn.phase;
+    const st = this.stage(); if (st.daily) S.learn.phase = 'practice'; const ph = S.learn.phase;
     if (ph === 'practice' && !this.q) this.newQ();
+    if (st.daily) this.streak = days[todayKey()] || 0;
     const M = []; let hl = new Map(), cap = '—';
     const shadeOut = (ok) => { for (const {s,f} of cellsIn(ALL, 0, FRETS)) if (!ok(s,f)) M.push({s, f, kind:'shade'}); };
     if (st.kind === 'notes'){
@@ -1106,6 +1212,11 @@ const Learn = {
       if (ph === 'study'){ const pool = this.pool(st); for (const c of pool){ const pc = pcOf(midiAt(c.s,c.f)); M.push({s:c.s, f:c.f, pc, text:nn(pc), kind:'dot'}); } hl = hlNotes(pool.map(c => midiAt(c.s,c.f))); cap = st.t; }
       else { const {s,f} = this.q, m = midiAt(s,f), pc = pcOf(m);
         if (this.fb) { M.push({s, f, pc, text:nn(pc), kind:this.fb.ok ? 'good' : 'bad', pop:true}); hl = hlNotes([m]); cap = nn(pc) + octOf(m); } else { M.push({s, f, kind:'target'}); cap = '?'; } }
+    }
+    if (st.kind === 'ear'){
+      if (ph === 'practice' && this.fb){ M.push(...Chords.voicingMarks(this.q.vc, this.q.r, this.q.cq, true)); hl = hlNotes(Chords.midis(this.q.vc)); cap = chordRoot(this.q.r) + CQ[this.q.cq].sym; }
+      else if (ph === 'study'){ const k = +(S.learn.sel || st.keys[0]); cap = 'Key of ' + chordRoot(k); }
+      else cap = '?';
     }
     if (st.kind === 'chords' || st.kind === 'numbers'){
       let r, cq, vc, show = true;
@@ -1128,21 +1239,23 @@ const Learn = {
     $('#main').classList.toggle('lesson-first', G.v);
     $('#main').classList.toggle('docked', ph === 'practice' && st.kind === 'notes');
   },
+  playEar(){ const q = this.q; if (!q) return; const I = openVoicing(q.key, 'maj'); strum(Chords.midis(I), 0.035, 0.12); strum(Chords.midis(q.vc), 0.035, 1.5); },
+  input(e){ Metro.input(e); },
   studySel(st){
     if (st.kind === 'numbers'){ const [k, d] = (S.learn.sel || `${st.keys[0]}|1`).split('|').map(Number); const pc = (k + MAJ_SEMI[d]) % 12; return { r:pc, q:DEG_Q[d], key:k, deg:d }; }
     const i = Math.min(+(S.learn.sel || 0) || 0, st.set.length - 1); return { r:st.set[i][0], q:st.set[i][1], i };
   },
   lesson(st){
     const ph = S.learn.phase, n = this.idx() + 1, done = learnProg.done[st.id];
-    let h = `<div><p class="lbl">Stage ${n} of ${LEARN.length} · ${st.part}${done ? ' · <span style="color:var(--good)">Passed</span>' : ''}</p>
+    let h = `<div><p class="lbl">${st.daily ? `Daily practice · ${dayStreak()}-day streak` : `Stage ${n} of ${LEARN.length} · ${st.part}`}${done ? ' · <span style="color:var(--good)">Passed</span>' : ''}</p>
       <div class="prompt" style="font-size:30px">${st.t}</div><p class="sub" style="margin-top:6px;max-width:62ch;font-size:15px">${st.d}</p></div>
-      <div class="row">${seg('lphase', ph, [['study','1 · Study'],['practice','2 · Practice']])}</div>`;
+      ${st.daily ? '' : `<div class="row">${seg('lphase', ph, [['study','1 · Study'],['practice','2 · Practice']])}</div>`}`;
     if (ph === 'study') return h + this.studyBody(st);
     return h + this.practiceBody(st);
   },
   meter(st){
     const pct = Math.min(100, Math.round(100 * this.streak / st.goal));
-    return `<div><div class="row" style="justify-content:space-between"><span class="lbl" style="margin:0">Get ${st.goal} in a row</span><span class="mono" style="font-size:13px">${this.streak} / ${st.goal}</span></div>
+    return `<div><div class="row" style="justify-content:space-between"><span class="lbl" style="margin:0">${st.daily ? `Get ${st.goal} right today` : `Get ${st.goal} in a row`}</span><span class="mono" style="font-size:13px">${this.streak} / ${st.goal}</span></div>
       <div style="height:8px;border-radius:99px;background:var(--chip);margin-top:6px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--good);transition:width .25s"></div></div></div>`;
   },
   studyBody(st){
@@ -1156,9 +1269,17 @@ const Learn = {
       const sel = this.studySel(st);
       return `<div class="row">${st.set.map(([r, q], i) => chip('lsel', i, chordRoot(r) + CQ[q].sym, i === sel.i, 'sq')).join('')}</div>
         ${st.kind === 'bass' ? `<p class="hint">Square R is the root and 5 is the alternate bass. Faded dots show the chord shape. Hear the pattern: bass, strum, other bass, strum.</p>
-          <div class="row"><button class="btn ghost" data-act="lboom">Hear boom-chuck</button><button class="btn" data-act="lstart">Start practice</button></div>`
+          <div class="row"><button class="btn ghost" data-act="lboom">Hear boom-chuck</button><button class="btn" data-act="lstart">Start practice</button></div>
+          ${Metro.controls('Play along: G–C–D boom-chuck')}`
         : `<p class="hint">Tap a chord to see and hear it. Square dots are the root. Labels show the chord tones: R, 3 and 5.</p>
           <div class="row"><button class="btn ghost" data-act="lstrum">Strum it</button><button class="btn" data-act="lstart">Start practice</button></div>`}`;
+    }
+    if (st.kind === 'ear'){
+      const k = +(S.learn.sel || st.keys[0]);
+      return `<div><p class="lbl">Key</p><div class="row">${st.keys.map(x => chip('lsel', x, chordRoot(x), x === k, 'sq')).join('')}</div></div>
+        <div><p class="lbl">Listen to each chord</p><div class="row">${st.degrees.map(d => `<button class="btn ghost" data-act="learhear" data-v="${d}">${DEG_R[d]} · ${chordRoot((k + MAJ_SEMI[d]) % 12) + CQ[DEG_Q[d]].sym}</button>`).join('')}</div></div>
+        <p class="hint">Play each one a few times, then go back and forth between I and the others. Hum the bass note along.</p>
+        <div class="row"><button class="btn" data-act="lstart">Start practice</button></div>`;
     }
     if (st.kind === 'numbers'){
       const sel = this.studySel(st);
@@ -1175,6 +1296,7 @@ const Learn = {
     const q = this.q, won = this.streak >= st.goal, next = LEARN[this.idx() + 1];
     let p = '', pad = '';
     const fbh = `<div class="fb ${this.fb ? (this.fb.ok ? 'good' : 'bad') : ''}">${this.fb ? this.fb.t : '&nbsp;'}</div>`;
+    if (won && st.daily) return `${this.meter(st)}<div class="prompt">Done for today. <em>${dayStreak()}-day streak.</em></div><div class="row"><button class="btn" data-act="lagain">Keep going</button>${(() => { const nx = LEARN.find(x => !learnProg.done[x.id]); return nx ? `<button class="btn ghost" data-act="lgo" data-v="${nx.id}">Continue: ${nx.t}</button>` : ''; })()}</div>`;
     if (won) return `${this.meter(st)}<div class="prompt">Stage passed. <em>Nice work.</em></div>
       <div class="row">${next ? `<button class="btn" data-act="lnext">Next: ${next.t}</button>` : '<span class="sub">That\'s the whole path. Keep sharp in Drill and Chords.</span>'}<button class="btn ghost" data-act="lagain">Practice more</button></div>`;
     if (st.kind === 'notes'){
@@ -1182,7 +1304,7 @@ const Learn = {
       p = `<div class="prompt">What note is on the <em>${SORD[q.s]} string</em>, ${q.f ? 'fret ' + q.f : 'open'}?</div>`;
       pad = `<div class="pad dock" style="grid-template-columns:repeat(${Math.min(pcs.length, 7)},1fr)">${pcs.map(pc => { let cls = ''; if (this.fb){ if (pc === correct) cls = 'good'; else if (pc === this.fb.pc) cls = 'bad'; }
         return `<button class="key ${cls}" data-act="lans" data-v="${pc}" aria-label="${both(pc)}">${NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`}</button>`; }).join('')}</div>
-        <p class="hint">Keyboard: A–G, Shift for sharps.</p>`;
+        ${Ear.button('llisten')}<p class="hint" style="margin-top:4px">Keyboard: A–G, Shift for sharps.</p>`;
     }
     if (st.kind === 'chords'){
       p = `<div class="prompt">Which chord is this?</div>`;
@@ -1202,15 +1324,22 @@ const Learn = {
           return `<button class="key ${cls}" data-act="lnumans" data-v="${d}">${DEG_R[d]}<small>${d}</small></button>`; }).join('')}</div>`;
       }
     }
+    if (st.kind === 'ear'){
+      p = `<div class="prompt">Key of <em>${chordRoot(q.key)}</em>. After the I chord, which chord comes next?</div>`;
+      pad = `<div class="opts">${st.degrees.map(d => { let cls = ''; if (this.fb){ if (d === q.deg) cls = 'good'; else if (d === this.fb.d) cls = 'bad'; }
+        return `<button class="key ${cls}" data-act="learans" data-v="${d}">${DEG_R[d]}<small>${this.fb ? chordRoot((q.key + MAJ_SEMI[d]) % 12) + CQ[DEG_Q[d]].sym : d}</small></button>`; }).join('')}</div>
+        <div class="row"><button class="btn ghost" data-act="learagain">Play again</button></div>`;
+    }
     if (st.kind === 'bass'){
       const name = chordRoot(q.r) + CQ[q.cq].sym, want = this.step === 0 ? 'the root' : 'the 5th (alternate bass)';
       p = `<div class="prompt"><em>${name}</em> chord: tap ${want} on a bass string.</div>`;
-      pad = `<p class="hint">Only the lit area counts: strings 6, 5 and 4, frets 0–3. ${this.step === 1 ? `The 5th of ${chordRoot(q.r)} is ${spell(chordRoot(q.r), '5')}.` : ''}</p>`;
+      pad = `<p class="hint">Only the lit area counts: strings 6, 5 and 4, frets 0–3. ${this.step === 1 ? `The 5th of ${chordRoot(q.r)} is ${spell(chordRoot(q.r), '5')}.` : ''}</p>${Ear.button('llisten')}`;
     }
     return `${this.meter(st)}<div>${p}${fbh}</div>${pad}`;
   },
   path(){
-    let h = '', part = '';
+    const today = days[todayKey()] || 0;
+    let h = `<button class="step daily${S.learn.id === 'daily' ? ' cur' : ''}${today >= DAILY_GOAL ? ' done' : ''}" data-act="lgo" data-v="daily"><span class="n">${today >= DAILY_GOAL ? '✓' : '★'}</span><span>Today's practice <small class="mono">${Math.min(today, DAILY_GOAL)}/${DAILY_GOAL}</small></span></button>`, part = '';
     LEARN.forEach((st, i) => {
       if (st.part !== part){ part = st.part; h += `${i ? '</div>' : ''}<p class="lbl" style="margin-top:${i ? 14 : 0}px">${part}</p><div class="path">`; }
       const cur = st.id === S.learn.id, done = learnProg.done[st.id];
@@ -1219,8 +1348,9 @@ const Learn = {
     return h + '</div>';
   },
   right(ok, extra){
-    const st = this.stage();
-    if (ok){ this.streak++; if (this.streak >= st.goal && !learnProg.done[st.id]){ learnProg.done[st.id] = true; store.set('fretwise.learn', learnProg); } }
+    const st = this.stage(); haptic(ok ? 'success' : 'error');
+    if (st.daily){ const k = todayKey(); if (ok){ days[k] = (days[k] || 0) + 1; store.set('fretwise.days', days); renderStreak(); } this.streak = days[k] || 0; }
+    else if (ok){ this.streak++; if (this.streak >= st.goal && !learnProg.done[st.id]){ learnProg.done[st.id] = true; store.set('fretwise.learn', learnProg); } }
     else this.streak = 0;
     this.fb = Object.assign({ ok }, extra); this.lock = true; this.render();
     if (this.streak >= st.goal) return;
@@ -1259,17 +1389,25 @@ const Learn = {
   },
   act(a, v){
     const st = this.stage();
-    if (a === 'lgo'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.streak = 0; this.reset(); }
+    if (a === 'lgo'){ S.learn.id = v; S.learn.phase = v === 'daily' ? 'practice' : 'study'; S.learn.sel = null; this.streak = v === 'daily' ? (days[todayKey()] || 0) : 0; this.reset(); }
     if (a === 'lphase' || a === 'lstart'){ S.learn.phase = a === 'lstart' ? 'practice' : v; this.streak = 0; this.reset(); }
     if (a === 'lnext'){ const n = LEARN[this.idx() + 1]; if (n){ S.learn.id = n.id; S.learn.phase = 'study'; S.learn.sel = null; } this.streak = 0; this.reset(); }
-    if (a === 'lagain'){ this.streak = 0; this.reset(); }
-    if (a === 'lhear'){ const ms = [...new Set(this.pool(st).map(c => midiAt(c.s,c.f)))].sort((x,y) => x - y); arp(ms.slice(0, 16), 0.32); return; }
+    if (a === 'lagain'){ if (st.daily){ DAILY.goal += 10; } else this.streak = 0; this.reset(); }
+    if (a === 'lhear'){ const ms = [...new Set(this.pool(st).map(c => midiAt(c.s,c.f)))].sort((x,y) => x - y).filter(m => !st.from || m >= st.from); arp(ms.slice(0, 16), st.from ? 0.26 : 0.32); return; }
+    if (a === 'lsel' && st.kind === 'ear'){ S.learn.sel = v; save(); this.render(); return; }
     if (a === 'lsel'){ S.learn.sel = v; const sel = this.studySel(st); if (st.kind === 'bass') this.boom(sel.r, sel.q); else strum(Chords.midis(openVoicing(sel.r, sel.q))); }
     if (a === 'lnum'){ S.learn.sel = v; const sel = this.studySel(st); strum(Chords.midis(openVoicing(sel.r, sel.q))); }
     if (a === 'lstrum'){ const sel = this.studySel(st); strum(Chords.midis(openVoicing(sel.r, sel.q))); return; }
     if (a === 'lboom'){ const sel = this.studySel(st); this.boom(sel.r, sel.q); return; }
     if (a === 'lstrumq'){ if (this.q && this.q.vc) strum(Chords.midis(this.q.vc)); return; }
+    if (a === 'learhear'){ const k = +(S.learn.sel || st.keys[0]), d = +v, pc = (k + MAJ_SEMI[d]) % 12; strum(Chords.midis(openVoicing(pc, DEG_Q[d]))); return; }
+    if (a === 'learagain'){ this.playEar(); return; }
+    if (a === 'learans' && !this.lock){ const d = +v, ok = d === this.q.deg, nm = chordRoot(this.q.r) + CQ[this.q.cq].sym;
+      this.right(ok, { d, t: ok ? `Yes, the ${DEG_R[d]}: ${nm}.` : `That was the ${DEG_R[this.q.deg]}: ${nm}.` }); return; }
+    if (a === 'metro'){ Metro.toggle(v); this.render(); return; }
+    if (a === 'llisten'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
     if (a === 'lans' && !this.lock){ const pc = +v, m = midiAt(this.q.s, this.q.f), c = pcOf(m); play(m);
+      { const k = this.q.s + '-' + this.q.f, t = stats.c[k] || [0,0,0]; t[0]++; if (pc === c) t[1]++; stats.c[k] = t; saveStats(); }
       this.right(pc === c, { pc, t: pc === c ? `Yes, ${both(c)}.` : `That one is ${both(c)}.` }); return; }
     if (a === 'lchord' && !this.lock){ const [r, cq] = v.split('|'); const ok = +r === this.q.r && cq === this.q.cq; strum(Chords.midis(this.q.vc));
       this.right(ok, { k:v, t: ok ? `Yes, ${chordRoot(this.q.r) + CQ[this.q.cq].sym}.` : `This is ${chordRoot(this.q.r) + CQ[this.q.cq].sym}.` }); return; }
@@ -1277,13 +1415,21 @@ const Learn = {
       this.right(ok, { d, t: ok ? `Yes: in ${chordRoot(this.q.key)}, the ${DEG_R[this.q.deg]} is ${nm}.` : `In ${chordRoot(this.q.key)}, the ${DEG_R[this.q.deg]} is ${nm}.` }); return; }
     save(); this.render();
   },
+  heard(r){
+    const st = this.stage(); if (S.learn.phase !== 'practice' || this.lock || !this.q || this.streak >= st.goal) return;
+    if (st.kind === 'notes') this.act('lans', String(pcOf(r)));
+    if (st.kind === 'bass'){
+      const cells = cellsIn([0,1,2], 0, 3), hit = cells.find(c => midiAt(c.s, c.f) === r) || cells.find(c => pcOf(midiAt(c.s, c.f)) === pcOf(r));
+      if (hit) this.cell(hit.s, hit.f); else { this.fb = { ok:false, t:`Heard ${both(pcOf(r))}. Play it on strings 6–4, frets 0–3.` }; this.render(); }
+    }
+  },
   key(e){
     const st = this.stage(); if (S.learn.phase !== 'practice' || st.kind !== 'notes' || this.lock || e.metaKey || e.ctrlKey || e.altKey) return;
     const i = 'cdefgab'.indexOf(e.key.toLowerCase()); if (i < 0) return;
     let pc = LETTER_PC[i]; if (e.shiftKey) pc = (pc + 1) % 12;
     e.preventDefault(); this.act('lans', String(pc));
   },
-  leave(){ clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked', 'lesson-first'); }
+  leave(){ Ear.stop(); Metro.stop(); clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked', 'lesson-first'); }
 };
 
 /* ================= MICROPHONE PITCH ================= */
@@ -1298,16 +1444,21 @@ const Mic = {
       try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch(e){}
       this.stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
       const srcN = c.createMediaStreamSource(this.stream);
-      this.an = c.createAnalyser(); this.an.fftSize = 2048; srcN.connect(this.an);
+      this.an = c.createAnalyser(); this.an.fftSize = 4096; srcN.connect(this.an);
       this.buf = new Float32Array(this.an.fftSize); this.on = true;
-      this.timer = setInterval(() => this.tick(), 60);
+      this.timer = setInterval(() => this.tick(), 50);
       return true;
     } catch (e){ this.err = e && e.name || 'Error'; this.on = false; return false; }
   },
   stop(){ try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){} clearInterval(this.timer); if (this.stream) this.stream.getTracks().forEach(t => t.stop()); this.stream = null; this.on = false; this.hist = []; },
+  floor:0.004, quietUntil:0,
   tick(){
     this.an.getFloatTimeDomainData(this.buf);
-    const f = autoCorrelate(this.buf, ac.sampleRate);
+    // adaptive noise gate: track the room's quiet level, only listen well above it
+    const gate = Math.max(0.01, this.floor * 3.2);
+    const r = detectPitch(this.buf, ac.sampleRate, gate);
+    if (r.f < 0 && r.rms < gate) this.floor = this.floor * 0.95 + r.rms * 0.05;
+    const f = performance.now() < this.quietUntil ? -1 : r.f;
     if (f > 60 && f < 1400){ this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); }
     else { this.hist = []; }
     const med = this.hist.length >= 3 ? [...this.hist].sort((a,b) => a - b)[this.hist.length >> 1] : -1;
@@ -1320,23 +1471,82 @@ const Mic = {
     return 'The microphone could not start. Close other apps that are using it and try again.';
   }
 };
-function autoCorrelate(b, sr){
-  let n = b.length, rms = 0; for (let i = 0; i < n; i++) rms += b[i] * b[i];
-  if (Math.sqrt(rms / n) < 0.012) return -1;
-  let r1 = 0, r2 = n - 1; const th = 0.2;
-  for (let i = 0; i < n / 2; i++) if (Math.abs(b[i]) < th){ r1 = i; break; }
-  for (let i = 1; i < n / 2; i++) if (Math.abs(b[n - i]) < th){ r2 = n - i; break; }
-  const x = b.slice(r1, r2); n = x.length;
-  const c = new Float32Array(n);
-  for (let i = 0; i < n; i++){ let sum = 0; for (let j = 0; j < n - i; j++) sum += x[j] * x[j + i]; c[i] = sum; }
-  let d = 0; while (d < n - 1 && c[d] > c[d + 1]) d++;
-  let mx = -1, mp = -1; for (let i = d; i < n; i++) if (c[i] > mx){ mx = c[i]; mp = i; }
-  let T = mp; if (T <= 0 || T >= n - 1) return -1;
-  const a1 = c[T - 1], a2 = c[T], a3 = c[T + 1], A = (a1 + a3 - 2 * a2) / 2, B = (a3 - a1) / 2;
-  if (A) T -= B / (2 * A);
-  return sr / T;
+// YIN pitch detector (de Cheveigné & Kawahara 2002) over a 2048-sample window; returns Hz or -1.
+function detectPitch(b, sr, gate){
+  const W = 2048, maxLag = Math.min(b.length - W, Math.floor(sr / 60)), minLag = Math.floor(sr / 1400);
+  let rms = 0; for (let i = 0; i < W; i++) rms += b[i] * b[i]; rms = Math.sqrt(rms / W);
+  if (rms < gate) return { f:-1, rms };
+  const d = detectPitch.d && detectPitch.d.length >= maxLag + 1 ? detectPitch.d : (detectPitch.d = new Float32Array(maxLag + 1));
+  d[0] = 1; let run = 0;
+  for (let tau = 1; tau <= maxLag; tau++){
+    let sum = 0; for (let i = 0; i < W; i++){ const x = b[i] - b[i + tau]; sum += x * x; }
+    run += sum; d[tau] = run ? sum * tau / run : 1;
+  }
+  let tau = -1;
+  for (let t = Math.max(2, minLag); t < maxLag; t++){ if (d[t] < 0.13){ while (t + 1 < maxLag && d[t + 1] < d[t]) t++; tau = t; break; } }
+  if (tau < 0) return { f:-1, rms };
+  const a = d[tau - 1], c0 = d[tau], c = d[tau + 1], den = a + c - 2 * c0;
+  const t2 = den ? tau + (a - c) / (2 * den) : tau;
+  return { f: sr / t2, rms, clarity: 1 - c0 };
 }
 const f2m = f => 69 + 12 * Math.log2(f / 440);
+
+/* ---------- answer by playing your guitar ---------- */
+const Ear = {
+  fn:null, handler:null, armed:true, last:null, stable:0, silent:0,
+  get on(){ return !!this.fn; },
+  async toggle(handler){
+    if (this.fn){ this.stop(); return false; }
+    const ok = await Mic.start(); if (!ok){ toast(Mic.errText()); return false; }
+    this.handler = handler; this.armed = true; this.last = null; this.fn = f => this.frame(f); Mic.subs.add(this.fn); return true;
+  },
+  frame(f){
+    const el = document.getElementById('heard');
+    if (f < 0){ if (++this.silent >= 3){ this.armed = true; this.last = null; this.stable = 0; if (el) el.textContent = 'Listening…'; } return; }
+    this.silent = 0; const r = Math.round(f2m(f));
+    if (el) el.textContent = 'Hearing ' + nn(pcOf(r));
+    if (r === this.last) this.stable++; else { this.last = r; this.stable = 0; this.armed = true; }
+    if (this.stable === 2 && this.armed){ this.armed = false; if (this.handler) this.handler(r); }
+  },
+  stop(){ if (this.fn){ Mic.subs.delete(this.fn); this.fn = null; } if (!Mic.subs.size && Mic.on) Mic.stop(); },
+  button(act){ return `<div class="row" style="margin-top:8px">${chip(act, '', this.on ? 'Listening: play it on your guitar' : 'Answer by playing your guitar', this.on)}<span class="hint" id="heard">${this.on ? 'Listening…' : ''}</span></div>`; }
+};
+
+/* ---------- metronome and boom-chuck play-along ---------- */
+const BOOM_BARS = [[7,'maj'],[7,'maj'],[0,'maj'],[7,'maj'],[7,'maj'],[7,'maj'],[2,'maj'],[7,'maj']];
+const Metro = {
+  bpm:96, on:null, timer:0, next:0, beat:0,
+  click(when, accent){
+    const t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = accent ? 1600 : 1100; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(accent ? .5 : .3, t + .002); g.gain.exponentialRampToValueAtTime(0.0001, t + .05);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + .06);
+  },
+  step(beat, when){
+    if (this.on === 'click'){ this.click(when, beat % 4 === 0); return; }
+    const [r, q] = BOOM_BARS[Math.floor(beat / 4) % BOOM_BARS.length], vc = openVoicing(r, q), b = beat % 4;
+    const low = pc => { for (const {s,f} of cellsIn([0,1,2], 0, 3)) if (pcOf(midiAt(s,f)) === pc) return midiAt(s,f); };
+    if (b === 0) play(low(r), when, 1);
+    else if (b === 2) play(low((r + 7) % 12), when, 1);
+    else vc.frets.forEach((f, s) => { if (f != null && s >= 3) play(midiAt(s, f), when + (s - 3) * 0.01, .5); });
+    if (b === 0){ const lab = document.getElementById('metrochord'); const ms = Math.max(0, when * 1000); setTimeout(() => { if (lab) lab.textContent = chordRoot(r) + CQ[q].sym; }, ms); }
+  },
+  toggle(kind){
+    if (this.on){ const was = this.on; this.stop(); if (was === kind) return; }
+    if (!actx()) return;
+    loadSamples(); this.on = kind; this.beat = 0; this.next = ac.currentTime + 0.15;
+    this.timer = setInterval(() => { while (this.next < ac.currentTime + 0.15){ this.step(this.beat, this.next - ac.currentTime); this.next += 60 / this.bpm; this.beat++; } }, 25);
+  },
+  stop(){ clearInterval(this.timer); this.timer = 0; this.on = null; },
+  input(e){ if (e.target.id !== 'bpm') return; this.bpm = +e.target.value; const l = document.getElementById('bpmv'); if (l) l.textContent = this.bpm + ' BPM'; },
+  controls(boomLabel){
+    return `<div class="stack" style="gap:8px;border-top:1px solid var(--line);padding-top:12px">
+      <p class="lbl" style="margin:0">Tempo</p>
+      <div class="row" style="flex-wrap:nowrap"><input type="range" id="bpm" min="50" max="180" step="2" value="${this.bpm}" aria-label="Tempo in beats per minute" style="flex:1;min-width:0"><span class="mono" id="bpmv" style="width:72px;text-align:right">${this.bpm} BPM</span></div>
+      <div class="row">${chip('metro', 'boom', this.on === 'boom' ? 'Stop' : boomLabel, this.on === 'boom')}${chip('metro', 'click', this.on === 'click' ? 'Stop click' : 'Click only', this.on === 'click')}<span class="chordname" id="metrochord" style="font-size:22px;margin-left:6px">${this.on === 'boom' ? '' : ''}</span></div>
+      <p class="hint">The play-along runs G G C G, G G D G: bass on beats 1 and 3, strum on 2 and 4. Start slow and play with it; speed comes later.</p>
+    </div>`;
+  }
+};
 
 /* ================= TUNER ================= */
 const TUNINGS = {
@@ -1385,6 +1595,7 @@ const Tuner = {
         <div><p class="lbl">Reference tones</p>
           <div class="pad" style="grid-template-columns:repeat(6,1fr)">${notes.map((m, i) => `<button class="key ${this.sel === i ? 'good' : ''}" data-act="ref" data-v="${i}" aria-label="${SORD[i]} string, ${nn(pcOf(m))}">${nn(pcOf(m))}<small>${6 - i}</small></button>`).join('')}</div></div>
         <div class="row">${toggle('loop', 'Keep ringing', t.loop)}${this.loopT ? '<button class="chip" data-act="stopring">Stop</button>' : ''}</div>
+        ${Metro.controls('Boom-chuck in G')}
         <p class="hint">By ear: play the reference, then your string, and turn the peg until the wobble between them slows down and stops. Bluegrass jams usually stay in standard; Open G and Open D are common for slide and dobro-style playing.</p>
       </div>`;
   },
@@ -1405,18 +1616,29 @@ const Tuner = {
     if (a === 'stopring'){ this.stopRing(); this.sel = null; }
     if (a === 'loop'){ t.loop = !t.loop; if (!t.loop) this.stopRing(); else if (this.sel != null){ save(); this.ring(this.sel); return; } }
     if (a === 'tuning'){ t.tuning = v; this.stopRing(); this.sel = null; }
+    if (a === 'metro'){ Metro.toggle(v); }
     if (a === 'mic'){
       if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); }
       else { const ok = await Mic.start(); if (ok){ const fn = f => this.onPitch(f); Mic.subs.add(fn); this.unsub = () => Mic.subs.delete(fn); } }
     }
     save(); this.render();
   },
-  leave(){ this.stopRing(); $('#main').classList.remove('lesson-first'); if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); } }
+  input(e){ Metro.input(e); },
+  leave(){ this.stopRing(); Metro.stop(); $('#main').classList.remove('lesson-first'); if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); } }
 };
 
 /* ================= LIFE-SIZE NECK ================= */
 const SCALE_MM = 648;                 // 25.5" steel-string scale
-const defaultK = () => matchMedia('(pointer: coarse)').matches ? 6.1 : 3.78;   // CSS px per mm
+// CSS px per mm. iPhones are recognized by screen size and pixel ratio (326 ppi at 2x, ~460 ppi at 3x).
+function iphoneK(){
+  if (!/iPhone/.test(navigator.userAgent)) return null;
+  const w = Math.min(screen.width, screen.height), h = Math.max(screen.width, screen.height), d = window.devicePixelRatio;
+  if (d < 2.5) return 6.42;
+  if (w === 375 && h === 812) return 6.1;      // X / XS / 11 Pro / 12-13 mini
+  if (w === 414 && h === 736) return 6.09;     // 6-8 Plus
+  return 6.03;
+}
+const defaultK = () => iphoneK() || (matchMedia('(pointer: coarse)').matches ? 6.1 : 3.78);
 const lk = () => S.life.k || defaultK();
 const mmPos = n => n <= 0 ? 0 : SCALE_MM * (1 - Math.pow(2, -n / 12));
 const neckW = y => 43 + 0.028 * Math.max(0, y);
@@ -1495,7 +1717,7 @@ const Life = {
     const L = S.life, pc = pcOf(midiAt(s, f));
     if (f > L.maxFret){ this.fb = { ok:false, t:`Stay within frets 0–${L.maxFret} for this round.` }; this.hud(); return; }
     const ok = pc === this.q.pc && (this.q.s == null || this.q.s === s);
-    this.n++;
+    this.n++; haptic(ok ? 'success' : 'error');
     if (ok){
       this.ok++; this.streak++; if (this.streak > this.best) this.best = this.streak;
       const secs = ((performance.now() - this.t0) / 1000).toFixed(1);
@@ -1552,7 +1774,7 @@ const Life = {
       if (this.off > this.maxOff()){ this.off = this.maxOff(); this.v = 0; }
     }
     const cf = this.fretAt(this.off + this.view() / 2);
-    if (cf !== this.lastFret){ if (Math.abs(this.v) > 60) this.flashFret = { n:cf, t }; this.lastFret = cf; }
+    if (cf !== this.lastFret){ if (Math.abs(this.v) > 60){ this.flashFret = { n:cf, t }; haptic('tick'); } this.lastFret = cf; }
     this.draw(t);
     if (this.open) this.raf = requestAnimationFrame(x => this.loop(x));
   },
@@ -1677,7 +1899,7 @@ const LifeTab = {
         <p class="hint">In Play the note, tap where the note is, or tap Listen and play it on your guitar (your browser will ask for the microphone the first time). Hint shows every spot and slides you there if it's off screen.</p>
       </div>
       <div class="card c5 stack">
-        <div><p class="lbl">Match your screen</p><p class="sub">Screens differ, so check the size once. Lay a bank card on the outline and drag until the edges line up.</p></div>
+        <div><p class="lbl">Match your screen</p><p class="sub">${iphoneK() && !L.k ? 'Sized automatically for your iPhone. To fine-tune, lay a bank card on the outline and drag until the edges line up.' : 'Screens differ, so check the size once. Lay a bank card on the outline and drag until the edges line up.'}</p></div>
         <div style="display:flex;justify-content:center;overflow:hidden"><div id="calcard" style="width:${85.6 * k}px;height:${53.98 * k}px;max-width:100%;border:2px dashed var(--accent);border-radius:${3.2 * k}px;display:grid;place-items:center;color:var(--muted);font-size:13px">Bank card, 85.6 × 54 mm</div></div>
         <input type="range" id="calk" min="2.5" max="9" step="0.02" value="${k}" aria-label="Screen size calibration" style="width:100%">
         <div class="row" style="justify-content:space-between"><span class="hint" id="calv">${(k * 25.4).toFixed(0)} px per inch</span><button class="chip" data-act="lcalreset">Reset</button></div>
@@ -1697,6 +1919,27 @@ const LifeTab = {
   input(e){ if (e.target.id !== 'calk') return; const k = +e.target.value; S.life.k = k; const cc = $('#calcard'); cc.style.width = 85.6 * k + 'px'; cc.style.height = 53.98 * k + 'px'; cc.style.borderRadius = 3.2 * k + 'px'; $('#calv').textContent = (k * 25.4).toFixed(0) + ' px per inch'; save(); }
 };
 
+/* ---------- first-run walkthrough ---------- */
+const WELCOME = [
+  { t:'Learn the neck one string at a time', b:'Fretwise starts with the six open strings and adds a little at a time: one string, then the next, then bluegrass chords, rhythm and the number system. Pass a stage by getting answers right in a row.', art:'<svg viewBox="0 0 220 70" aria-hidden="true"><rect x="10" y="10" width="200" height="50" rx="4" style="fill:var(--wood-b)"/>' + [0,1,2,3,4,5].map(i => `<line x1="10" x2="210" y1="${15 + i * 8}" y2="${15 + i * 8}" style="stroke:${i > 3 ? 'var(--string)' : 'var(--wound)'};stroke-width:${2.2 - i * .25}"/>`).join('') + [55,95,130,160,188].map(x => `<line x1="${x}" x2="${x}" y1="10" y2="60" style="stroke:var(--fretwire);stroke-width:2"/>`).join('') + '<circle cx="75" cy="55" r="7" style="fill:var(--amber)"/></svg>' },
+  { t:'Turn your sound up', b:'Every tap plays a real acoustic guitar, and the piano strip at the top shows the exact pitch you hear. If you hear nothing, check your volume.', art:'' },
+  { t:'Play along on your guitar', b:'Tap "Answer by playing your guitar" in any quiz, or use the Tuner. Fretwise listens through the microphone to hear which note you play. The sound stays on your device and is never recorded.', art:'' },
+  { t:'A little every day', b:'Today\'s practice mixes the notes you\'ve learned and leans on the ones you miss. Fifteen right answers a day keeps your streak going.', art:'' }
+];
+const Welcome = {
+  i:0,
+  show(){ this.i = 0; $('#welcome').hidden = false; this.draw(); $('#wnext').focus(); },
+  draw(){
+    const w = WELCOME[this.i];
+    $('#wbody').innerHTML = `${w.art ? `<div class="wart">${w.art}</div>` : ''}<h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2><p class="sub" style="font-size:15px;margin:0">${w.b}</p>`;
+    $('#wdots').innerHTML = WELCOME.map((_, j) => `<span class="${j === this.i ? 'on' : ''}"></span>`).join('');
+    $('#wnext').textContent = this.i === WELCOME.length - 1 ? 'Start with stage 1' : 'Next';
+  },
+  close(){ $('#welcome').hidden = true; store.set('fretwise.welcomed', true); }
+};
+$('#wnext').addEventListener('click', () => { if (Welcome.i < WELCOME.length - 1){ Welcome.i++; Welcome.draw(); } else { Welcome.close(); S.learn.id = 'open'; S.learn.phase = 'study'; save(); go('learn'); } });
+$('#wskip').addEventListener('click', () => Welcome.close());
+
 /* ---------- shell ---------- */
 const MODES = { learn:Learn, explore:Explore, drill:Drill, chords:Chords, scales:Scales, life:LifeTab, tuner:Tuner };
 Life.bind();
@@ -1715,6 +1958,7 @@ function go(t, fromHash){
   syncGlobals(); ensureBoard(); $('#main').classList.toggle('noboard', t === 'life'); MODES[tab].render();
 }
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
+$('#daystreak').addEventListener('click', () => { S.learn.id = 'daily'; S.learn.phase = 'practice'; Learn.reset(); save(); go('learn'); });
 document.querySelector('.globals').addEventListener('click', e => {
   const b = e.target.closest('[data-g]'); if (!b) return;
   const g = b.dataset.g;
@@ -1728,6 +1972,8 @@ document.addEventListener('keydown', e => { if (e.target.closest && e.target.clo
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ensureBoard()) MODES[tab].render(); }, 120); });
 go((location.hash || '#learn').slice(1), true);
+renderStreak();
+if (!store.get('fretwise.welcomed', false)) Welcome.show();
 })();
 </script>
 
