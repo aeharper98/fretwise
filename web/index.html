@@ -1207,103 +1207,114 @@ const Scales = {
 const ALL = [0,1,2,3,4,5];
 // The Learn path. Phases follow the research: first position and finding home, then jam-ready rhythm,
 // keys and numbers, ear training by scale degree, melody-first lead, up the neck, then harmony for songs.
-const isPianist = () => !!(S.profile && (S.profile.piano === 'yes' || S.profile.piano === 'some'));
+const PIANO_LEVELS = [['no','No','Guitar is my way in.'], ['little','A little','Some lessons or self-taught basics.'], ['reads','I read and play pieces','Reading and repertoire, less theory.'], ['theory','I know scales, chords and keys','Theory feels familiar.'], ['charts','I play from chord charts','You already think in numbers and changes.']];
+if (S.profile && S.profile.piano === 'yes') S.profile.piano = 'theory';
+if (S.profile && S.profile.piano === 'some') S.profile.piano = 'little';
+const isPianist = () => !!(S.profile && S.profile.piano && S.profile.piano !== 'no');
+const theoryFluent = () => !!(S.profile && (S.profile.piano === 'theory' || S.profile.piano === 'charts'));
 const G_C_D = [[7,'maj'],[0,'maj'],[2,'maj']], G_C_D_A_E = [[7,'maj'],[0,'maj'],[2,'maj'],[9,'maj'],[4,'maj']];
 const LEARN_ALL = [
-  // ---------- 1. First position
-  { id:'keyboard', piano:true, part:'First position', t:'The neck is a keyboard', kind:'unison', goal:6,
+  // ---------- Home and three chords
+  { id:'keyboard', piano:true, part:'Home and three chords', t:'The neck is a keyboard', kind:'unison', goal:6,
     d:'You already know the keyboard. Each string is one row of it, one fret per key, black keys included. Strings sit five keys apart (four between G and B), so the same pitch turns up in several places.' },
-  { id:'open', part:'First position', t:'The open strings', kind:'notes', strings:ALL, range:[0,0], nat:true, goal:8,
+  { id:'open', part:'Home and three chords', t:'The open strings', kind:'notes', strings:ALL, range:[0,0], nat:true, goal:8,
     d:'Six strings, thickest to thinnest: E A D G B E. A memory line: "Eddie Ate Dynamite, Good Bye Eddie." Every other note is counted up from these, so learn them cold first.',
     dp:'Six strings, thickest to thinnest: E A D G B E, from E2, more than an octave below middle C, up to E4, just above it. Careful with the names: the "high" E is the thin string nearest the floor.' },
-  { id:'e6a', part:'First position', t:'6th string, frets 0–5', kind:'notes', strings:[0], range:[0,5], nat:true, goal:8,
+  { id:'e6a', part:'Home and three chords', t:'6th string, frets 0–5', kind:'notes', strings:[0], range:[0,5], nat:true, goal:8,
     d:'Only four natural notes live here: E (open), F (1), G (3), A (5). That G on fret 3 is the bass note of the G chord, the home chord of bluegrass.' },
-  { id:'a5a', part:'First position', t:'5th string, frets 0–5', kind:'notes', strings:[1], range:[0,5], nat:true, goal:8,
+  { id:'a5a', part:'Home and three chords', t:'5th string, frets 0–5', kind:'notes', strings:[1], range:[0,5], nat:true, goal:8,
     d:'A (open), B (2), C (3), D (5). With the 6th string, these frets hold the bass note of almost every chord in G, C, D and A.' },
-  { id:'high', part:'First position', t:'Top four strings, first position', kind:'notes', strings:[2,3,4,5], range:[0,4], nat:true, goal:10,
-    d:'The D, G, B and high E strings, frets 0–4. Melodies and fiddle tunes in G and D mostly live right here.' },
-  { id:'first', part:'First position', t:'First position, all strings', kind:'notes', strings:ALL, range:[0,4], nat:true, goal:12,
-    d:'Frets 0–4 across every string. This is where bluegrass guitar lives: open chords, G runs and fiddle tunes are mostly played right here.' },
-  { id:'home', part:'First position', t:'Find home', kind:'tonic', keys:[7,0,2], goal:8,
-    d:'Before anything else, jammers find the key. Listen to a few chords and find the note that sounds like the end of the song: home, the 1.' },
-
-  // ---------- 2. Jam-ready rhythm
-  { id:'gcd', part:'Jam-ready rhythm', t:'G, C and D', kind:'chords', set:G_C_D, goal:8,
+  { id:'gcd', part:'Home and three chords', t:'G, C and D', kind:'chords', set:G_C_D, goal:8,
     d:'Thousands of bluegrass songs use only these three chords in the key of G. Learn them by sight and by sound.' },
-  { id:'ae', part:'Jam-ready rhythm', t:'Add A and E', kind:'chords', set:G_C_D_A_E, goal:8,
-    d:'D, G and A make the key of D; A, D and E make the key of A. With these five shapes you can play in G, C, D and A, the most common bluegrass keys.' },
-  { id:'boom', part:'Jam-ready rhythm', t:'Boom-chuck: find the root', kind:'bass', alt:false, set:G_C_D_A_E, goal:8,
+  { id:'boom', part:'Home and three chords', t:'Boom-chuck: find the root', kind:'bass', alt:false, set:G_C_D_A_E, goal:8,
     d:'The "boom" is the chord\'s root played alone on a bass string. Tap the root of each chord in the lit area (strings 6–4, frets 0–3).' },
-  { id:'alt', part:'Jam-ready rhythm', t:'Alternating bass', kind:'bass', alt:true, set:G_C_D_A_E, goal:8,
+  { id:'home', part:'Home and three chords', t:'Find home', kind:'tonic', keys:[7,0,2], goal:8,
+    d:'Before anything else, jammers find the key. Listen to a few chords and find the note that sounds like the end of the song: home, the 1.' },
+  { id:'ae', part:'Home and three chords', t:'Add A and E', kind:'chords', set:G_C_D_A_E, goal:8,
+    d:'D, G and A make the key of D; A, D and E make the key of A. With these five shapes you can play in G, C, D and A, the most common bluegrass keys.' },
+  { id:'alt', part:'Home and three chords', t:'Alternating bass', kind:'bass', alt:true, set:G_C_D_A_E, goal:8,
     d:'Real boom-chuck alternates: root, strum, then the 5th of the chord, strum. For G that is G, then D. Tap the root, then the 5th.' },
-  { id:'chuck', part:'Jam-ready rhythm', t:'Chuck on 2 and 4', kind:'chuck', bpm:72, tol:90, goal:12,
-    d:'Boom-chuck is a bass note on beats 1 and 3 and a strum on 2 and 4. Fretwise plays the bass; you tap the chuck. Steady time matters more than speed at any jam.' },
-  { id:'bassear', part:'Jam-ready rhythm', t:'Hear the bass note', kind:'bassear', set:G_C_D_A_E, goal:8,
+  { id:'bassear', part:'Home and three chords', t:'Hear the bass note', kind:'bassear', set:G_C_D_A_E, goal:8,
     d:'Hear a chord, then find its root on the bass strings. It is how you follow a song nobody has called: listen to the low end first.' },
-  { id:'ear1', part:'Jam-ready rhythm', t:'Hear I, IV and V', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5], goal:8,
-    d:'Jam changes come fast. You hear the key\'s home chord (I), then a mystery chord. Is it the I again, the IV or the V? The V sounds like it wants to go home; the IV sounds like a lift.' },
-
-  // ---------- 3. Keys and numbers
-  { id:'deg135', part:'Keys and numbers', t:'Notes as numbers: 1, 3 and 5', kind:'degrees', theory:true, keys:[7,0,2], degrees:[1,3,5], strings:ALL, range:[0,4], anchor:true, goal:8,
+  { id:'chuck', part:'Home and three chords', t:'Chuck on 2 and 4', kind:'chuck', bpm:72, tol:90, goal:12,
+    d:'Boom-chuck is a bass note on beats 1 and 3 and a strum on 2 and 4. Fretwise plays the bass; you tap the chuck. Steady time matters more than speed at any jam.' },
+  { id:'ear1', part:'Home and three chords', t:'Hear 1, 4 and 5', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5], goal:8,
+    d:'Jam changes come fast. You hear the key\'s home chord, the 1, then a mystery chord. Is it the 1 again, the 4 or the 5? The 5 sounds like it wants to go home; the 4 sounds like a lift.' },
+  // ---------- Numbers in the hand
+  { id:'high', part:'Numbers in the hand', t:'Top four strings, first position', kind:'notes', strings:[2,3,4,5], range:[0,4], nat:true, goal:10,
+    d:'The D, G, B and high E strings, frets 0–4. Melodies and fiddle tunes in G and D mostly live right here.' },
+  { id:'first', part:'Numbers in the hand', t:'First position, all strings', kind:'notes', strings:ALL, range:[0,4], nat:true, goal:12,
+    d:'Frets 0–4 across every string. This is where bluegrass guitar lives: open chords, G runs and fiddle tunes are mostly played right here.' },
+  { id:'deg135', part:'Numbers in the hand', t:'Notes as numbers: 1, 3 and 5', kind:'degrees', theory:true, keys:[7,0,2], degrees:[1,3,5], strings:ALL, range:[0,4], anchor:true, goal:8,
     d:'In any key, the key note is 1. Count up the major scale from it: in G, 1 is G, 3 is B and 5 is D. Those three notes are the G chord.',
     dp:'The same scale degrees you use on piano, now on the neck: 1, 3 and 5 in G, C and D, first position.',
     study:'In G, 1 is G, 3 is B and 5 is D: the G chord. Square dots are the 1s. Tap around and hear how 1, 3 and 5 belong together.' },
-  { id:'num1', part:'Keys and numbers', t:'Numbers: I, IV and V', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,4,5], goal:8,
+  { id:'num1', part:'Numbers in the hand', t:'Numbers: 1, 4 and 5', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,4,5], goal:8,
     d:'Bluegrass players call changes by number so a song works in any key: "it\'s a 1-4-5." Songs nearly always start and end on 1, and the chord just before the end is almost always 5.' },
-  { id:'chart1', part:'Keys and numbers', t:'Hear the form', kind:'chart', keys:[7,2,9], goal:6,
+  { id:'chart1', part:'Numbers in the hand', t:'Hear the form', kind:'chart', keys:[7,2,9], goal:6,
     progs:['1 4 1 5','1 1 4 1','1 5 1 1','1 4 5 1','1 1 5 1','1 5 4 1'],
     examples:[{ name:'Nine Pound Hammer: 1 1 4 4, 1 5 1 1', prog:'1 1 4 4 1 5 1 1' }, { name:'Will the Circle Be Unbroken (ending): 1 1 1 1, 1 5 1 1', prog:'1 1 1 1 1 5 1 1' }, { name:'New River Train (middle): 1 1 4 4, 5 5 1 1', prog:'1 1 4 4 5 5 1 1' }],
     d:'Jammers hear a song as a number pattern. Nine Pound Hammer is "1 1 4 4, 1 5 1 1" in any key. Listen to four bars and pick the chart.',
     study:'A chart is the song\'s chords as numbers, one per bar. Learn to hear when the chord changes and whether it went to 4 or 5: the 4 lifts, the 5 pulls back home.' },
-  { id:'degscale', part:'Keys and numbers', t:'The whole scale as numbers', kind:'degrees', theory:true, keys:[7,2], degrees:[1,2,3,4,5,6,7], strings:ALL, range:[0,4], anchor:true, goal:10,
+  { id:'octaves', part:'Numbers in the hand', t:'Octave shapes', kind:'octaves', nat:true, goal:8,
+    d:'Octave shapes carry note names across the neck: two strings over and two frets up, or three frets up when you cross the B string.' },
+  { id:'capo', part:'Numbers in the hand', t:'Capo math', kind:'capo', theory:true, goal:8,
+    d:'Guitarists play G, C, D and A shapes and move the capo to match the singer. The shape keeps its name; the key goes up one half step per fret.',
+    dp:'A capo transposes: the fingering stays a "G shape" while the key that sounds moves up a half step per fret.' },
+  { id:'degscale', part:'Numbers in the hand', t:'The whole scale as numbers', kind:'degrees', theory:true, keys:[7,2], degrees:[1,2,3,4,5,6,7], strings:ALL, range:[0,4], anchor:true, goal:10,
     d:'Every note of the major scale has a number. 1, 3 and 5 are the chord; 2, 4, 6 and 7 are the notes in between that melodies walk through.',
     dp:'Major-scale degrees 1 to 7 in G and D, first position. You know these from piano; the work here is finding them fast on the neck.',
     study:'Every note of the scale has a number. 1, 3 and 5 make the chord; 2, 4, 6 and 7 are the passing notes melodies walk through.' },
-  { id:'num2', part:'Keys and numbers', t:'The 2 and 6 minors', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,2,4,5,6], goal:8,
-    d:'The 2 and 6 chords of a major key are minor: in G, Am and Em. Careful: when bluegrass players say "the 2 chord" they usually mean a major 2 (A or A7 in G). That one comes later.' },
-  { id:'sev', part:'Keys and numbers', t:'Sevenths and minors', kind:'chords', set:[[7,'7'],[2,'7'],[9,'7'],[4,'7'],[4,'min'],[9,'min']], goal:8,
-    d:'A 7th chord pulls toward the next chord: D7 leads back to G, G7 leads to C. Em and Am give the minor color heard in songs like "Wayfaring Stranger."' },
-  { id:'capo', part:'Keys and numbers', t:'Capo math', kind:'capo', theory:true, goal:8,
-    d:'Guitarists play G, C, D and A shapes and move the capo to match the singer. The shape keeps its name; the key goes up one half step per fret.',
-    dp:'A capo transposes: the fingering stays a "G shape" while the key that sounds moves up a half step per fret.' },
-
-  // ---------- 4. Hear it, play it
-  { id:'hear135', part:'Hear it, play it', t:'Hear 1, 3 and 5', kind:'degear', keys:[7,2,9], degrees:[1,3,5], goal:8,
+  { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
+    d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G.' },
+  { id:'dmaj', part:'Numbers in the hand', t:'D major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
+    d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
+  { id:'hear135', part:'Numbers in the hand', t:'Hear 1, 3 and 5', kind:'degear', keys:[7,2,9], degrees:[1,3,5], goal:8,
     d:'Each number has its own feeling in a key. Hear the key, then a note, and name its number, or play it on your guitar.',
     study:'1 sounds settled, 5 sounds open and strong, 3 sounds warm. Hear the key first, then each note, and notice how it sits against home.' },
-  { id:'echo3', part:'Hear it, play it', t:'Echo three notes', kind:'echo', keys:[7,2], pool:[1,2,3,5], len:3, goal:8,
+  { id:'echo3', part:'Numbers in the hand', t:'Echo three notes', kind:'echo', keys:[7,2], pool:[1,2,3,5], len:3, goal:8,
     d:'Bluegrass breaks start from the melody, and melodies are learned by ear, a phrase at a time. Listen, hum it, then play it back.',
     study:'Melodies are learned by ear one phrase at a time. Every phrase here starts on home and uses 1, 2, 3 and 5. Hum it first, then find it.' },
-  { id:'hearpent', part:'Hear it, play it', t:'Hear the pentatonic', kind:'degear', keys:[7,2,9], degrees:[1,2,3,5,6], goal:10,
+  { id:'hearpent', part:'Numbers in the hand', t:'Hear the pentatonic', kind:'degear', keys:[7,2,9], degrees:[1,2,3,5,6], goal:10,
     d:'Add 2 and 6, the rest of the major pentatonic. These five notes carry most bluegrass and country melodies.',
     study:'Add 2 and 6. Together with 1, 3 and 5 they make the major pentatonic, the five notes behind most bluegrass and country melodies.' },
-  { id:'echo4', part:'Hear it, play it', t:'Echo four notes', kind:'echo', keys:[7,2,9], pool:[1,2,3,5,6], len:4, goal:8,
+  { id:'echo4', part:'Numbers in the hand', t:'Echo four notes', kind:'echo', keys:[7,2,9], pool:[1,2,3,5,6], len:4, goal:8,
     d:'Longer phrases from the pentatonic. Sing or hum each one before you play it; your voice finds it faster than your fingers.',
     study:'Four-note phrases from 1 2 3 5 6. Hum the phrase back first, then play it. Your voice finds a melody faster than your fingers.' },
-  { id:'ear2', part:'Hear it, play it', t:'Add the 6 minor', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5,6], goal:8,
+  { id:'ear2', part:'Numbers in the hand', t:'Add the 6 minor', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5,6], goal:8,
     d:'The 6 minor (Em in G) sounds sad next to the bright major chords. Same game, one more choice.' },
-  { id:'hearscale', part:'Hear it, play it', t:'Hear the whole scale', kind:'degear', keys:[7,2], degrees:[1,2,3,4,5,6,7], goal:10,
-    d:'Now 4 and 7, the two notes that lean: 4 leans down to 3, and 7 leans up to 1.',
-    study:'4 and 7 are the notes that lean: 4 wants to fall to 3, 7 wants to rise to 1. Listen for the pull.' },
-
-  // ---------- 5. Melody and solos
-  { id:'gmaj', part:'Melody and solos', t:'G major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
-    d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G.' },
-  { id:'tones', part:'Melody and solos', t:'Chord tones: root, 3rd, 5th', kind:'tones', set:G_C_D, ivs:['1','3','5'], goal:10,
+  // ---------- Chord tones and first breaks
+  { id:'sev', part:'Chord tones and first breaks', t:'Sevenths and minors', kind:'chords', set:[[7,'7'],[2,'7'],[9,'7'],[4,'7'],[4,'min'],[9,'min']], goal:8,
+    d:'A 7th chord pulls toward the next chord: D7 leads back to G, G7 leads to C. Em and Am give the minor color heard in songs like "Wayfaring Stranger."' },
+  { id:'tones', part:'Chord tones and first breaks', t:'Chord tones: root, 3rd, 5th', kind:'tones', set:G_C_D, ivs:['1','3','5'], goal:10,
     d:'A solo that lands on a chord tone when the chord changes sounds right. Root, 3rd and 5th are the safe landing spots; the 3rd says major or minor.',
     study:'Root, 3rd and 5th of each chord are its safe landing notes. When the chord changes, landing on one of them makes a solo sound right.' },
-  { id:'gpent', part:'Melody and solos', t:'G major pentatonic', kind:'notes', strings:ALL, range:[0,4], nat:true, pcs:[7,9,11,2,4], from:43, goal:10,
+  { id:'triads1', part:'Chord tones and first breaks', t:'Triads on the top strings', kind:'triads', set:G_C_D, goal:8,
+    d:'G, C and D as three-note shapes on the top three strings, in every inversion up the neck. Bluegrass players use them for fills, backup and double stops.' },
+  { id:'triads2', part:'Chord tones and first breaks', t:'More triads: A, E and minors', kind:'triads', set:[[9,'maj'],[4,'maj'],[9,'min'],[4,'min'],[2,'min']], goal:8,
+    d:'The same idea for A and E and the minor chords. A minor triad is a major one with its 3rd lowered one fret.' },
+  // ---------- Off-chords and roots colour
+  { id:'num2', part:'Off-chords and roots colour', t:'Minor chords: 2m and 6m', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,2,4,5,6], goal:8,
+    d:'Inside a major key the 2 and 6 chords are minor: in G, Am (the 2m) and Em (the 6m). Jam charts write them 2m and 6m, or 2- and 6-. A bare 2 means something else: the major 2 (A or A7 in G), which comes next.' },
+  { id:'offchord', part:'Off-chords and roots colour', t:'The 2 chord and the ♭7', kind:'chordear', keys:[7,2,9],
+    opts:[{ v:'1', label:'1' }, { v:'4', label:'4' }, { v:'5', label:'5' }, { v:'2', label:'2⁷' }, { v:'b7', label:'♭7' }], goal:8,
+    d:'Bluegrass has two favorite chords from outside the key. The major 2 (A7 in G) pushes toward the 5, as in "Salty Dog" and "Red Wing." The ♭7 (F in G) is the mountain sound of "Old Joe Clark."',
+    study:'Two chords from outside the key give bluegrass its sound. The major 2 (A7 in the key of G) pushes toward the 5. The ♭7 (F in G) gives tunes like "Old Joe Clark" their mountain sound. Hear each one after the 1.' },
+  { id:'chart2', part:'Off-chords and roots colour', t:'Charts with color chords', kind:'chart', keys:[7,2],
+    progs:['1 2 5 1','1 4 2 5','1 b7 1 1','1 6m 4 5','1 1 2 5','1 b7 4 1'],
+    examples:[{ name:'2 chord turnaround: 1 1 2 5', prog:'1 1 2 5' }, { name:'Mountain ♭7: 1 b7 1 1', prog:'1 b7 1 1' }, { name:'Pop staple: 1 6m 4 5', prog:'1 6m 4 5' }], goal:6,
+    d:'The same chart game with the 2⁷, the ♭7 and the 6 minor mixed in. Listen for the chord that pulls outside the key.',
+    study:'Same game, more colors: the major 2 pushes to 5, the ♭7 drops a whole step below home, and the 6 minor sounds sad. Tap a chart to hear it in G.' },
+  { id:'gpent', part:'Off-chords and roots colour', t:'G major pentatonic', kind:'notes', strings:ALL, range:[0,4], nat:true, pcs:[7,9,11,2,4], from:43, goal:10,
     d:'G A B D E: the major scale without its two leaning notes. Most bluegrass and country licks in G come from these five.' },
-  { id:'blue', part:'Melody and solos', t:'The blue note', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,10,11,2,4], from:43, goal:10,
+  { id:'blue', part:'Off-chords and roots colour', t:'The blue note', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,10,11,2,4], from:43, goal:10,
     d:'Add B♭, the ♭3, and slide or hammer it up to B, the 3. That bluesy rub is all over bluegrass and blues guitar.' },
-  { id:'dmaj', part:'Melody and solos', t:'D major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
-    d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
-  { id:'mixo', part:'Melody and solos', t:'The ♭7: Mixolydian', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[9,11,1,2,4,6,7], from:45, goal:12,
+  { id:'mixo', part:'Off-chords and roots colour', t:'The ♭7: Mixolydian', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[9,11,1,2,4,6,7], from:45, goal:12,
     d:'A major with a ♭7: G natural instead of G♯. "Old Joe Clark" is the classic Mixolydian fiddle tune, and "Salt Creek" leans on the same ♭7 chord.' },
-
-  // ---------- 6. Up the neck
-  { id:'octaves', part:'Up the neck', t:'Octave shapes', kind:'octaves', nat:true, goal:8,
-    d:'Octave shapes carry note names across the neck: two strings over and two frets up, or three frets up when you cross the B string.' },
+  { id:'hearscale', part:'Off-chords and roots colour', t:'Hear the whole scale', kind:'degear', keys:[7,2], degrees:[1,2,3,4,5,6,7], goal:10,
+    d:'Now 4 and 7, the two notes that lean: 4 leans down to 3, and 7 leans up to 1.',
+    study:'4 and 7 are the notes that lean: 4 wants to fall to 3, 7 wants to rise to 1. Listen for the pull.' },
+  // ---------- Up the neck
   { id:'e6b', part:'Up the neck', t:'6th string up to fret 12', kind:'notes', strings:[0], range:[0,12], nat:true, goal:10,
     d:'Keep going: B (7), C (8), D (10), E again at 12. Natural notes are two frets apart, except E–F and B–C, which sit side by side.' },
   { id:'a5', part:'Up the neck', t:'5th string up to fret 12', kind:'notes', strings:[1], range:[0,12], nat:true, goal:10,
@@ -1318,33 +1329,17 @@ const LEARN_ALL = [
     d:'B (open), C (1), D (3), E (5), F (6), G (8), A (10), B (12). The B string is tuned one fret lower than the pattern, so octave shapes that cross it shift up a fret.' },
   { id:'e1', part:'Up the neck', t:'1st string', kind:'notes', strings:[5], range:[0,12], nat:true, goal:8,
     d:'The thin high E string has the same note names at the same frets as the low E, two octaves up. Everything from the 6th string carries over.' },
-  { id:'triads1', part:'Up the neck', t:'Triads on the top strings', kind:'triads', set:G_C_D, goal:8,
-    d:'G, C and D as three-note shapes on the top three strings, in every inversion up the neck. Bluegrass players use them for fills, backup and double stops.' },
-  { id:'triads2', part:'Up the neck', t:'More triads: A, E and minors', kind:'triads', set:[[9,'maj'],[4,'maj'],[9,'min'],[4,'min'],[2,'min']], goal:8,
-    d:'The same idea for A and E and the minor chords. A minor triad is a major one with its 3rd lowered one fret.' },
   { id:'sharps', part:'Up the neck', t:'Sharps and flats', kind:'notes', strings:[0,1], range:[0,12], nat:false, goal:10,
     d:'A sharp is one fret up from a natural, a flat is one fret down, so the fret between G and A is both G♯ and A♭. Back on the bass strings to learn them.' },
   { id:'neck', part:'Up the neck', t:'The whole neck', kind:'notes', strings:ALL, range:[0,12], nat:false, goal:15,
     d:'Every string, every note to fret 12. Take your time. Speed comes from repetition.' },
-
-  // ---------- 7. Songs and harmony
-  { id:'offchord', part:'Songs and harmony', t:'The 2 chord and the ♭7', kind:'chordear', keys:[7,2,9],
-    opts:[{ v:'1', label:'1' }, { v:'4', label:'4' }, { v:'5', label:'5' }, { v:'2', label:'2⁷' }, { v:'b7', label:'♭7' }], goal:8,
-    d:'Bluegrass has two favorite chords from outside the key. The major 2 (A7 in G) pushes toward the 5, as in "Salty Dog" and "Red Wing." The ♭7 (F in G) is the mountain sound of "Old Joe Clark."',
-    study:'Two chords from outside the key give bluegrass its sound. The major 2 (A7 in the key of G) pushes toward the 5. The ♭7 (F in G) gives tunes like "Old Joe Clark" their mountain sound. Hear each one after the 1.' },
-  { id:'chart2', part:'Songs and harmony', t:'Charts with color chords', kind:'chart', keys:[7,2],
-    progs:['1 2 5 1','1 4 2 5','1 b7 1 1','1 6m 4 5','1 1 2 5','1 b7 4 1'],
-    examples:[{ name:'2 chord turnaround: 1 1 2 5', prog:'1 1 2 5' }, { name:'Mountain ♭7: 1 b7 1 1', prog:'1 b7 1 1' }, { name:'Pop staple: 1 6m 4 5', prog:'1 6m 4 5' }], goal:6,
-    d:'The same chart game with the 2⁷, the ♭7 and the 6 minor mixed in. Listen for the chord that pulls outside the key.',
-    study:'Same game, more colors: the major 2 pushes to 5, the ♭7 drops a whole step below home, and the 6 minor sounds sad. Tap a chart to hear it in G.' },
-  { id:'ragtime', part:'Songs and harmony', t:'Circle-of-fifths chains', kind:'chart', keys:[7,2],
+  // ---------- Blues, circle chains and beyond
+  { id:'ragtime', part:'Blues, circle chains and beyond', t:'Circle-of-fifths chains', kind:'chart', keys:[7,2],
     progs:['67 2 57 1','37 67 2 57','1 67 2 57','1 37 67 2'],
     examples:[{ name:'Salty Dog Blues: 1 6⁷ 2⁷ 5⁷ 1', prog:'1 67 2 57 1' }, { name:'Ragtime: 3⁷ 6⁷ 2⁷ 5⁷', prog:'37 67 2 57 1' }], goal:6,
     d:'"Salty Dog" walks 6⁷ 2⁷ 5⁷ 1: each chord is the 5 of the next, stepping around the circle of fifths back home. Ragtime and old-time songs love these chains.',
     study:'In these chains every chord is a dominant 7th that resolves down a fifth to the next one, all the way home. Tap an example to hear it in G.' },
-
-  // ---------- 8. Beyond bluegrass
-  { id:'minpent', part:'Beyond bluegrass', t:'Minor pentatonic: the blues box', kind:'notes', strings:ALL, range:[5,8], nat:true, pcs:[9,0,2,4,7], from:45, goal:12,
+  { id:'minpent', part:'Blues, circle chains and beyond', t:'Minor pentatonic: the blues box', kind:'notes', strings:ALL, range:[5,8], nat:true, pcs:[9,0,2,4,7], from:45, goal:12,
     d:'A C D E G at the 5th fret: the shape behind most blues and rock solos. Same five notes as C major pentatonic, starting from A.' }
 ];
 const LEARN = [];
@@ -1352,10 +1347,10 @@ function rebuildPath(){ LEARN.length = 0; for (const st of LEARN_ALL) if (!st.pi
 rebuildPath();
 const stageDesc = st => (isPianist() && st.dp) ? st.dp : st.d;
 // pianists move faster through stages that are mostly theory they already have; fretboard stages keep the full bar
-const stageGoal = st => (isPianist() && st.theory) ? Math.max(5, Math.round(st.goal * .6)) : st.goal;
+const stageGoal = st => (theoryFluent() && st.theory) ? Math.max(5, Math.round(st.goal * .6)) : st.goal;
 // pass when at least 7 of every 8 recent answers are right (about 90%), not a perfect streak
 function passWindow(hist, n){ const last = hist.slice(-n), right = last.filter(Boolean).length, need = Math.ceil(n * .875); return { right, need, pass:last.length >= n && right >= need }; }
-const MAJ_SEMI = [0,0,2,4,5,7,9,11], DEG_Q = {1:'maj',2:'min',3:'min',4:'maj',5:'maj',6:'min'}, DEG_R = {1:'I',2:'ii',3:'iii',4:'IV',5:'V',6:'vi'};
+const MAJ_SEMI = [0,0,2,4,5,7,9,11], DEG_Q = {1:'maj',2:'min',3:'min',4:'maj',5:'maj',6:'min'}, DEG_R = {1:'1',2:'2m',3:'3m',4:'4',5:'5',6:'6m'};
 const learnProg = store.get('fretwise.learn', { done:{} });
 const days = store.get('fretwise.days', {});
 const todayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1622,13 +1617,13 @@ const Learn = {
       } else {
         p = `<div class="prompt">In the key of <em>${kn}</em>, this <em>${name}</em> chord is which number?</div>`;
         pad = `<div class="opts">${st.degrees.map(d => { let cls = ''; if (this.fb){ if (d === q.deg) cls = 'good'; else if (d === this.fb.d) cls = 'bad'; }
-          return `<button class="key ${cls}" data-act="lnumans" data-v="${d}">${DEG_R[d]}<small>${d}</small></button>`; }).join('')}</div>`;
+          return `<button class="key ${cls}" data-act="lnumans" data-v="${d}">${DEG_R[d]}</button>`; }).join('')}</div>`;
       }
     }
     if (st.kind === 'ear'){
-      p = `<div class="prompt">Key of <em>${chordRoot(q.key)}</em>. After the I chord, which chord comes next?</div>`;
+      p = `<div class="prompt">Key of <em>${chordRoot(q.key)}</em>. After the 1 chord, which chord comes next?</div>`;
       pad = `<div class="opts">${st.degrees.map(d => { let cls = ''; if (this.fb){ if (d === q.deg) cls = 'good'; else if (d === this.fb.d) cls = 'bad'; }
-        return `<button class="key ${cls}" data-act="learans" data-v="${d}">${DEG_R[d]}<small>${this.fb ? chordRoot((q.key + MAJ_SEMI[d]) % 12) + CQ[DEG_Q[d]].sym : d}</small></button>`; }).join('')}</div>
+        return `<button class="key ${cls}" data-act="learans" data-v="${d}">${DEG_R[d]}${this.fb ? `<small>${chordRoot((q.key + MAJ_SEMI[d]) % 12) + CQ[DEG_Q[d]].sym}</small>` : ''}</button>`; }).join('')}</div>
         <div class="row"><button class="btn ghost" data-act="learagain">Play again</button></div>`;
     }
     if (st.kind === 'bass'){
@@ -2848,7 +2843,7 @@ const WELCOME = [
       <li><b>Keep up at a jam.</b> When someone calls "it's in D, 1-4-5", you can find D, G and A fast, with or without a capo.</li>
       <li><b>Learn tunes by ear.</b> Work out a fiddle tune or a melody you hum without hunting for tab.</li>
     </ul>` },
-  { t:'A path in eight phases', b:'Fretwise starts where bluegrass lives, first position, then builds jam-ready rhythm, the number system, ear training, melody-first soloing, the rest of the neck and the harmony behind songs. Each stage is a short lesson you see and hear, then practice on a life-size neck. Pass at about 90% right, and stages come back on later days until they stick.' },
+  { t:'A path in six phases', b:'From the first week you hear where home is, play G, C and D with a steady boom-chuck and follow the changes. Then come numbers, ear training and melody, chord tones and your first breaks, the colors of roots music, the rest of the neck, and blues and swing. Each stage is a short lesson you see and hear, then practice on a life-size neck. Pass at about 90% right, and stages come back on later days until they stick.' },
   { t:'Hear it, play it', b:'Every tap plays a real acoustic guitar, and the piano strip at the top shows the exact pitch. In any quiz you can tap "Answer by playing your guitar": Fretwise listens through the microphone and hears which note you play. The sound stays on your phone and is never recorded.' },
   { t:'A little every day', b:'Today\'s practice mixes 15 quick questions from stages that are due for review: notes, chords, rhythm and ear. Spacing them over days is what makes them stick. Miss a day now and then and your streak survives; one rest day a week is forgiven.' },
   { t:'Do you play piano?', piano:true },
@@ -2875,12 +2870,8 @@ const Welcome = {
     if (w.piano){
       next.hidden = true;
       body.innerHTML = `<h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2>
-        <p class="sub" style="font-size:15px;margin:0 0 14px">If you do, Fretwise leans on the keyboard you already know: the piano strip shows every note you play, and theory you already have moves faster. You can change this later in Settings.</p>
-        <div class="wopts">
-          <button class="wopt" data-w="piano" data-v="yes"><b>Yes, I play</b><span>Scales, chords and keys feel familiar on piano.</span></button>
-          <button class="wopt" data-w="piano" data-v="some"><b>A little</b><span>Some lessons or self-taught basics.</span></button>
-          <button class="wopt" data-w="piano" data-v="no"><b>No</b><span>Guitar is my way in.</span></button>
-        </div>`;
+        <p class="sub" style="font-size:15px;margin:0 0 14px">If you do, Fretwise maps the keyboard you know onto the neck. If theory is familiar, the number-system stages move faster. The fretboard and ear drills stay full strength either way, because the guitar's map has to be built fresh. You can change this later in Settings.</p>
+        <div class="wopts">${PIANO_LEVELS.map(([v, b, d]) => `<button class="wopt" data-w="piano" data-v="${v}"><b>${b}</b><span>${d}</span></button>`).join('')}</div>`;
       return;
     }
     if (w.place){
@@ -2999,7 +2990,7 @@ const Settings = {
         <div class="sline"><div><b>Note colors</b><small>Each note keeps its own color on the neck and the keys</small></div>${this.sw('color', S.color)}</div>
       </div>
       <p class="glabel">About you</p>
-      <div class="sgroup"><div class="sline"><div><b>I play piano</b><small>Explanations lean on the keyboard you already know, and theory you have moves faster</small></div>${this.sw('piano', pianoOn)}</div></div>
+      <div class="sgroup"><div class="sline"><div><b>Piano background</b><small>Adds a keyboard-to-neck lesson, and speeds up theory stages if theory is familiar</small></div><select id="pianolvl" aria-label="Piano background" style="max-width:46%;font:inherit;font-size:14px;padding:7px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">${PIANO_LEVELS.map(([v, b]) => `<option value="${v}"${(S.profile.piano || 'no') === v ? ' selected' : ''}>${b}</option>`).join('')}</select></div></div>
       <p class="glabel">Life-size neck</p>
       <div class="sgroup padded">${calCard()}</div>
       <p class="glabel">Progress</p>
@@ -3037,6 +3028,7 @@ $('#sheet').addEventListener('click', e => {
   if (b.dataset.s) Settings.act(b.dataset.s, b.dataset.v);
 });
 $('#sheet').addEventListener('input', e => calInput(e));
+$('#sheet').addEventListener('change', e => { if (e.target.id === 'pianolvl'){ S.profile.piano = e.target.value; save(); rebuildPath(); Settings.render(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) Settings.close(); });
 
 /* ---------- shell ---------- */

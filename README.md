@@ -2,7 +2,7 @@
 
 Learn the guitar neck in standard tuning, step by step, with a bluegrass slant.
 
-- **Learn**: about 50 stages in eight phases (first position, jam-ready rhythm, keys and numbers, ear training, melody and solos, up the neck, songs and harmony, beyond bluegrass), built from the research in `reports/`. Stages pass at about 90% right and come back on spaced days until mastered.
+- **Learn**: about 50 stages in six phases (home and three chords, numbers in the hand, chord tones and first breaks, off-chords and roots colour, up the neck, blues and beyond), built from the research in `reports/`. Stages pass at about 90% right and come back on spaced days until mastered.
 - **Practice**: Today's practice (spaced review across every passed stage), note drill, chord quiz and a weak-spots map. All practice runs on a life-size neck (25.5" scale) where you tap or play your answers.
 - **Explore**: notes, chords and scales & keys on a tap-to-hear fretboard with a live piano strip.
 - **Tune**: reference tones, a needle tuner that listens through the microphone, and a boom-chuck metronome.

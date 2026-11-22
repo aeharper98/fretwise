@@ -25,8 +25,8 @@ Learn the guitar neck one string at a time, then put it to work: bluegrass chord
 ## Description (4000)
 Fretwise teaches you every note on the guitar neck, step by step, and then shows you how to use them, with a bluegrass slant.
 
-A PATH IN EIGHT PHASES
-Start where bluegrass lives, first position, then build jam-ready rhythm, the number system, ear training by scale degree, melody-first soloing, the rest of the neck, and the harmony behind songs. Nearly fifty short stages, each one a lesson you see and hear, then practice. A quick placement quiz skips what you already know.
+A PATH IN SIX PHASES
+From the first week you hear where home is, play G, C and D with a steady boom-chuck and follow the changes. Then come the number system, ear training by scale degree, melody-first soloing with chord tones, the colors of roots music, the rest of the neck, and the bridge to blues and swing. Nearly fifty short stages, each one a lesson you see and hear, then practice. A quick placement quiz skips what you already know.
 
 PLAY YOUR ANSWERS
 Tap "Answer by playing your guitar" and Fretwise listens through the microphone. Play the note on your real guitar and it hears whether you got it right.
