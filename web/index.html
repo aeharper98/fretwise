@@ -221,18 +221,24 @@ main.lesson-first #panel{order:-1;margin:0 0 14px}
 #life{position:fixed;inset:0;z-index:30;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #lifecv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
 .ltop,.lbot{position:absolute;left:0;right:0;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);pointer-events:none}
-.ltop{top:0;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px;border-bottom:1px solid var(--line)}
-.lbot{bottom:0;padding-top:10px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.ltop{top:0;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px;border-bottom:1px solid var(--line)}
+.lbot{bottom:0;padding-top:8px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .ltop button,.lbot button{pointer-events:auto}
 .lrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media (max-width:400px){.lbtn{padding:7px 10px;font-size:13.5px}.lrow{gap:6px}}
 .lbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .lbtn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;cursor:pointer}
 .lpos{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-left:auto}
 .lstat{font-size:13px;color:var(--muted)} .lstat b{color:var(--ink);font-family:var(--f-display);font-size:17px}
-.lprompt{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.1;margin-top:6px}
+.lprompt{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1.1;margin-top:4px}
 .lprompt em{font-style:normal;color:var(--amber)}
 .lprompt small{display:block;font-family:var(--f-body);font-weight:500;font-size:14px;color:var(--muted);margin-top:2px}
-.lfb{font-weight:600;font-size:14px;min-height:20px}
+.lmeter{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--muted);font-weight:600}
+.lmeter i{flex:1;height:6px;border-radius:99px;background:var(--chip);overflow:hidden;display:block}
+.lmeter i b{display:block;height:100%;background:var(--good);transition:width .25s}
+#lpad .key{height:48px}
+.lfb{font-weight:600;font-size:13.5px;min-height:18px;line-height:1.3}
+.lfb:empty{display:none}
 .lfb.good{color:var(--good)} .lfb.bad{color:var(--bad)}
 main.noboard .boardcard{display:none}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:min(92vw,440px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
@@ -253,7 +259,6 @@ main.noboard .boardcard{display:none}
       <button role="tab" data-tab="drill">Drill</button>
       <button role="tab" data-tab="chords">Chords</button>
       <button role="tab" data-tab="scales">Scales &amp; Keys</button>
-      <button role="tab" data-tab="life">Life-size</button>
       <button role="tab" data-tab="tuner">Tuner</button>
     </nav>
     <button class="chip streakpill" id="daystreak" data-g="daily">Start a streak</button>
@@ -286,11 +291,13 @@ main.noboard .boardcard{display:none}
 <div id="life" hidden>
   <canvas id="lifecv" aria-label="Life-size guitar neck. Swipe to slide along it, tap a string to play."></canvas>
   <div class="ltop">
-    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
+    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><button class="lbtn" id="lskip" data-l="skip" hidden>Skip</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
     <div class="lprompt" id="lprompt"></div>
+    <div class="lmeter" id="lmeter" hidden></div>
   </div>
   <div class="lbot">
     <div class="lfb" id="lfb" role="status"></div>
+    <div id="lpad" hidden></div>
     <div class="lrow" id="lbtns"></div>
   </div>
 </div>
@@ -335,7 +342,6 @@ const saved = store.get('fretwise.settings', {});
 const S = JSON.parse(JSON.stringify(DEF));
 for (const k in saved){ if (S[k] && typeof S[k] === 'object' && !Array.isArray(S[k])) Object.assign(S[k], saved[k]); else if (k in S) S[k] = saved[k]; }
 let tab = 'learn';
-if (!S.life.src) S.life.src = S.life.type === 'free' ? 'free' : 'stage';
 if (!S.life.chords) S.life.chords = ['7|maj','0|maj','2|maj','9|maj','4|maj'];
 const save = () => store.set('fretwise.settings', S);
 const stats = store.get('fretwise.stats', { c:{}, best:0, chordBest:0 });
@@ -711,6 +717,9 @@ const Explore = {
         <div><p class="lbl">When you tap a note</p>${toggle('octaves', 'Highlight every octave', e.octaves)}</div>
         <p class="hint">Hide the names, then tap around the neck and say each note before you look. Dashed rings mark the same pitch on another string.</p>
       </div>
+      <div class="card c7 stack"><div><p class="lbl">Life-size neck</p><p class="sub" style="margin:0;max-width:60ch">Practice happens on a neck drawn at real size: the fret spacing of a 25.5-inch steel-string acoustic, so a fret on screen is as wide as the one under your fingers. Open it here to tap around freely, or hold your phone beside your guitar to compare.</p></div>
+        <div class="row"><button class="btn" data-act="lfree">Open the life-size neck</button></div></div>
+      <div class="card c5 stack">${calCard()}</div>
       <div class="card"><p class="lbl">Landmarks</p><div class="tips" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
         ${TIPS.map((t, i) => `<button class="tip" data-act="tip" data-v="${i}" aria-pressed="${e.tip === i}"><b>${t.t}</b><span>${t.d}</span></button>`).join('')}
       </div></div>`;
@@ -730,12 +739,15 @@ const Explore = {
         <dt>Same pitch</dt><dd>${unis.length ? unis.map(c => `${SORD[c.s]} str. fret ${c.f}`).join(', ') : 'Only here'}</dd>
       </dl>`;
   },
+  input(e){ calInput(e); },
   cell(s, f){ const e = S.explore; e.tip = null; e.sel = {s, f}; play(midiAt(s,f)); save(); this.render(); },
   act(a, v){
     const e = S.explore;
     if (a === 'labels') S.labels = v;
     if (a === 'octaves') e.octaves = !e.octaves;
     if (a === 'tip') e.tip = e.tip === +v ? null : +v;
+    if (a === 'lfree'){ Life.start({ type:'free' }); return; }
+    if (a === 'lcalreset'){ S.life.k = null; }
     save(); this.render();
   }
 };
@@ -743,153 +755,53 @@ const Explore = {
 /* ================= DRILL ================= */
 const RANGES = [[[0,5],'Frets 0–5'],[[0,12],'0–12'],[[5,12],'5–12'],[[7,15],'7–15'],[[0,15],'Whole neck']];
 const Drill = {
-  cur:null, targets:null, found:null, flash:null, fb:null, answered:null, lock:false, t0:0, sess:{n:0, ok:0, ms:0, streak:0}, timer:null, lastPc:null,
   pool(){ const d = S.drill; return cellsIn(d.strings, d.range[0], d.range[1]).filter(c => !d.naturals || NAT[pcOf(midiAt(c.s,c.f))]); },
-  inPool(s, f){ const d = S.drill; return d.strings.includes(s) && f >= d.range[0] && f <= d.range[1] && (!d.naturals || NAT[pcOf(midiAt(s,f))]); },
-  next(){
-    clearTimeout(this.timer); this.fb = null; this.answered = null; this.lock = false; this.flash = null;
-    const pool = this.pool(); if (!pool.length){ this.cur = null; return; }
-    if (S.drill.type === 'name'){
-      const prev = this.cur;
-      const w = pool.map(c => { const st = stats.c[c.s + '-' + c.f]; let x = st ? 1 + 4 * (1 - st[1] / st[0]) : 3; if (prev && prev.s === c.s && prev.f === c.f) x = 0; return x; });
-      let r = Math.random() * w.reduce((a,b) => a + b, 0), i = 0;
-      while (i < pool.length - 1 && (r -= w[i]) > 0) i++;
-      this.cur = pool[i];
-    } else {
-      const pcs = [...new Set(pool.map(c => pcOf(midiAt(c.s,c.f))))].filter(p => p !== this.lastPc || pool.length < 3);
-      const pc = pick(pcs.length ? pcs : [pcOf(midiAt(pool[0].s, pool[0].f))]); this.lastPc = pc;
-      this.cur = { pc };
-      this.targets = pool.filter(c => pcOf(midiAt(c.s,c.f)) === pc);
-      this.found = new Set();
-    }
-    this.t0 = performance.now();
-  },
-  render(scrollTo){
-    const d = S.drill; if (!this.cur) this.next();
-    const M = [];
-    for (const {s,f} of cellsIn([0,1,2,3,4,5], 0, FRETS)) if (!d.strings.includes(s) || f < d.range[0] || f > d.range[1]) M.push({s, f, kind:'shade'});
-    if (d.heat) for (const c of this.pool()){ const st = stats.c[c.s + '-' + c.f]; if (!st) continue; const a = st[1] / st[0]; M.push({s:c.s, f:c.f, kind:'heat', fill: a >= .85 ? 'color-mix(in srgb,var(--good) 45%,transparent)' : a >= .6 ? 'color-mix(in srgb,var(--amber) 50%,transparent)' : 'color-mix(in srgb,var(--bad) 55%,transparent)'}); }
-    let hl = new Map(), cap = '?';
-    if (d.type === 'name' && this.cur){
-      const {s, f} = this.cur, m = midiAt(s,f), pc = pcOf(m);
-      if (this.answered == null) M.push({s, f, kind:'target'});
-      else { M.push({s, f, pc, text:nn(pc), kind: this.answered === pc ? 'good' : 'bad', pop:true}); hl = hlNotes([m]); cap = nn(pc) + octOf(m); }
-    }
-    if (d.type === 'find' && this.cur){
-      for (const k of this.found){ const [s,f] = k.split('-').map(Number), pc = pcOf(midiAt(s,f)); M.push({s, f, pc, text:nn(pc), kind:'good', pop:true}); }
-      if (this.revealed) for (const c of this.targets) if (!this.found.has(c.s + '-' + c.f)) M.push({s:c.s, f:c.f, pc:this.cur.pc, text:nn(this.cur.pc), kind:'dot'});
-      if (this.flash){ const {s,f} = this.flash, pc = pcOf(midiAt(s,f)); M.push({s, f, pc, text:nn(pc), kind:'bad', pop:true}); }
-      const fm = [...this.found].map(k => { const [s,f] = k.split('-').map(Number); return midiAt(s,f); });
-      hl = hlNotes(fm, { faintPcs:[this.cur.pc] }); cap = nn(this.cur.pc);
-    }
-    drawMarks(M); renderPiano(hl, cap);
-    this.panel();
-    if (scrollTo && G.v && d.type === 'name'){ const t = $('#tgt'); if (t){ const r = t.getBoundingClientRect(), want = window.innerHeight * 0.38; if (r.top < 80 || r.bottom > window.innerHeight - 240) window.scrollBy({ top: r.top - want, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } }
-  },
-  panel(){
-    const d = S.drill, ss = this.sess;
-    const acc = ss.n ? Math.round(100 * ss.ok / ss.n) + '%' : '—', avg = ss.ok ? (ss.ms / ss.ok / 1000).toFixed(1) + 's' : '—';
-    let play = '';
-    if (!this.cur) play = `<p class="empty">No notes match these settings. Turn on more strings or widen the fret range.</p>`;
-    else if (d.type === 'name'){
-      const pcs = d.naturals ? [0,2,4,5,7,9,11] : [...Array(12).keys()];
-      const correct = pcOf(midiAt(this.cur.s, this.cur.f));
-      play = `<div class="prompt">Name the note on the <em>${SORD[this.cur.s]} string</em>, ${this.cur.f ? 'fret ' + this.cur.f : 'open'}.</div>
-        <div class="fb ${this.fb ? this.fb.cls : ''}" style="margin-top:6px">${this.fb ? this.fb.t : '&nbsp;'}</div>
-        <div class="pad ${d.naturals ? 'n7' : ''} dock" style="margin-top:4px"><div class="dockq">${SORD[this.cur.s]} string · ${this.cur.f ? 'fret ' + this.cur.f : 'open'}${this.answered != null ? ` · <b class="${this.answered === correct ? 'g' : 'b'}">${this.answered === correct ? 'Yes' : both(correct)}</b>` : ''}</div>${pcs.map(pc => {
-          let cls = ''; if (this.answered != null){ if (pc === correct) cls = 'good'; else if (pc === this.answered) cls = 'bad'; }
-          const lab = NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`;
-          return `<button class="key ${cls}" data-act="ans" data-v="${pc}" aria-label="${both(pc)}">${lab}</button>`; }).join('')}</div>
-        ${Ear.button('listen')}<p class="hint" style="margin-top:4px">Keyboard: press A–G, add Shift for sharps.</p>`;
-    } else {
-      const left = this.targets.length - this.found.size;
-      play = `<div class="prompt">Find every <em>${both(this.cur.pc)}</em> in the lit area.</div>
-        <div class="fb ${this.fb ? this.fb.cls : ''}" style="margin-top:6px">${this.fb ? this.fb.t : `${this.found.size} of ${this.targets.length} found`}</div>
-        <div class="row" style="margin-top:8px"><button class="btn ghost" data-act="reveal" ${left ? '' : 'disabled'}>Show the rest</button><button class="btn" data-act="skip">Next note</button></div>${Ear.button('listen')}`;
-    }
+  render(){
+    const d = S.drill, M = [], pool = this.pool();
+    for (const {s,f} of cellsIn(ALL, 0, FRETS)) if (!d.strings.includes(s) || f < d.range[0] || f > d.range[1]) M.push({s, f, kind:'shade'});
+    let n = 0, ok = 0; const weak = [];
+    for (const c of pool){ const st = stats.c[c.s + '-' + c.f]; if (!st) continue; n += st[0]; ok += st[1]; const a = st[1] / st[0];
+      if (d.heat) M.push({s:c.s, f:c.f, kind:'heat', fill: a >= .85 ? 'color-mix(in srgb,var(--good) 45%,transparent)' : a >= .6 ? 'color-mix(in srgb,var(--amber) 50%,transparent)' : 'color-mix(in srgb,var(--bad) 55%,transparent)'});
+      if (st[0] >= 2 && a < .75) weak.push({ c, a }); }
+    weak.sort((x, y) => x.a - y.a);
+    drawMarks(M); renderPiano(new Map(), 'Drill');
     $('#panel').innerHTML = `
-      <div class="card c7 stack"><div>${play}</div>
+      <div class="card c7 stack">
+        <div><p class="lbl">Drill</p><div class="prompt" style="font-size:28px">${d.type === 'name' ? 'Name the note at each fret' : 'Find every spot for a note'}</div>
+          <p class="sub" style="margin-top:6px;max-width:58ch">${d.type === 'name' ? 'A fret lights up on the life-size neck and you name it, or play it on your guitar. Frets you miss come back more often.' : 'Fretwise names a note; find it, then find its other spots for bonus points.'} Only the lit area of the neck counts.</p></div>
+        <div class="row"><button class="btn" data-act="dstart">Start drill</button></div>
         <div class="stats">
-          <div class="stat"><b>${ss.streak}</b><span>Streak</span></div>
           <div class="stat"><b>${stats.best}</b><span>Best streak</span></div>
-          <div class="stat"><b>${acc}</b><span>Accuracy</span></div>
-          <div class="stat"><b>${avg}</b><span>Avg. time</span></div>
-        </div></div>
+          <div class="stat"><b>${n}</b><span>Answered here</span></div>
+          <div class="stat"><b>${n ? Math.round(100 * ok / n) + '%' : '—'}</b><span>Accuracy here</span></div>
+          <div class="stat"><b>${pool.length}</b><span>Frets in play</span></div>
+        </div>
+        ${weak.length ? `<p class="hint" style="margin:0">Shakiest: ${weak.slice(0, 4).map(w => `${SORD[w.c.s]} string ${w.c.f ? 'fret ' + w.c.f : 'open'}`).join(', ')}.</p>` : ''}
+      </div>
       <div class="card c5 stack">
         <div><p class="lbl">Game</p>${seg('type', d.type, [['name','Name the note'],['find','Find the note']])}</div>
         <div><p class="lbl">Strings</p><div class="row">${[5,4,3,2,1,0].map(s => chip('str', s, `${SNAME[s]}<span class="sr"> ${SORD[s]} string</span>`, d.strings.includes(s), 'sq')).join('')}</div></div>
         <div><p class="lbl">Frets</p><div class="row">${RANGES.map(([r, l]) => chip('range', r.join('-'), l, d.range[0] === r[0] && d.range[1] === r[1])).join('')}</div></div>
         <div class="row">${chip('dstage', '', 'Match my Learn stage', false)}${toggle('naturals', 'Natural notes only', d.naturals)}${toggle('heat', 'Show weak spots', d.heat)}<button class="chip" data-act="reset">Reset history</button></div>
-        <p class="hint">Name the note picks your weakest frets more often. Weak spots shades each fret by your accuracy there: green is solid, amber is shaky, red needs work.</p>
+        <p class="hint">Weak spots shades each fret by your accuracy there: green is solid, amber is shaky, red needs work.</p>
       </div>`;
-    $('#main').classList.toggle('docked', !!(this.cur && d.type === 'name'));
-  },
-  answer(pc){
-    if (this.lock || !this.cur || S.drill.type !== 'name') return;
-    const {s, f} = this.cur, m = midiAt(s,f), correct = pcOf(m), ok = pc === correct, ms = performance.now() - this.t0;
-    const k = s + '-' + f, st = stats.c[k] || [0,0,0]; st[0]++; if (ok){ st[1]++; st[2] += ms; } stats.c[k] = st;
-    const ss = this.sess; ss.n++;
-    if (ok){ ss.ok++; ss.ms += ms; ss.streak++; if (ss.streak > stats.best) stats.best = ss.streak; this.fb = {cls:'good', t:`${both(correct)}. ${(ms/1000).toFixed(1)}s`}; }
-    else { ss.streak = 0; this.fb = {cls:'bad', t:`That was ${both(correct)}, not ${both(pc)}.`}; }
-    saveStats(); play(m); haptic(ok ? 'success' : 'error');
-    this.answered = pc; this.lock = true; this.render();
-    this.timer = setTimeout(() => { this.next(); this.render(true); }, ok ? 700 : 1700);
-  },
-  cell(s, f){
-    if (S.drill.type === 'name'){ if (this.answered != null){ clearTimeout(this.timer); this.next(); this.render(true); } return; }
-    if (!this.cur || !this.inPool(s,f) || this.lock) { play(midiAt(s,f), 0, .5); return; }
-    const k = s + '-' + f, pc = pcOf(midiAt(s,f)); play(midiAt(s,f));
-    if (pc === this.cur.pc){
-      if (!this.found.has(k)){ this.found.add(k); this.sess.n++; this.sess.ok++; this.sess.streak++; if (this.sess.streak > stats.best){ stats.best = this.sess.streak; saveStats(); } }
-      this.fb = null; this.flash = null; haptic('success');
-      if (this.found.size === this.targets.length){
-        const t = ((performance.now() - this.t0) / 1000).toFixed(1); this.sess.ms += performance.now() - this.t0;
-        this.fb = {cls:'good', t:`All ${this.targets.length} found in ${t}s.`}; this.lock = true;
-        this.timer = setTimeout(() => { this.next(); this.render(); }, 1100);
-      }
-    } else {
-      this.sess.n++; this.sess.streak = 0; this.flash = {s, f}; haptic('error'); this.fb = {cls:'bad', t:`That's ${both(pc)}.`};
-      clearTimeout(this.timer); this.timer = setTimeout(() => { this.flash = null; this.render(); }, 900);
-    }
-    this.render();
   },
   act(a, v){
     const d = S.drill;
-    if (a === 'ans'){ this.answer(+v); return; }
-    if (a === 'listen'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
-    if (a === 'type'){ d.type = v; this.cur = null; this.revealed = false; }
-    if (a === 'str'){ const s = +v; if (d.strings.includes(s)){ if (d.strings.length > 1) d.strings = d.strings.filter(x => x !== s); } else d.strings = [...d.strings, s].sort(); this.cur = null; }
-    if (a === 'range'){ d.range = v.split('-').map(Number); this.cur = null; }
-    if (a === 'naturals'){ d.naturals = !d.naturals; this.cur = null; }
+    if (a === 'dstart'){ if (!this.pool().length){ toast('No notes match these settings. Turn on more strings or widen the frets.'); return; } save(); Life.start({ type:'drill' }); return; }
+    if (a === 'type') d.type = v;
+    if (a === 'str'){ const s = +v; if (d.strings.includes(s)){ if (d.strings.length > 1) d.strings = d.strings.filter(x => x !== s); } else d.strings = [...d.strings, s].sort(); }
+    if (a === 'range') d.range = v.split('-').map(Number);
+    if (a === 'naturals') d.naturals = !d.naturals;
     if (a === 'heat') d.heat = !d.heat;
+    if (a === 'reset'){ stats.c = {}; stats.best = 0; saveStats(); }
     if (a === 'dstage'){ const st = Learn.stage();
       if (st.kind !== 'notes'){ toast(`Your Learn stage (${st.t}) is about chords and rhythm. Drill practices notes, so these settings stay as they are.`); return; }
       const cells = Learn.pool(st), fs = cells.map(c => c.f);
-      d.strings = [...new Set(cells.map(c => c.s))].sort(); d.range = [Math.min(...fs), Math.max(...fs)]; d.naturals = !!st.nat; this.cur = null;
+      d.strings = [...new Set(cells.map(c => c.s))].sort(); d.range = [Math.min(...fs), Math.max(...fs)]; d.naturals = !!st.nat;
       toast(`Matched to ${st.daily ? 'Today\'s practice' : st.t}.`); }
-    if (a === 'reset'){ stats.c = {}; stats.best = 0; this.sess = {n:0, ok:0, ms:0, streak:0}; saveStats(); }
-    if (a === 'reveal'){ this.revealed = true; this.lock = true; this.fb = {cls:'', t:'Here they are. Next note in a moment.'}; this.timer = setTimeout(() => { this.revealed = false; this.next(); this.render(); }, 2200); }
-    if (a === 'skip'){ this.revealed = false; this.next(); }
-    if (!this.cur) this.next();
-    save(); this.render(a === 'type' || a === 'skip');
-  },
-  heard(r){
-    if (!this.cur || this.lock) return;
-    const pc = pcOf(r);
-    if (S.drill.type === 'name'){ this.answer(pc); return; }
-    const open = this.targets.filter(c => !this.found.has(c.s + '-' + c.f));
-    const hit = open.find(c => midiAt(c.s, c.f) === r) || open.find(c => pcOf(midiAt(c.s, c.f)) === pc);
-    if (hit) this.cell(hit.s, hit.f);
-    else if (pc !== this.cur.pc){ this.sess.n++; this.sess.streak = 0; this.fb = { cls:'bad', t:`Heard ${both(pc)}.` }; this.render(); }
-  },
-  key(e){
-    if (S.drill.type !== 'name' || e.metaKey || e.ctrlKey || e.altKey) return;
-    const i = 'cdefgab'.indexOf(e.key.toLowerCase()); if (i < 0) return;
-    let pc = LETTER_PC[i]; if (e.shiftKey) pc = (pc + 1) % 12;
-    if (S.drill.naturals && !NAT[pc]) return;
-    e.preventDefault(); this.answer(pc);
-  },
-  leave(){ Ear.stop(); clearTimeout(this.timer); this.lock = false; if (this.answered != null) this.next(); $('#main').classList.remove('docked'); }
+    save(); this.render();
+  }
 };
 
 /* ================= CHORDS ================= */
@@ -1238,7 +1150,7 @@ const Learn = {
     }
   },
   render(){
-    const st = this.stage(); if (st.daily) S.learn.phase = 'practice'; const ph = S.learn.phase;
+    const st = this.stage(); if (st.kind !== 'ear') S.learn.phase = 'study'; const ph = S.learn.phase;
     if (ph === 'practice' && !this.q) this.newQ();
     if (st.daily) this.streak = days[todayKey()] || 0;
     const M = []; let hl = new Map(), cap = '—';
@@ -1286,7 +1198,7 @@ const Learn = {
     const ph = S.learn.phase, n = this.idx() + 1, done = learnProg.done[st.id];
     let h = `<div><p class="lbl">${st.daily ? `Daily practice · ${dayStreak()}-day streak` : `Stage ${n} of ${LEARN.length} · ${st.part}`}${done ? ' · <span style="color:var(--good)">Passed</span>' : ''}</p>
       <div class="prompt" style="font-size:30px">${st.t}</div><p class="sub ldesc" style="margin-top:6px;max-width:62ch;font-size:15px">${st.d}</p></div>
-      <div class="row">${st.daily ? '' : seg('lphase', ph, [['study','1 · Study'],['practice','2 · Practice']])}${st.kind !== 'ear' ? '<button class="chip" data-act="ltolife">On the life-size neck</button>' : ''}</div>`;
+      ${st.daily ? '' : `<div class="row">${seg('lphase', ph, [['study','1 · Study'],['practice','2 · Practice']])}</div>`}`;
     if (ph === 'study') return h + this.studyBody(st);
     return h + this.practiceBody(st);
   },
@@ -1298,8 +1210,8 @@ const Learn = {
   studyBody(st){
     if (st.kind === 'notes'){
       const pcs = [...new Set(this.pool(st).map(c => pcOf(midiAt(c.s,c.f))))];
-      return `<p class="hint">The lit notes are this stage's whole set. Tap each one, say its name out loud, and listen. Then switch to Practice; the names hide.</p>
-        <div class="row"><button class="btn ghost" data-act="lhear">Hear them in order</button><button class="btn" data-act="lstart">Start practice</button></div>
+      return `<p class="hint">${st.daily ? 'These are the notes you\'ve learned so far. Practice runs on the life-size neck: name the note at a fret, or find a note and then hunt for its other spots.' : 'The lit notes are this stage\'s whole set. Tap each one, say its name out loud, and listen. Practice runs on the life-size neck, with the names hidden.'}</p>
+        <div class="row"><button class="btn ghost" data-act="lhear">Hear them in order</button><button class="btn" data-act="lstart">${st.daily ? 'Start today\'s practice' : 'Start practice'}</button></div>
         <p class="hint">${pcs.length} note names in this stage: ${[...pcs].sort((a,b) => a - b).map(nn).join(' ')}</p>`;
     }
     if (st.kind === 'chords' || st.kind === 'bass'){
@@ -1426,9 +1338,13 @@ const Learn = {
   },
   act(a, v){
     const st = this.stage();
-    if (a === 'lgo' && v === 'daily'){ S.learn.id = v; S.learn.phase = 'practice'; S.learn.sel = null; this.streak = days[todayKey()] || 0; this.reset(); save(); this.render(); setTimeout(() => this.scroll(), 60); return; }
+    if (a === 'lgo' && v === 'daily'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.reset(); save(); this.render(); Life.start({ type:'daily' }); return; }
     if (a === 'lgo'){ S.learn.id = v; S.learn.phase = v === 'daily' ? 'practice' : 'study'; S.learn.sel = null; this.streak = v === 'daily' ? (days[todayKey()] || 0) : 0; this.reset(); }
-    if (a === 'lphase' || a === 'lstart'){ S.learn.phase = a === 'lstart' ? 'practice' : v; this.streak = 0; this.reset(); if (S.learn.phase === 'practice'){ save(); this.render(); setTimeout(() => this.scroll(), 60); return; } }
+    if ((a === 'lphase' && v === 'practice') || a === 'lstart'){
+      if (st.kind !== 'ear'){ S.learn.phase = 'study'; save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st }); return; }
+      S.learn.phase = 'practice'; this.streak = 0; this.reset(); save(); this.render(); return;
+    }
+    if (a === 'lphase'){ S.learn.phase = v; this.streak = 0; this.reset(); }
     if (a === 'lnext'){ const n = LEARN[this.idx() + 1]; if (n){ S.learn.id = n.id; S.learn.phase = 'study'; S.learn.sel = null; } this.streak = 0; this.reset(); }
     if (a === 'lagain'){ if (st.daily){ DAILY.goal += 10; } else this.streak = 0; this.reset(); }
     if (a === 'lhear'){ const ms = [...new Set(this.pool(st).map(c => midiAt(c.s,c.f)))].sort((x,y) => x - y).filter(m => !st.from || m >= st.from); arp(ms.slice(0, 16), st.from ? 0.26 : 0.32); return; }
@@ -1444,7 +1360,6 @@ const Learn = {
       this.right(ok, { d, t: ok ? `Yes, the ${DEG_R[d]}: ${nm}.` : `That was the ${DEG_R[this.q.deg]}: ${nm}.` }); return; }
     if (a === 'metro'){ Metro.toggle(v); this.render(); return; }
     if (a === 'lplace'){ Welcome.show(WELCOME.length - 1); return; }
-    if (a === 'ltolife'){ S.life.src = 'stage'; save(); Life.start(); return; }
     if (a === 'llisten'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
     if (a === 'lans' && !this.lock){ const pc = +v, m = midiAt(this.q.s, this.q.f), c = pcOf(m); play(m);
       { const k = this.q.s + '-' + this.q.f, t = stats.c[k] || [0,0,0]; t[0]++; if (pc === c) t[1]++; stats.c[k] = t; saveStats(); }
@@ -1684,21 +1599,24 @@ const mmPos = n => n <= 0 ? 0 : SCALE_MM * (1 - Math.pow(2, -n / 12));
 const neckW = y => 43 + 0.028 * Math.max(0, y);
 const GAUGE = [1.35, 1.07, 0.81, 0.59, 0.43, 0.33];
 const Life = {
+  z:1,
+  K(){ return lk() * this.z; },
   open:false, cv:null, c:null, off:-34, v:0, drag:null, raf:0, last:0, auto:null, taps:[], q:null, streak:0, best:0, n:0, ok:0,
   fb:null, hint:false, lastWhoosh:0, lastFret:-1, flashFret:{ n:-1, t:0 }, col:{}, grain:null, listenFn:null, lock:false,
   strX(s, y){ const w = neckW(y), ins = 3.4; return -w / 2 + ins + (w - 2 * ins) * s / 5; },
   end(){ return mmPos(FRETS) + 16; },
-  view(){ return this.cv.clientHeight / lk(); },
+  view(){ return this.cv.clientHeight / this.K(); },
   minOff(){ return -48; },
-  homeOff(){ const hud = $('.ltop') ? $('.ltop').offsetHeight : 110; return Math.max(this.minOff() - 40, -hud / lk() - 26); },
+  homeOff(){ const hud = $('.ltop') ? $('.ltop').offsetHeight : 110; return Math.max(this.minOff() - 40, -hud / this.K() - 26); },
   maxOff(){ return Math.max(this.minOff(), this.end() + 30 - this.view()); },
   lowOff(){ return Math.min(this.minOff(), this.homeOff()); },
   cx(){ return this.cv.clientWidth / 2 + 8; },
-  sy(mm){ return (mm - this.off) * lk(); },
-  sx(mx){ return this.cx() + mx * lk(); },
+  sy(mm){ return (mm - this.off) * this.K(); },
+  sx(mx){ return this.cx() + mx * this.K(); },
   along(f){ return f === 0 ? -14 : (mmPos(f - 1) + mmPos(f)) / 2 + (mmPos(f) - mmPos(f - 1)) * 0.18; },
   fretAt(mm){ if (mm < 0) return 0; for (let n = 1; n <= FRETS; n++) if (mm < mmPos(n)) return n; return FRETS; },
-  start(){
+  start(session = { type:'free' }){
+    this.session = session; this.done = false; this.count = 0; this.n = 0; this.ok = 0;
     this.open = true; const el = $('#life'); el.hidden = false; document.body.style.overflow = 'hidden';
     this.cv = $('#lifecv'); this.c = this.cv.getContext('2d');
     const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
@@ -1706,7 +1624,7 @@ const Life = {
     if (!this.grain){ this.grain = []; let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280; for (let i = 0; i < 26; i++) this.grain.push({ x:r(), a:r() * 6.28, w:.4 + r() * .8, o:.05 + r() * .12 }); }
     this.resize(); this.off = this.homeOff(); this.v = 0; this.tour = null; this.taps = []; this.streak = 0; this.fb = null; this.hint = false; this.lock = false;
     this.bonus = 0; this.newQ();
-    this.hud();
+    this.hud(); this.focusQ();
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { this.wl = l; }).catch(() => {}); } catch(e){}
     this.last = performance.now(); cancelAnimationFrame(this.raf); this.raf = requestAnimationFrame(t => this.loop(t));
   },
@@ -1721,22 +1639,49 @@ const Life = {
     this.cv.width = Math.round(W * dpr); this.cv.height = Math.round(H * dpr); this.dpr = dpr;
     this.off = Math.max(this.lowOff(), Math.min(this.maxOff(), this.off));
   },
-  // What this round practices: follows the Learn stage, or the Life-size tab's own settings.
+  // What this practice session asks: a Learn stage, today's practice, Drill settings, or free play.
   spec(){
-    const L = S.life;
-    if (L.src === 'free') return { mode:'free' };
-    if (L.src === 'chords') return { mode:'chord', set:LIFE_CHORDS.filter(c => L.chords.includes(c)).map(k => { const [r, cq] = k.split('|'); return { r:+r, cq }; }) };
-    if (L.src === 'notes'){
-      const cells = cellsIn(ALL, 0, L.maxFret).filter(c => !L.nat || NAT[pcOf(midiAt(c.s, c.f))]);
-      return { mode:'note', cells, perString: L.where === 'string', label:`Notes, frets 0–${L.maxFret}` };
-    }
-    const st = Learn.stage();
-    if (st.kind === 'notes') return { mode:'note', cells:Learn.pool(st), label:st.t };
-    if (st.kind === 'bass') return { mode:'note', bass:st, cells:cellsIn([0,1,2], 0, 3), label:st.t };
-    if (st.kind === 'chords') return { mode:'chord', set:st.set.map(([r, cq]) => ({ r, cq })), label:st.t };
+    const ss = this.session || { type:'free' };
+    if (ss.type === 'free') return { kind:'free' };
+    if (ss.type === 'daily') return { kind:'notes', cells:Learn.dailyPool(), weighted:true };
+    if (ss.type === 'drill') return { kind:'notes', cells:Drill.pool(), only:S.drill.type, weighted:true };
+    const st = ss.st;
+    if (st.kind === 'notes') return { kind:'notes', cells:Learn.pool(st) };
+    if (st.kind === 'bass') return { kind:'notes', bass:st, cells:cellsIn([0,1,2], 0, 3), only:'find' };
+    if (st.kind === 'chords') return { kind:'chords', set:st.set.map(([r, cq]) => ({ r, cq })), recog:true };
     const set = [];
     for (const k of st.keys) for (const d of st.degrees){ const r = (k + MAJ_SEMI[d]) % 12; set.push({ r, cq:DEG_Q[d], title:`In ${chordRoot(k)}, make the ${DEG_R[d]} chord` }); }
-    return { mode:'chord', set, label:st.t };
+    return { kind:'chords', set };
+  },
+  goal(){ const ss = this.session; return ss.type === 'learn' ? ss.st.goal : ss.type === 'daily' ? DAILY_GOAL : 0; },
+  progress(ok){
+    const ss = this.session; if (ss.type === 'free') return;
+    this.n++; if (ok) this.ok++;
+    if (ss.type === 'daily'){ const k = todayKey(); if (ok){ days[k] = (days[k] || 0) + 1; store.set('fretwise.days', days); renderStreak(); } this.count = days[k] || 0; }
+    this.streak = ok ? this.streak + 1 : 0;
+    if (ss.type === 'drill' && this.streak > stats.best){ stats.best = this.streak; saveStats(); }
+    const g = this.goal(), reached = ss.type === 'daily' ? this.count >= g : g && this.streak >= g;
+    if (reached && !this.done) this.pendingDone = true;
+  },
+  complete(){
+    const ss = this.session; this.done = true; this.pendingDone = false; this.lock = true; clearTimeout(this.timer);
+    if (ss.type === 'learn' && !learnProg.done[ss.st.id]){ learnProg.done[ss.st.id] = true; store.set('fretwise.learn', learnProg); }
+    haptic('success'); this.q = { mode:'done' }; this.fb = null; this.hud();
+  },
+  // after an answer: move on, or celebrate if the goal was just reached
+  after(ms){ clearTimeout(this.timer); this.timer = setTimeout(() => { if (this.pendingDone) this.complete(); else { this.newQ(); this.hud(); this.focusQ(); } }, ms); },
+  focusQ(){ const q = this.q; if (!q || !this.cv) return;
+    if (q.mode === 'name') this.scrollTo(this.along(q.f));
+    const span = (lo, hi) => {
+      const a = lo === 0 ? -20 : mmPos(lo - 1) - 4, b = mmPos(hi) + 3;
+      this.z = 1; const g = this.gap();
+      if (b - a > g.size && b - a < g.size * 3.2) this.z = g.size / (b - a);   // shrink just enough to fit the whole shape
+      this.scrollTo((a + b) / 2);
+    };
+    this.z = 1;
+    if (q.mode === 'cname'){ const fr = q.vc.frets.filter(f => f != null); span(Math.min(...fr), Math.max(...fr, 1)); }
+    if (q.mode === 'chord') span(0, 3);
+    if (q.mode === 'note'){ const fs = q.cells.map(c => c.f); if (Math.max(...fs) <= 4) span(Math.min(...fs), Math.max(...fs)); }
   },
   areaText(cells){
     const ss = [...new Set(cells.map(c => c.s))].sort(), fs = cells.map(c => c.f), lo = Math.min(...fs), hi = Math.max(...fs);
@@ -1749,15 +1694,27 @@ const Life = {
   newQ(){
     const sp = this.spec(), prev = this.q;
     this.hint = false; this.fb = null; this.lock = false; this.t0 = performance.now(); this.taps = []; this.showMe = null;
-    if (sp.mode === 'free'){ this.q = null; return; }
-    if (sp.mode === 'chord'){
-      const opts = sp.set.length > 1 && prev && prev.mode === 'chord' ? sp.set.filter(c => !(c.r === prev.r && c.cq === prev.cq)) : sp.set;
+    if (sp.kind === 'free'){ this.q = null; return; }
+    if (sp.kind === 'chords'){
+      const opts = sp.set.length > 1 && prev && prev.r != null ? sp.set.filter(c => !(c.r === prev.r && c.cq === prev.cq)) : sp.set;
       const c = pick(opts.length ? opts : sp.set);
-      this.q = { mode:'chord', r:c.r, cq:c.cq, title:c.title, fingers:{}, mutes:{} };
+      if (sp.recog && Math.random() < .45){
+        this.q = { mode:'cname', r:c.r, cq:c.cq, vc:openVoicing(c.r, c.cq), opts:sp.set, answered:null };
+        setTimeout(() => { if (this.q && this.q.mode === 'cname') strum(Chords.midis(this.q.vc)); }, 250);
+      } else this.q = { mode:'chord', r:c.r, cq:c.cq, title:c.title, fingers:{}, mutes:{} };
       return;
     }
-    let cells = sp.cells;
-    if (sp.perString){ const s = rand(6); cells = cells.filter(c => c.s === s); }
+    const cells = sp.cells; if (!cells.length){ this.q = null; return; }
+    const type = sp.only || (Math.random() < .55 ? 'name' : 'find');
+    if (type === 'name'){
+      let pool = cells.filter(c => !(prev && prev.s === c.s && prev.f === c.f)); if (!pool.length) pool = cells;
+      let c;
+      if (sp.weighted){ const w = pool.map(x => { const t = stats.c[x.s + '-' + x.f]; return t ? 1 + 4 * (1 - t[1] / t[0]) : 2.5; }); let r = Math.random() * w.reduce((a, b) => a + b, 0), i = 0; while (i < pool.length - 1 && (r -= w[i]) > 0) i++; c = pool[i]; }
+      else c = pick(pool);
+      const pcs = [...new Set(cells.map(x => pcOf(midiAt(x.s, x.f))))].sort((a, b) => a - b);
+      this.q = { mode:'name', s:c.s, f:c.f, cells, pcs, area:this.areaText(cells), answered:null };
+      return;
+    }
     let pc, title = null;
     if (sp.bass){
       const [r, cq] = pick(sp.bass.set), fifth = sp.bass.alt && Math.random() < .5;
@@ -1765,16 +1722,20 @@ const Life = {
       title = fifth ? `Alternate bass: the 5th of <em>${chordRoot(r)}</em>` : `Boom: the root of <em>${chordRoot(r) + CQ[cq].sym}</em>`;
     } else {
       let pcs = [...new Set(cells.map(c => pcOf(midiAt(c.s, c.f))))];
-      if (prev && pcs.length > 1) pcs = pcs.filter(p => p !== prev.pc);
+      if (prev && prev.pc != null && pcs.length > 1) pcs = pcs.filter(p => p !== prev.pc);
       pc = pick(pcs);
     }
     this.q = { mode:'note', pc, title, cells, targets:cells.filter(c => pcOf(midiAt(c.s, c.f)) === pc), found:[], phase:'first', area:this.areaText(cells) };
   },
   hud(){
-    const sp = this.spec(), q = this.q;
+    const ss = this.session, q = this.q, g = this.goal();
     let pr;
-    if (sp.mode === 'free') pr = 'Free play<small>Tap any string to hear it. Swipe to slide along the neck.</small>';
-    else if (q.mode === 'chord') pr = `${q.title ? q.title.replace(/the (\S+) chord$/, 'the <em>$1</em> chord') : `Make <em>${chordRoot(q.r) + CQ[q.cq].sym}</em>`}<small>Tap where your fingers go. Tap above the nut to mute a string. Then Check.</small>`;
+    if (!q && ss.type === 'free') pr = 'Free play<small>Tap any string to hear it. Swipe to slide along the neck.</small>';
+    else if (!q) pr = 'Nothing to practice<small>Change the settings and try again.</small>';
+    else if (q.mode === 'done') pr = ss.type === 'daily' ? `Done for today<small>${dayStreak()}-day streak. Come back tomorrow to keep it going.</small>` : ss.type === 'learn' ? `Stage passed<small>${ss.st.t}</small>` : 'Nice work';
+    else if (q.mode === 'name') pr = `What note is this?<small>${SORD[q.s]} string, ${q.f ? 'fret ' + q.f : 'open'}</small>`;
+    else if (q.mode === 'cname') pr = `Which chord is this?`;
+    else if (q.mode === 'chord') pr = `${q.title ? q.title.replace(/the (\S+) chord$/, 'the <em>$1</em> chord') : `Make <em>${chordRoot(q.r) + CQ[q.cq].sym}</em>`}<small>Tap where fingers go, above the nut to mute, then Check.</small>`;
     else {
       const nm = both(q.pc), art = /^[AEF]/.test(nm) ? 'an' : 'a';
       pr = q.phase === 'first' ? `${q.title || `Play ${art} <em>${nm}</em>`}<small>${q.area}</small>`
@@ -1782,20 +1743,59 @@ const Life = {
         : `Every <em>${nm}</em> in this area<small>You found ${q.found.length} of ${q.targets.length}</small>`;
     }
     $('#lprompt').innerHTML = pr;
-    $('#lstat').innerHTML = sp.mode === 'free' ? '' : `<b>${this.streak}</b> streak${this.bonus ? ` · +${this.bonus} bonus` : ''}`;
+    const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today\'s practice' : ss.type === 'drill' ? 'Drill' : '';
+    $('#lstat').innerHTML = ss.type === 'free' ? '' : `${esc(label)}`;
+    const m = $('#lmeter');
+    if (g){ const have = ss.type === 'daily' ? this.count : this.streak, pct = Math.min(100, Math.round(100 * have / g));
+      m.hidden = false; m.innerHTML = `<span>${ss.type === 'daily' ? `${Math.min(have, g)} of ${g} today` : `${have} of ${g} in a row`}${this.bonus ? ` · +${this.bonus} bonus` : ''}</span><i><b style="width:${pct}%"></b></i>`; }
+    else if (ss.type === 'drill'){ m.hidden = false; m.innerHTML = `<span>Streak ${this.streak} · best ${stats.best} · ${this.n ? Math.round(100 * this.ok / this.n) : 0}% right</span>`; }
+    else m.hidden = true;
     $('#lfb').className = 'lfb ' + (this.fb && this.fb.ok != null ? (this.fb.ok ? 'good' : 'bad') : '');
     $('#lfb').textContent = this.fb ? this.fb.t : '';
+    // answer pad
+    let pad = '';
+    if (q && q.mode === 'name'){
+      const correct = pcOf(midiAt(q.s, q.f));
+      pad = `<div class="pad" style="grid-template-columns:repeat(${Math.min(q.pcs.length, 7)},1fr)">${q.pcs.map(pc => { let cls = ''; if (q.answered != null){ if (pc === correct) cls = 'good'; else if (pc === q.answered) cls = 'bad'; }
+        return `<button class="key ${cls}" data-l="name" data-v="${pc}" aria-label="${both(pc)}">${NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`}</button>`; }).join('')}</div>`;
+    }
+    if (q && q.mode === 'cname'){
+      pad = `<div class="pad" style="grid-template-columns:repeat(${Math.min(q.opts.length + 1, 4)},1fr)"><button class="key" style="height:46px;font-size:14px" data-l="strum">Strum</button>${q.opts.map(o => { const k = o.r + '|' + o.cq; let cls = ''; if (q.answered){ if (o.r === q.r && o.cq === q.cq) cls = 'good'; else if (k === q.answered) cls = 'bad'; }
+        return `<button class="key ${cls}" style="height:46px" data-l="cname" data-v="${k}">${chordRoot(o.r) + CQ[o.cq].sym}</button>`; }).join('')}</div>`;
+    }
+    $('#lpad').innerHTML = pad; $('#lpad').hidden = !pad;
     const B = [];
-    if (sp.mode === 'note'){
-      if (q.phase === 'first') B.push(['hint','Hint'], ['skip','Skip']);
-      else if (q.phase === 'bonus') B.push(['reveal','Show them all']);
+    if (q && q.mode === 'done'){
+      if (ss.type === 'learn'){ const nx = LEARN[LEARN.indexOf(ss.st) + 1]; if (nx) B.push(['nextstage', `Next: ${nx.t}`]); }
+      B.push(['keep', ss.type === 'daily' ? 'Keep going' : 'Keep practicing'], ['exit', 'Done']);
+    } else if (q && (q.mode === 'note' || q.mode === 'name')){
+      if (q.mode === 'note' && q.phase === 'first') B.push(['hint','Hint']);
+      else if (q.mode === 'note' && q.phase === 'bonus') B.push(['reveal','Show them all']);
       B.push(['listen', this.listenFn ? 'Stop listening' : 'Listen to my guitar']);
     }
-    if (sp.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me'], ['skip','Skip']);
-    $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' ? ' primary' : ''}" data-l="${a}">${l}</button>`).join('');
+    else if (q && q.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me']);
+    $('#lskip').hidden = !(q && (q.mode === 'chord' || (q.mode === 'note' && q.phase === 'first')));
+    $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' ? ' primary' : ''}" data-l="${a}">${esc(l)}</button>`).join('');
   },
+  answerName(pc){
+    const q = this.q; if (!q || q.mode !== 'name' || this.lock) return;
+    const m = midiAt(q.s, q.f), c = pcOf(m), ok = pc === c, k = q.s + '-' + q.f, t = stats.c[k] || [0,0,0];
+    t[0]++; if (ok){ t[1]++; t[2] += performance.now() - this.t0; } stats.c[k] = t; saveStats();
+    q.answered = pc; this.lock = true; play(m); haptic(ok ? 'success' : 'error');
+    this.fb = ok ? { ok:true, t:`Yes, ${both(c)}. ${((performance.now() - this.t0) / 1000).toFixed(1)}s` } : { ok:false, t:`That one is ${both(c)}.` };
+    this.progress(ok); this.hud(); this.after(ok ? 800 : 1700);
+  },
+  answerCName(k){
+    const q = this.q; if (!q || q.mode !== 'cname' || q.answered) return;
+    const [r, cq] = k.split('|'), ok = +r === q.r && cq === q.cq, name = chordRoot(q.r) + CQ[q.cq].sym;
+    q.answered = k; this.lock = true; strum(Chords.midis(q.vc)); haptic(ok ? 'success' : 'error');
+    this.fb = ok ? { ok:true, t:`Yes, ${name}.` } : { ok:false, t:`This is ${name}.` };
+    this.progress(ok); this.hud(); this.after(ok ? 1300 : 2200);
+  },
+  // the neck visible between the top and bottom panels, in mm from the top of the canvas
+  gap(){ const t = ($('.ltop') || {}).offsetHeight || 110, b = ($('.lbot') || {}).offsetHeight || 140, k = this.K(); return { top:t / k, mid:(t + (this.cv.clientHeight - t - b) / 2) / k, size:(this.cv.clientHeight - t - b) / k }; },
   scrollTo(mm){
-    const target = Math.max(this.lowOff(), Math.min(this.maxOff(), mm - this.view() * 0.42));
+    const target = Math.max(this.lowOff(), Math.min(this.maxOff(), mm - this.gap().mid));
     if (Math.abs(target - this.off) > 40) whoosh(Math.min(1, Math.abs(target - this.off) / 150), target > this.off);
     this.auto = target; this.v = 0;
   },
@@ -1809,7 +1809,7 @@ const Life = {
       q.found.push({ s, f }); haptic('success');
       const where = `${SORD[s]} string, ${f ? 'fret ' + f : 'open'}`;
       if (q.phase === 'first'){
-        this.n++; this.ok++; this.streak++; if (this.streak > this.best) this.best = this.streak;
+        this.progress(true);
         const secs = ((performance.now() - this.t0) / 1000).toFixed(1);
         if (q.targets.length > 1){ q.phase = 'bonus'; this.fb = { ok:true, t:`${viaMic ? 'Heard it! ' : 'Yes! '}${nm} on the ${where} (${secs}s). Now find another one.` }; }
         else { this.fb = { ok:true, t:`Yes! ${nm} on the ${where}. That's the only one in this area.` }; this.reveal(true); return; }
@@ -1820,7 +1820,7 @@ const Life = {
       }
     } else {
       haptic('error'); this.taps.push({ s, f, ok:false, t:performance.now() });
-      if (q.phase === 'first'){ this.n++; this.streak = 0; }
+      if (q.phase === 'first') this.progress(false);
       this.fb = { ok:false, t: q.phase === 'first' ? `That's ${both(pc)}.` : `That's ${both(pc)}. Keep looking, or tap Show them all.` };
     }
     this.hud();
@@ -1839,7 +1839,7 @@ const Life = {
       const goTour = () => { this.tour = { a, b, t0:performance.now(), d }; whoosh(.7, true); };
       if (Math.abs(this.off - a) > 30){ this.scrollTo(lo + view * .07); setTimeout(goTour, 650); wait = d + 2100; } else { goTour(); wait = d + 1500; }
     }
-    clearTimeout(this.timer); this.timer = setTimeout(() => { this.tour = null; this.newQ(); this.hud(); }, wait);
+    this.after(wait);
   },
   shape(){ const q = this.q, out = []; for (let s = 0; s < 6; s++) out.push(q.mutes[s] ? null : (q.fingers[s] || 0)); return out; },
   check(){
@@ -1851,19 +1851,18 @@ const Life = {
     if (!err){ const miss = CQ[q.cq].f.find(iv => iv !== '5' && !snd.some(x => x.pc === (q.r + IV[iv]) % 12)); if (miss) err = `${name} needs a ${spell(root, miss)} (the ${miss === '1' ? 'root' : ivDisp(miss)}).`; }
     if (!err && snd.length && snd[0].pc !== q.r) err = `Right notes, but the lowest string should be the root, ${root}. Mute the strings below it.`;
     strum(snd.map(x => midiAt(x.s, x.f)));
-    this.n++;
-    if (err){ this.streak = 0; haptic('error'); this.fb = { ok:false, t:err }; this.hud(); return; }
-    this.ok++; this.streak++; haptic('success'); this.lock = true; q.done = true;
-    this.fb = { ok:true, t:`That's ${name}.` }; this.hud();
-    clearTimeout(this.timer); this.timer = setTimeout(() => { this.newQ(); this.hud(); }, 1900);
+    if (err){ this.progress(false); haptic('error'); this.fb = { ok:false, t:err }; this.hud(); return; }
+    this.progress(true); haptic('success'); this.lock = true; q.done = true;
+    this.fb = { ok:true, t:`That's ${name}.` }; this.hud(); this.after(1900);
   },
   tap(x, y){
-    const k = lk(), mm = this.off + y / k;
+    const k = this.K(), mm = this.off + y / k;
     if (mm < -30 || mm > mmPos(FRETS)) return;
     const f = this.fretAt(mm), mx = (x - this.cx()) / k;
     let best = -1, bd = 1e9; for (let s = 0; s < 6; s++){ const d = Math.abs(this.strX(s, mm) - mx); if (d < bd){ bd = d; best = s; } }
     const sp = (neckW(mm) - 6.8) / 5; if (bd > sp * 0.6 + 2) return;
     const q = this.q;
+    if (q && (q.mode === 'name' || q.mode === 'cname' || q.mode === 'done')){ play(midiAt(best, f)); return; }
     if (q && q.mode === 'chord'){
       if (this.lock) return;
       if (f === 0){ q.mutes[best] = !q.mutes[best]; if (q.mutes[best]) delete q.fingers[best]; else play(midiAt(best, 0)); }
@@ -1897,9 +1896,10 @@ const Life = {
     this.listenFn = f => {
       const q = this.q;
       if (f < 0){ stable = 0; armed = true; return; }
-      if (!q || q.mode !== 'note' || this.lock) return;
+      if (!q || (q.mode !== 'note' && q.mode !== 'name') || this.lock) return;
       const r = Math.round(f2m(f)); if (r === lastR) stable++; else { stable = 0; lastR = r; armed = true; }
       if (stable !== 2 || !armed) return; armed = false;
+      if (q.mode === 'name'){ this.answerName(pcOf(r)); return; }
       const open = q.targets.filter(t => !q.found.some(c => c.s === t.s && c.f === t.f));
       const hit = open.find(t => midiAt(t.s, t.f) === r) || open.find(t => pcOf(midiAt(t.s, t.f)) === pcOf(r));
       if (hit){ this.scrollTo(this.along(hit.f)); this.answer(hit.s, hit.f, true); }
@@ -1927,7 +1927,7 @@ const Life = {
     if (this.open) this.raf = requestAnimationFrame(x => this.loop(x));
   },
   draw(t){
-    const c = this.c, k = lk(), W = this.cv.clientWidth, H = this.cv.clientHeight, C = this.col, end = this.end();
+    const c = this.c, k = this.K(), W = this.cv.clientWidth, H = this.cv.clientHeight, C = this.col, end = this.end();
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
     const yTop = this.off, yBot = this.off + this.view();
@@ -1979,7 +1979,7 @@ const Life = {
     };
     const q = this.q, free = !q;
     // shade everything outside the round's area
-    if (q && q.mode === 'note'){
+    if (q && (q.mode === 'note' || q.mode === 'name')){
       const fs = q.cells.map(x => x.f), lo = Math.min(...fs), hi = Math.max(...fs), ss = new Set(q.cells.map(x => x.s));
       c.fillStyle = 'rgba(0,0,0,.5)';
       for (let f = 1; f <= FRETS; f++){ const y0 = mmPos(f - 1), y1 = mmPos(f); if (y1 < yTop - 5 || y0 > yBot + 5) continue;
@@ -1994,6 +1994,20 @@ const Life = {
       if (this.hint && q.phase !== 'reveal'){ const pulse = .6 + .4 * Math.sin(t / 180); c.globalAlpha = pulse; for (const tg of q.targets) if (!q.found.some(x => x.s === tg.s && x.f === tg.f)) dot(tg.s, tg.f, C.amber, null, null, true); c.globalAlpha = 1; }
       if (q.phase === 'reveal') for (const tg of q.targets) if (!q.found.some(x => x.s === tg.s && x.f === tg.f)) dot(tg.s, tg.f, C.amber, nn(q.pc), '#1C1612');
       for (const x of q.found) dot(x.s, x.f, C.good, nn(q.pc), '#fff');
+    }
+    if (q && q.mode === 'name'){
+      const pc = pcOf(midiAt(q.s, q.f));
+      if (q.answered == null){ const pulse = 1 + .12 * Math.sin(t / 160); const y = this.along(q.f), x = this.strX(q.s, y), r = Math.min(4.6, (neckW(y) - 6.8) / 10 + 0.6) * k * pulse;
+        c.beginPath(); c.arc(this.sx(x), this.sy(y), r, 0, 7); c.fillStyle = C.amber; c.fill(); c.lineWidth = 2; c.strokeStyle = '#fff'; c.stroke();
+        c.fillStyle = '#fff'; c.font = `800 ${Math.max(13, r)}px ${getComputedStyle(document.body).fontFamily}`; c.fillText('?', this.sx(x), this.sy(y) + 1); }
+      else dot(q.s, q.f, q.answered === pc ? C.good : C.bad, nn(pc), '#fff');
+    }
+    if (q && q.mode === 'cname'){
+      c.font = `700 ${Math.max(13, 3.4 * k)}px ${getComputedStyle(document.body).fontFamily}`;
+      q.vc.frets.forEach((f, s) => { const yo = this.along(0), xo = this.sx(this.strX(s, yo));
+        if (f == null){ c.fillStyle = C.ink; c.fillText('×', xo, this.sy(yo)); return; }
+        if (f === 0){ c.strokeStyle = C.ink; c.lineWidth = 1.6; c.beginPath(); c.arc(xo, this.sy(yo), 2 * k, 0, 7); c.stroke(); return; }
+        const pc = pcOf(midiAt(s, f)); dot(s, f, q.answered ? (q.answered === q.r + '|' + q.cq ? C.good : C.amber) : C.pearl, q.answered ? nn(pc) : null, q.answered ? '#fff' : '#1C1612'); });
     }
     if (q && q.mode === 'chord'){
       const fr = this.shape(), good = q.done;
@@ -2032,73 +2046,48 @@ const Life = {
     if (this.hint && this.auto == null && this.q && this.q.phase !== 'reveal'){ const T = this.targets().filter(x => !this.q.found.some(y => y.s === x.s && y.f === x.f)), above = T.some(x => this.along(x.f) < yTop + 6), below = T.some(x => this.along(x.f) > yBot - 6), vis = T.some(x => { const y = this.along(x.f); return y >= yTop + 6 && y <= yBot - 6; });
       if (!vis){ c.fillStyle = C.amber; c.font = `700 14px ${getComputedStyle(document.body).fontFamily}`; const bob = Math.sin(t / 200) * 4;
         if (below) c.fillText('▼  Slide toward the body  ▼', W / 2, H - 150 + bob); else if (above) c.fillText('▲  Slide toward the nut  ▲', W / 2, 140 - bob); } }
-    $('#lpos').textContent = yTop < 0 ? `Nut to fret ${this.fretAt(yBot)}` : `Frets ${this.fretAt(yTop)}–${this.fretAt(yBot)}`;
+    $('#lpos').textContent = this.z < .99 ? `Zoomed to fit · ${Math.round(this.z * 100)}% size` : 'Real size';
   },
   bind(){
     const cv = $('#lifecv');
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); this.auto = null; this.tour = null; this.drag = { y:e.clientY, x:e.clientX, y0:e.clientY, t:performance.now(), moved:false }; this.v = 0; });
     cv.addEventListener('pointermove', e => { const d = this.drag; if (!d) return; const dy = e.clientY - d.y, now = performance.now();
       if (Math.abs(e.clientY - d.y0) > 8) d.moved = true;
-      if (d.moved){ this.off -= dy / lk(); this.off = Math.max(this.lowOff() - 10, Math.min(this.maxOff() + 10, this.off)); const dtt = Math.max(1, now - d.t) / 1000; this.v = this.v * .6 + (-dy / lk() / dtt) * .4; }
+      if (d.moved){ this.off -= dy / this.K(); this.off = Math.max(this.lowOff() - 10, Math.min(this.maxOff() + 10, this.off)); const dtt = Math.max(1, now - d.t) / 1000; this.v = this.v * .6 + (-dy / this.K() / dtt) * .4; }
       d.y = e.clientY; d.t = now; });
     const up = e => { const d = this.drag; if (!d) return; this.drag = null;
       if (!d.moved){ this.v = 0; const r = cv.getBoundingClientRect(); this.tap(e.clientX - r.left, e.clientY - r.top); return; }
       if (performance.now() - d.t > 80) this.v = 0;
       if (Math.abs(this.v) > 260 && performance.now() - this.lastWhoosh > 350){ this.lastWhoosh = performance.now(); whoosh(Math.min(1, Math.abs(this.v) / 900), this.v > 0); } };
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', () => { this.drag = null; });
-    cv.addEventListener('wheel', e => { e.preventDefault(); this.auto = null; this.off += e.deltaY / lk(); this.v = e.deltaY / lk() * 8; }, { passive:false });
-    $('#life').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b) return; const a = b.dataset.l;
+    cv.addEventListener('wheel', e => { e.preventDefault(); this.auto = null; this.off += e.deltaY / this.K(); this.v = e.deltaY / this.K() * 8; }, { passive:false });
+    $('#life').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b || b.hidden) return; const a = b.dataset.l;
       if (a === 'exit') this.close();
       if (a === 'hint') this.doHint();
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); }
       if (a === 'reveal') this.reveal();
+      if (a === 'name') this.answerName(+b.dataset.v);
+      if (a === 'cname') this.answerCName(b.dataset.v);
+      if (a === 'keep'){ this.done = false; this.pendingDone = false; if (this.session.type === 'learn') this.streak = 0; this.newQ(); this.hud(); this.focusQ(); }
+      if (a === 'nextstage'){ const nx = LEARN[LEARN.indexOf(this.session.st) + 1]; this.close(); if (nx){ S.learn.id = nx.id; S.learn.phase = 'study'; save(); go('learn'); window.scrollTo(0, 0); } }
       if (a === 'check' && !this.lock) this.check();
+      if (a === 'strum' && this.q && this.q.mode === 'cname') strum(Chords.midis(this.q.vc));
       if (a === 'strum' && this.q && this.q.mode === 'chord'){ const fr = this.showMe ? this.showMe.frets : this.shape(); strum(fr.map((f, s) => f == null ? null : midiAt(s, f)).filter(x => x != null)); }
       if (a === 'showme') this.doShowMe();
       if (a === 'listen') this.listen(); });
-    document.addEventListener('keydown', e => { if (!this.open) return; if (e.key === 'Escape') this.close(); if (e.key === 'ArrowDown'){ this.v = 400; } if (e.key === 'ArrowUp'){ this.v = -400; } });
+    document.addEventListener('keydown', e => { if (!this.open) return; if (e.key === 'Escape') this.close();
+      if (this.q && this.q.mode === 'name' && !e.metaKey && !e.ctrlKey && !e.altKey){ const i = 'cdefgab'.indexOf(e.key.toLowerCase()); if (i >= 0){ let pc = LETTER_PC[i]; if (e.shiftKey) pc = (pc + 1) % 12; if (this.q.pcs.includes(pc)){ e.preventDefault(); this.answerName(pc); } } } if (e.key === 'ArrowDown'){ this.v = 400; } if (e.key === 'ArrowUp'){ this.v = -400; } });
     window.addEventListener('resize', () => { if (this.open) this.resize(); });
   }
 };
-const LIFE_CHORDS = ['7|maj','0|maj','2|maj','9|maj','4|maj','4|min','9|min','2|min','7|7','2|7','9|7','4|7','0|7','11|7'];
-const LifeTab = {
-  render(){
-    const L = S.life, k = lk();
-    drawMarks([]); renderPiano(new Map(), 'Life-size');
-    $('#panel').innerHTML = `
-      <div class="card c7 stack">
-        <div><p class="lbl">Life-size neck</p><div class="prompt" style="font-size:28px">Your screen becomes the fretboard, at real size.</div>
-          <p class="sub" style="margin-top:6px;max-width:60ch">Frets are drawn at the true spacing of a 25.5-inch steel-string acoustic, so a fret on screen is as wide as the one under your fingers. A phone shows about four frets at a time: swipe to slide up and down the neck, and the fret number flashes as you pass. Hold the phone beside your guitar's neck to compare.</p></div>
-        <div><p class="lbl">Practice</p>${seg('lsrc', L.src, [['stage','My Learn stage'],['notes','Notes'],['chords','Chords'],['free','Free play']])}</div>
-        ${L.src === 'stage' ? (() => { const st = Learn.stage(), sp = Life.spec(); return `<p class="sub" style="margin:0">Following <b>${st.daily ? 'Today\'s practice' : `stage ${LEARN.indexOf(st) + 1}: ${st.t}`}</b>. ${sp.mode === 'chord' ? 'You\'ll build each chord by tapping where your fingers go.' : `Notes on ${Life.areaText(sp.cells)}.`} Change stages in Learn.</p>`; })() : ''}
-        ${L.src === 'notes' ? `<div><p class="lbl">Where</p>${seg('lwhere', L.where, [['any','Any string'],['string','One string at a time']])}</div>
-        <div><p class="lbl">Up to fret</p>${seg('lmax', L.maxFret, [[5,'5'],[7,'7'],[12,'12'],[15,'15']])}</div>` : ''}
-        ${L.src === 'chords' ? `<div><p class="lbl">Chords</p><div class="row">${LIFE_CHORDS.map(k => { const [r, q] = k.split('|'); return chip('lchord', k, chordRoot(+r) + CQ[q].sym, L.chords.includes(k), 'sq'); }).join('')}</div></div>` : ''}
-        <div class="row">${L.src === 'notes' ? toggle('lnat', 'Natural notes only', L.nat) : ''}${L.src !== 'free' && L.src !== 'chords' && Life.spec().mode === 'note' ? toggle('llabels', 'Show note names', L.labels) : ''}</div>
-        <div class="row"><button class="btn" data-act="lstartlife">Open the neck</button></div>
-        <p class="hint">For notes, tap where the note is, or tap Listen and play it on your guitar. Find it once, then go for bonus points by finding it again elsewhere; at the end every spot lights up. For chords, tap where your fingers go and press Check.</p>
-      </div>
-      <div class="card c5 stack">
-        <div><p class="lbl">Match your screen</p><p class="sub">${iphoneK() && !L.k ? 'Sized automatically for your iPhone. To fine-tune, lay a bank card on the outline and drag until the edges line up.' : 'Screens differ, so check the size once. Lay a bank card on the outline and drag until the edges line up.'}</p></div>
-        <div style="display:flex;justify-content:center;overflow:hidden"><div id="calcard" style="width:${85.6 * k}px;height:${53.98 * k}px;max-width:100%;border:2px dashed var(--accent);border-radius:${3.2 * k}px;display:grid;place-items:center;color:var(--muted);font-size:13px">Bank card, 85.6 × 54 mm</div></div>
-        <input type="range" id="calk" min="2.5" max="9" step="0.02" value="${k}" aria-label="Screen size calibration" style="width:100%">
-        <div class="row" style="justify-content:space-between"><span class="hint" id="calv">${(k * 25.4).toFixed(0)} px per inch</span><button class="chip" data-act="lcalreset">Reset</button></div>
-      </div>`;
-  },
-  act(a, v){
-    const L = S.life;
-    if (a === 'lsrc') L.src = v;
-    if (a === 'lchord'){ if (L.chords.includes(v)){ if (L.chords.length > 1) L.chords = L.chords.filter(x => x !== v); } else L.chords = L.chords.concat([v]); }
-    if (a === 'lwhere') L.where = v;
-    if (a === 'lmax') L.maxFret = +v;
-    if (a === 'lnat') L.nat = !L.nat;
-    if (a === 'llabels') L.labels = !L.labels;
-    if (a === 'lcalreset') L.k = null;
-    if (a === 'lstartlife'){ save(); Life.start(); return; }
-    save(); this.render();
-  },
-  input(e){ if (e.target.id !== 'calk') return; const k = +e.target.value; S.life.k = k; const cc = $('#calcard'); cc.style.width = 85.6 * k + 'px'; cc.style.height = 53.98 * k + 'px'; cc.style.borderRadius = 3.2 * k + 'px'; $('#calv').textContent = (k * 25.4).toFixed(0) + ' px per inch'; save(); }
-};
+function calCard(){
+  const k = lk();
+  return `<div><p class="lbl">Match your screen</p><p class="sub" style="margin:0">${iphoneK() && !S.life.k ? 'Sized automatically for your iPhone. To fine-tune, lay a bank card on the outline and drag until the edges line up.' : 'Screens differ, so check the size once. Lay a bank card on the outline and drag until the edges line up.'}</p></div>
+    <div style="display:flex;justify-content:center;overflow:hidden"><div id="calcard" style="width:${85.6 * k}px;height:${53.98 * k}px;max-width:100%;border:2px dashed var(--accent);border-radius:${3.2 * k}px;display:grid;place-items:center;color:var(--muted);font-size:13px">Bank card, 85.6 × 54 mm</div></div>
+    <input type="range" id="calk" min="2.5" max="9" step="0.02" value="${k}" aria-label="Screen size calibration" style="width:100%">
+    <div class="row" style="justify-content:space-between"><span class="hint" id="calv">${(k * 25.4).toFixed(0)} px per inch</span><button class="chip" data-act="lcalreset">Reset</button></div>`;
+}
+function calInput(e){ if (e.target.id !== 'calk') return; const k = +e.target.value; S.life.k = k; const cc = $('#calcard'); cc.style.width = 85.6 * k + 'px'; cc.style.height = 53.98 * k + 'px'; cc.style.borderRadius = 3.2 * k + 'px'; $('#calv').textContent = (k * 25.4).toFixed(0) + ' px per inch'; save(); }
 
 /* ---------- first-run walkthrough ---------- */
 const WELCOME = [
@@ -2111,7 +2100,7 @@ const WELCOME = [
     </ul>` },
   { t:'One string at a time', art:true, b:'Fretwise starts small and adds a little at a time: the open strings, then the low E string, then the next one. After the notes come bluegrass chords, boom-chuck rhythm, the number system and ear training. Each stage has a short lesson and a practice round, and you pass by getting answers right in a row.' },
   { t:'Hear it, play it', b:'Every tap plays a real acoustic guitar, and the piano strip at the top shows the exact pitch. In any quiz you can tap "Answer by playing your guitar": Fretwise listens through the microphone and hears which note you play. The sound stays on your phone and is never recorded.' },
-  { t:'A little every day', b:'Today\'s practice is 15 quick questions from the notes you\'ve learned, leaning on the ones you miss. The Life-size tab turns your screen into a real-size neck that follows your current stage.' },
+  { t:'A little every day', b:'Today\'s practice is 15 quick questions from the notes you\'ve learned, leaning on the ones you miss. Practice happens on a life-size neck, drawn at the real spacing of an acoustic guitar.' },
   { t:'Where should we start?', place:true }
 ];
 // Placement quiz: questions get harder in sections; the first missed section is where you start.
@@ -2208,7 +2197,7 @@ $('#wbody').addEventListener('click', e => {
 });
 
 /* ---------- shell ---------- */
-const MODES = { learn:Learn, explore:Explore, drill:Drill, chords:Chords, scales:Scales, life:LifeTab, tuner:Tuner };
+const MODES = { learn:Learn, explore:Explore, drill:Drill, chords:Chords, scales:Scales, tuner:Tuner };
 Life.bind();
 $('#panel').addEventListener('input', e => { MODES[tab].input && MODES[tab].input(e); });
 function syncGlobals(){
@@ -2224,11 +2213,11 @@ function go(t, fromHash){
   if (!MODES[t]) t = 'learn';
   if (tab !== t && MODES[tab].leave) MODES[tab].leave();
   tab = t; if (!fromHash && location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
-  syncGlobals(); ensureBoard(); $('#main').classList.toggle('noboard', t === 'life'); MODES[tab].render();
+  syncGlobals(); ensureBoard(); MODES[tab].render();
 }
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
 $('#gset').addEventListener('click', () => { const bar = $('.bar'), open = !bar.classList.contains('open'); bar.classList.toggle('open', open); $('#gset').setAttribute('aria-expanded', open); });
-$('#daystreak').addEventListener('click', () => { S.learn.id = 'daily'; S.learn.phase = 'practice'; Learn.reset(); save(); go('learn'); });
+$('#daystreak').addEventListener('click', () => { S.learn.id = 'daily'; S.learn.phase = 'study'; Learn.reset(); save(); go('learn'); Life.start({ type:'daily' }); });
 document.querySelector('.globals').addEventListener('click', e => {
   const b = e.target.closest('[data-g]'); if (!b) return;
   const g = b.dataset.g;

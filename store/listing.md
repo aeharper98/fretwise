@@ -40,8 +40,8 @@ BLUEGRASS RHYTHM AND THEORY
 • G and D major scales in first position, the home of fiddle tunes
 • A capo helper: which shapes and which fret for any key
 
-A LIFE-SIZE NECK
-Your screen becomes the fretboard at real size, with the true fret spacing of a 25.5-inch steel-string acoustic. Swipe to slide up the neck and the fret numbers flash by. Fretwise asks for a note; find it and tap it, or play it.
+PRACTICE ON A LIFE-SIZE NECK
+Every practice round happens on a fretboard drawn at real size, with the true fret spacing of a 25.5-inch steel-string acoustic. Swipe to slide up the neck and the fret numbers flash by. Name the note at a glowing fret, find a note and then hunt down its other spots for bonus points, or build a chord with your fingertips and check it.
 
 A TUNER THAT LISTENS
 A needle tuner for standard, Drop D, Open G, Open D and DADGAD, plus reference tones you can tune to by ear, and a metronome.
@@ -61,7 +61,7 @@ guitar,fretboard,notes,bluegrass,tuner,chords,flatpicking,capo,music theory,ear 
 First release.
 
 ## Notes for App Review
-Fretwise needs no account. The microphone is used only by the Tuner tab, the "Listen to my guitar" button on the Life-size tab, and the "Answer by playing your guitar" button in Learn and Drill quizzes, to detect the pitch of a guitar note. Audio is analyzed on the device and never recorded or transmitted. To try it without a guitar, open the Tuner tab, tap Use microphone, and hum or whistle a steady note.
+Fretwise needs no account. The microphone is used only by the Tuner tab and the "Listen to my guitar" button during practice rounds, to detect the pitch of a guitar note. Audio is analyzed on the device and never recorded or transmitted. To try it without a guitar, open the Tuner tab, tap Use microphone, and hum or whistle a steady note.
 
 ## Screenshots
 `store/screenshots/` holds six 1320 × 2868 screenshots (6.9-inch iPhone display), which App Store Connect scales for smaller iPhones:
