@@ -6,3 +6,6 @@
 - Never commit App Store Connect keys (`.p8`), certificates or provisioning profiles. They belong in GitHub Actions secrets.
 - iOS: Capacitor 7 with Swift Package Manager. After changing `web/`, the CI runs `npx cap sync ios`; `ios/App/App/public` is generated and not committed. Edit native files (AppDelegate.swift, Info.plist) directly.
 - The iOS build cannot be run in a Linux session; it only runs in the `testflight.yml` workflow on a macOS runner.
+- The Learn path is `LEARN_ALL` in `web/index.html`. Stage kinds `notes`, `chords`, `bass`, `ear`, `numbers` are handled inline; newer kinds live in the `KINDS` registry (each has `study()` for the stage page and `gen()` for practice questions run by `Life`). Stage ids are stored in progress, so never rename an id; add new ones instead.
+- Passing: a stage passes when about 90% of the last N answers are right (`passWindow`). Passed stages are re-checked by `Review` on spaced days (1, 3, 7, 16, 35) through Today's practice; two clean re-checks mark them mastered.
+- `?fwtest` in the page address exposes `window.__fw` for automated checks; the stage-walk test answers every stage to completion with it.

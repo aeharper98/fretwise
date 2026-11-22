@@ -25,8 +25,8 @@ Learn the guitar neck one string at a time, then put it to work: bluegrass chord
 ## Description (4000)
 Fretwise teaches you every note on the guitar neck, step by step, and then shows you how to use them, with a bluegrass slant.
 
-LEARN THE NECK ONE STRING AT A TIME
-Start with the six open strings. Then the low E string, frets 0–5. Then the rest of it. Each stage has a short lesson and a practice round, and you pass by getting answers right in a row. Twenty-three stages take you from the open strings to the whole neck, sharps and flats included.
+A PATH IN EIGHT PHASES
+Start where bluegrass lives, first position, then build jam-ready rhythm, the number system, ear training by scale degree, melody-first soloing, the rest of the neck, and the harmony behind songs. Nearly fifty short stages, each one a lesson you see and hear, then practice. A quick placement quiz skips what you already know.
 
 PLAY YOUR ANSWERS
 Tap "Answer by playing your guitar" and Fretwise listens through the microphone. Play the note on your real guitar and it hears whether you got it right.
@@ -36,9 +36,11 @@ BLUEGRASS RHYTHM AND THEORY
 • Boom-chuck: find the bass note, then alternate root and fifth
 • A play-along that runs G–C–D boom-chuck at the tempo you choose
 • The number system jam players use: "it's a 1-4-5"
-• Ear training: hear the I, IV, V and 6 minor chords
+• Ear training: find home, hear 1-3-5 and the pentatonic by number, echo phrases on your guitar
+• Hear the I, IV, V and 6 minor, then the bluegrass 2 chord and ♭7
 • G and D major scales in first position, the home of fiddle tunes
 • A capo helper: which shapes and which fret for any key
+• Timing: tap the chuck on 2 and 4 against a bass line
 
 PRACTICE ON A LIFE-SIZE NECK
 Every practice round happens on a fretboard drawn at real size, with the true fret spacing of a 25.5-inch steel-string acoustic. Swipe to slide up the neck and the fret numbers flash by. Name the note at a glowing fret, find a note and then hunt down its other spots for bonus points, or build a chord with your fingertips and check it.
@@ -50,7 +52,10 @@ EVERY NOTE, HEARD AND SEEN
 Every tap plays a recorded acoustic guitar, and a piano strip shows exactly which pitch you're hearing. Chords, scales and keys come with interval labels, a circle of fifths, and the chords in every key.
 
 A LITTLE EVERY DAY
-Today's practice is 15 questions drawn from the notes you've learned, weighted toward the ones you miss. Keep your streak going.
+Today's practice mixes 15 quick questions from the stages that are due for review: notes, chords, rhythm and ear. Stages come back on later days until they're mastered. One rest day a week won't break your streak.
+
+PLAY PIANO? IT COUNTS
+Tell Fretwise you play piano and it maps the keyboard you know onto the neck, moves faster through theory you already have, and keeps the fretboard drills at full strength.
 
 No account, no ads, no tracking. Works offline.
 
