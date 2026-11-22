@@ -169,6 +169,24 @@ main.lesson-first #panel{order:-1;margin:0 0 14px}
 .pathbox[open] summary{display:none}
 @media (max-width:699px){.pathbox summary{display:block!important}.pathbox summary::after{content:" ▾"}}
 .streakpill{font-weight:600}
+.dockq{display:none}
+@media (max-width:699px){
+  .dock .dockq{display:block;grid-column:1 / -1;font-size:13px;font-weight:600;color:var(--muted);text-align:center;margin-bottom:2px}
+  .dockq b.g{color:var(--good)} .dockq b.b{color:var(--bad)}
+  main.lesson-first.practicing .ldesc, main.lesson-first.practicing .pathbox{display:none}
+  main.lesson-first.practicing #panel > .card:last-child{display:none}
+}
+.gset{display:none;padding:5px 9px;line-height:0}
+@media (max-width:699px){
+  .bar{display:grid;grid-template-columns:1fr auto auto;gap:10px 8px;padding-block:12px 10px}
+  .brand{margin:0}
+  .logo{font-size:24px}
+  .tune{display:none}
+  .gset{display:inline-block}
+  .tabs{grid-column:1 / -1;grid-row:3}
+  .globals{display:none;grid-column:1 / -1;grid-row:2}
+  .bar.open .globals{display:flex;flex-wrap:wrap}
+}
 .streakpill[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
 .step.daily{border:1px solid var(--line);margin-bottom:6px}
 .step small{color:var(--muted);margin-left:4px}
@@ -229,7 +247,8 @@ main.noboard .boardcard{display:none}
       <button role="tab" data-tab="tuner">Tuner</button>
     </nav>
     <button class="chip streakpill" id="daystreak" data-g="daily">Start a streak</button>
-    <div class="globals">
+    <button class="chip gset" id="gset" aria-expanded="false" aria-controls="globals" aria-label="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" style="stroke:currentColor;stroke-width:1.8;stroke-linecap:round"/><circle cx="7" cy="5" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="13" cy="10" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="8" cy="15" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/></svg></button>
+    <div class="globals" id="globals">
       <div class="seg" aria-label="Accidentals"><button id="g-sharp" data-g="acc" data-v="sharp">♯</button><button id="g-flat" data-g="acc" data-v="flat">♭</button></div>
       <button class="chip" id="g-color" data-g="color">Note colors</button>
       <button class="chip" id="g-sound" data-g="sound">Sound on</button>
@@ -765,7 +784,7 @@ const Drill = {
       const correct = pcOf(midiAt(this.cur.s, this.cur.f));
       play = `<div class="prompt">Name the note on the <em>${SORD[this.cur.s]} string</em>, ${this.cur.f ? 'fret ' + this.cur.f : 'open'}.</div>
         <div class="fb ${this.fb ? this.fb.cls : ''}" style="margin-top:6px">${this.fb ? this.fb.t : '&nbsp;'}</div>
-        <div class="pad ${d.naturals ? 'n7' : ''} dock" style="margin-top:4px">${pcs.map(pc => {
+        <div class="pad ${d.naturals ? 'n7' : ''} dock" style="margin-top:4px"><div class="dockq">${SORD[this.cur.s]} string · ${this.cur.f ? 'fret ' + this.cur.f : 'open'}${this.answered != null ? ` · <b class="${this.answered === correct ? 'g' : 'b'}">${this.answered === correct ? 'Yes' : both(correct)}</b>` : ''}</div>${pcs.map(pc => {
           let cls = ''; if (this.answered != null){ if (pc === correct) cls = 'good'; else if (pc === this.answered) cls = 'bad'; }
           const lab = NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`;
           return `<button class="key ${cls}" data-act="ans" data-v="${pc}" aria-label="${both(pc)}">${lab}</button>`; }).join('')}</div>
@@ -1237,6 +1256,7 @@ const Learn = {
     drawMarks(M); renderPiano(hl, cap);
     $('#panel').innerHTML = `<div class="card c8 stack">${this.lesson(st)}</div><div class="card c4"><details class="pathbox"${G.v ? '' : ' open'}><summary>All ${LEARN.length} stages</summary>${this.path()}</details></div>`;
     $('#main').classList.toggle('lesson-first', G.v);
+    $('#main').classList.toggle('practicing', ph === 'practice');
     $('#main').classList.toggle('docked', ph === 'practice' && st.kind === 'notes');
   },
   playEar(){ const q = this.q; if (!q) return; const I = openVoicing(q.key, 'maj'); strum(Chords.midis(I), 0.035, 0.12); strum(Chords.midis(q.vc), 0.035, 1.5); },
@@ -1248,7 +1268,7 @@ const Learn = {
   lesson(st){
     const ph = S.learn.phase, n = this.idx() + 1, done = learnProg.done[st.id];
     let h = `<div><p class="lbl">${st.daily ? `Daily practice · ${dayStreak()}-day streak` : `Stage ${n} of ${LEARN.length} · ${st.part}`}${done ? ' · <span style="color:var(--good)">Passed</span>' : ''}</p>
-      <div class="prompt" style="font-size:30px">${st.t}</div><p class="sub" style="margin-top:6px;max-width:62ch;font-size:15px">${st.d}</p></div>
+      <div class="prompt" style="font-size:30px">${st.t}</div><p class="sub ldesc" style="margin-top:6px;max-width:62ch;font-size:15px">${st.d}</p></div>
       ${st.daily ? '' : `<div class="row">${seg('lphase', ph, [['study','1 · Study'],['practice','2 · Practice']])}</div>`}`;
     if (ph === 'study') return h + this.studyBody(st);
     return h + this.practiceBody(st);
@@ -1302,7 +1322,7 @@ const Learn = {
     if (st.kind === 'notes'){
       const pcs = [...new Set(this.pool(st).map(c => pcOf(midiAt(c.s,c.f))))].sort((a,b) => a - b), correct = pcOf(midiAt(q.s,q.f));
       p = `<div class="prompt">What note is on the <em>${SORD[q.s]} string</em>, ${q.f ? 'fret ' + q.f : 'open'}?</div>`;
-      pad = `<div class="pad dock" style="grid-template-columns:repeat(${Math.min(pcs.length, 7)},1fr)">${pcs.map(pc => { let cls = ''; if (this.fb){ if (pc === correct) cls = 'good'; else if (pc === this.fb.pc) cls = 'bad'; }
+      pad = `<div class="pad dock" style="grid-template-columns:repeat(${Math.min(pcs.length, 7)},1fr)"><div class="dockq">${SORD[q.s]} string · ${q.f ? 'fret ' + q.f : 'open'}${this.fb ? ` · <b class="${this.fb.ok ? 'g' : 'b'}">${this.fb.ok ? 'Yes' : both(correct)}</b>` : ''}</div>${pcs.map(pc => { let cls = ''; if (this.fb){ if (pc === correct) cls = 'good'; else if (pc === this.fb.pc) cls = 'bad'; }
         return `<button class="key ${cls}" data-act="lans" data-v="${pc}" aria-label="${both(pc)}">${NAT[pc] ? SH[pc] : `${nn(pc)}<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`}</button>`; }).join('')}</div>
         ${Ear.button('llisten')}<p class="hint" style="margin-top:4px">Keyboard: A–G, Shift for sharps.</p>`;
     }
@@ -1389,8 +1409,9 @@ const Learn = {
   },
   act(a, v){
     const st = this.stage();
+    if (a === 'lgo' && v === 'daily'){ S.learn.id = v; S.learn.phase = 'practice'; S.learn.sel = null; this.streak = days[todayKey()] || 0; this.reset(); save(); this.render(); setTimeout(() => this.scroll(), 60); return; }
     if (a === 'lgo'){ S.learn.id = v; S.learn.phase = v === 'daily' ? 'practice' : 'study'; S.learn.sel = null; this.streak = v === 'daily' ? (days[todayKey()] || 0) : 0; this.reset(); }
-    if (a === 'lphase' || a === 'lstart'){ S.learn.phase = a === 'lstart' ? 'practice' : v; this.streak = 0; this.reset(); }
+    if (a === 'lphase' || a === 'lstart'){ S.learn.phase = a === 'lstart' ? 'practice' : v; this.streak = 0; this.reset(); if (S.learn.phase === 'practice'){ save(); this.render(); setTimeout(() => this.scroll(), 60); return; } }
     if (a === 'lnext'){ const n = LEARN[this.idx() + 1]; if (n){ S.learn.id = n.id; S.learn.phase = 'study'; S.learn.sel = null; } this.streak = 0; this.reset(); }
     if (a === 'lagain'){ if (st.daily){ DAILY.goal += 10; } else this.streak = 0; this.reset(); }
     if (a === 'lhear'){ const ms = [...new Set(this.pool(st).map(c => midiAt(c.s,c.f)))].sort((x,y) => x - y).filter(m => !st.from || m >= st.from); arp(ms.slice(0, 16), st.from ? 0.26 : 0.32); return; }
@@ -1429,7 +1450,7 @@ const Learn = {
     let pc = LETTER_PC[i]; if (e.shiftKey) pc = (pc + 1) % 12;
     e.preventDefault(); this.act('lans', String(pc));
   },
-  leave(){ Ear.stop(); Metro.stop(); clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked', 'lesson-first'); }
+  leave(){ Ear.stop(); Metro.stop(); clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked', 'lesson-first', 'practicing'); }
 };
 
 /* ================= MICROPHONE PITCH ================= */
@@ -1950,6 +1971,8 @@ function syncGlobals(){
   $('#g-color').setAttribute('aria-pressed', S.color);
   $('#g-sound').setAttribute('aria-pressed', S.sound); $('#g-sound').textContent = S.sound ? 'Sound on' : 'Sound off';
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  const sel = document.querySelector(`[data-tab="${tab}"]`), bar = document.querySelector('.tabs');
+  if (sel && bar) bar.scrollLeft = Math.max(0, sel.offsetLeft - (bar.clientWidth - sel.offsetWidth) / 2);
 }
 function go(t, fromHash){
   if (!MODES[t]) t = 'learn';
@@ -1958,6 +1981,7 @@ function go(t, fromHash){
   syncGlobals(); ensureBoard(); $('#main').classList.toggle('noboard', t === 'life'); MODES[tab].render();
 }
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
+$('#gset').addEventListener('click', () => { const bar = $('.bar'), open = !bar.classList.contains('open'); bar.classList.toggle('open', open); $('#gset').setAttribute('aria-expanded', open); });
 $('#daystreak').addEventListener('click', () => { S.learn.id = 'daily'; S.learn.phase = 'practice'; Learn.reset(); save(); go('learn'); });
 document.querySelector('.globals').addEventListener('click', e => {
   const b = e.target.closest('[data-g]'); if (!b) return;
