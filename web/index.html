@@ -25,52 +25,88 @@
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/jetbrains-mono-latin-600-normal.woff2) format('woff2')}
 </style>
 <style>
-/* Layout: guitar-shop calm. Sticky glass piano strip over a rosewood neck; controls sit in quiet cards below. */
+/* Layout: a luthier's bench. The instrument is rosewood, bone, nickel and pearl; a sunburst finish marks what's next; Lake Placid blue is every control.
+   Phone: large title, content column, floating piano card, bottom tab bar. Desktop: same column, tabs move into the top bar. */
 :root{
-  --bg:#EDF1F0; --surface:#FBFCFC; --ink:#17201E; --muted:#5B6966; --line:#D3DBD9; --chip:#E4EAE8;
-  --accent:#2D6A8A; --accent-ink:#FFFFFF; --amber:#C27A2C; --good:#2F8656; --bad:#C1463B;
-  --glass:rgba(244,247,246,.66); --key-w:rgba(255,255,255,.86); --key-b:rgba(24,30,29,.86); --key-line:rgba(23,32,30,.24); --key-label:#5B6966;
+  --bg:#EDF1EF; --bg2:#E2E8E5; --surface:#FBFCFB; --ink:#141B19; --muted:#5D6A67; --line:#D5DDDA; --chip:#E2E8E5;
+  --accent:#2B6A8C; --accent-ink:#FFFFFF; --accent-soft:rgba(43,106,140,.11); --amber:#C27A2C; --good:#2F8656; --bad:#C1463B;
+  --glass:rgba(241,245,243,.78); --key-w:rgba(255,255,255,.9); --key-b:rgba(24,30,29,.88); --key-line:rgba(23,32,30,.22); --key-label:#5B6966;
   --wood-a:#4C2D1E; --wood-b:#2D1A12; --fretwire:#CBD2D5; --bone:#ECE4D1; --pearl:#F2EDE3; --string:#DCE1E3; --wound:#C4AB7A;
   --dot-ink:#1C1612; --on-wood:#D9CDBB; --shade:rgba(12,9,7,.58); --barre:rgba(242,237,227,.22);
+  --burst:radial-gradient(125% 135% at 22% 12%, #F8CB74 0%, #E5953B 22%, #B85B21 46%, #5E2912 72%, #2A120A 100%);
+  --burst-ink:#FFF6EA;
+  --shadow:0 1px 2px rgba(20,27,25,.05), 0 10px 28px -16px rgba(20,27,25,.22);
   --f-display:'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
   --f-body:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#101615; --surface:#161E1D; --ink:#E6ECEA; --muted:#8FA09C; --line:#27322F; --chip:#1E2826;
-  --accent:#79B2D1; --accent-ink:#0B1A22; --amber:#E2A158; --good:#5DBE88; --bad:#E5766A;
-  --glass:rgba(16,22,21,.66); --key-w:rgba(232,237,235,.84); --key-b:rgba(6,9,9,.9); --key-line:rgba(0,0,0,.45); --key-label:#4E5B58;
+  --bg:#0D1211; --bg2:#141B1A; --surface:#161E1D; --ink:#E8EEEC; --muted:#93A39F; --line:#25302E; --chip:#1C2625;
+  --accent:#7DB6D5; --accent-ink:#081820; --accent-soft:rgba(125,182,213,.14); --amber:#E5A55B; --good:#5FC28B; --bad:#E77A6E;
+  --glass:rgba(13,18,17,.78); --key-w:rgba(232,237,235,.86); --key-b:rgba(6,9,9,.92); --key-line:rgba(0,0,0,.45); --key-label:#4E5B58;
   --wood-a:#3D2418; --wood-b:#20120C; --shade:rgba(5,4,3,.62);
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.7);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#101615; --surface:#161E1D; --ink:#E6ECEA; --muted:#8FA09C; --line:#27322F; --chip:#1E2826;
-  --accent:#79B2D1; --accent-ink:#0B1A22; --amber:#E2A158; --good:#5DBE88; --bad:#E5766A;
-  --glass:rgba(16,22,21,.66); --key-w:rgba(232,237,235,.84); --key-b:rgba(6,9,9,.9); --key-line:rgba(0,0,0,.45); --key-label:#4E5B58;
+  --bg:#0D1211; --bg2:#141B1A; --surface:#161E1D; --ink:#E8EEEC; --muted:#93A39F; --line:#25302E; --chip:#1C2625;
+  --accent:#7DB6D5; --accent-ink:#081820; --accent-soft:rgba(125,182,213,.14); --amber:#E5A55B; --good:#5FC28B; --bad:#E77A6E;
+  --glass:rgba(13,18,17,.78); --key-w:rgba(232,237,235,.86); --key-b:rgba(6,9,9,.92); --key-line:rgba(0,0,0,.45); --key-label:#4E5B58;
   --wood-a:#3D2418; --wood-b:#20120C; --shade:rgba(5,4,3,.62);
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button{font:inherit;color:inherit}
-.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:16px 12px}
-.brand{display:flex;flex-direction:column;margin-right:auto;min-width:0}
-.logo{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:-.02em;line-height:1}
-.logo i{font-style:normal;color:var(--amber)}
-.tune{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-top:5px}
-.tabs{display:flex;gap:2px;background:var(--chip);border-radius:12px;padding:3px;overflow-x:auto;max-width:100%}
-.tabs button{border:0;background:transparent;padding:7px 14px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted);white-space:nowrap}
-.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.globals{display:flex;gap:8px;align-items:center}
-.pianobar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border-block:1px solid var(--line)}
-.pianobar .wrap{display:flex;align-items:center;gap:16px;padding-block:8px}
-#piano{display:block;width:100%;max-width:760px;margin:0 auto;height:auto}
-.pcap{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);width:120px;flex:none;line-height:1.35}
+a{color:var(--accent)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* ---------- app bar and tabs ---------- */
+.appbar-in{display:flex;align-items:center;gap:10px;padding-block:12px 4px;min-height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--f-display);font-weight:800;font-size:21px;letter-spacing:-.025em;margin-right:auto}
+.brand svg{width:28px;height:28px;flex:none;border-radius:8px}
+.brand i{font-style:normal;color:var(--amber)}
+.actions{display:flex;gap:8px;align-items:center}
+.iconbtn{width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink);padding:0}
+.iconbtn svg{width:19px;height:19px}
+.streak{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 13px 0 10px;border-radius:13px;border:1px solid var(--line);background:var(--surface);font:800 16px var(--f-display);cursor:pointer;font-variant-numeric:tabular-nums}
+.streak svg{width:17px;height:17px;color:var(--amber)}
+.streak.done{background:var(--good);border-color:var(--good);color:#fff}
+.streak.done svg{color:#fff}
+.tabbar{display:flex;gap:4px}
+.tabbar button{border:0;background:none;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:650;padding:6px 0;letter-spacing:.01em}
+.tabbar svg{width:25px;height:25px}
+.tabbar button[aria-selected="true"]{color:var(--accent)}
+.tabbar button[aria-selected="true"] .fillme{fill:currentColor}
+@media (max-width:899px){
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:12;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--line);padding:7px max(8px,env(safe-area-inset-right,0px)) calc(7px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));justify-content:space-around}
+  .tabbar button{flex:1;max-width:110px}
+  main{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
+}
+@media (min-width:900px){
+  .appbar-in{padding-block:18px 6px}
+  .brand,.actions{flex:1}
+  .actions{justify-content:flex-end}
+  .tabbar{background:var(--chip);border-radius:15px;padding:4px}
+  .tabbar button{flex-direction:row;gap:7px;font-size:14px;padding:8px 16px;border-radius:11px}
+  .tabbar svg{width:18px;height:18px}
+  .tabbar button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+}
+
+/* ---------- page ---------- */
+main{display:flex;flex-direction:column;gap:16px;padding-block:6px 56px}
+.vtitle{font-family:var(--f-display);font-weight:800;font-size:36px;letter-spacing:-.035em;line-height:1.02;margin:6px 0 0}
+#above{display:flex;flex-direction:column;gap:14px;min-width:0}
+#above:empty,#panel:empty{display:none}
+.pianobar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:5;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line);border-radius:16px;padding:8px 10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+#piano{display:block;width:100%;max-width:740px;margin:0 auto;height:auto}
+.pcap{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);width:118px;flex:none;line-height:1.35;padding-left:4px}
 .pcap b{display:block;color:var(--ink);font-family:var(--f-display);font-size:17px;letter-spacing:0;text-transform:none;font-weight:700}
 @media (max-width:760px){.pcap{display:none}}
-main{padding-block:18px 48px}
 .boardcard{overflow:hidden}
 #board{display:block;width:100%;height:auto;margin:0 auto;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 #board.v{max-width:420px}
@@ -86,200 +122,287 @@ main{padding-block:18px 48px}
 @keyframes pulse{50%{transform:scale(1.14)}}
 .pop{transform-box:fill-box;transform-origin:center;animation:pop .28s ease-out}
 @keyframes pop{from{transform:scale(.6);opacity:.2}}
-@media (prefers-reduced-motion:reduce){.pulse,.pop{animation:none}}
 
-#panel{display:grid;gap:14px;align-items:start;grid-template-columns:repeat(12,1fr);margin-top:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-width:0;grid-column:span 12}
+#panel{display:grid;gap:14px;align-items:start;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0;grid-column:span 12}
 @media (min-width:900px){.c4{grid-column:span 4}.c5{grid-column:span 5}.c7{grid-column:span 7}.c8{grid-column:span 8}.c6{grid-column:span 6}}
-.lbl{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
-.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.stack{display:flex;flex-direction:column;gap:14px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13.5px;font-weight:500;cursor:pointer;line-height:1.3}
-.chip:hover{border-color:var(--muted)}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.chip.sq{border-radius:8px;min-width:40px;text-align:center;font-family:var(--f-display);font-weight:700;font-size:15px}
-.seg{display:inline-flex;background:var(--chip);border-radius:10px;padding:2px;gap:2px}
-.seg button{border:0;background:transparent;border-radius:8px;padding:5px 11px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
-.btn.ghost{background:transparent;color:var(--accent)}
+.lbl{font-size:11px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:16px}
+.sechead{display:flex;align-items:baseline;gap:10px;margin:10px 0 -2px}
+.sechead h3{margin:0;font-family:var(--f-display);font-size:21px;letter-spacing:-.015em}
+.sechead span{margin-left:auto;color:var(--muted);font-size:13px}
+
+/* ---------- controls ---------- */
+.btn{height:46px;padding:0 19px;border-radius:14px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:650;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;transition:transform .08s ease}
+.btn:active{transform:scale(.98)}
+.btn svg{width:15px;height:15px;flex:none}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.small{height:36px;padding:0 13px;font-size:14px;border-radius:11px}
+.btn.wide{flex:1}
 .btn:disabled{opacity:.4;cursor:default}
-button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.chip{min-height:34px;padding:5px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:550;cursor:pointer;line-height:1.25;display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:color-mix(in srgb,var(--muted) 60%,var(--line))}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.sq{border-radius:10px;min-width:42px;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:15px}
+.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;gap:2px;max-width:100%;overflow-x:auto}
+.seg button{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-size:13.5px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg.lg{width:100%;max-width:440px}
+.seg.lg button{flex:1;padding:9px 12px;font-size:14.5px}
+.switch{width:51px;height:31px;border-radius:99px;background:var(--line);border:0;position:relative;cursor:pointer;flex:none;transition:background .2s;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.22);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--good)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+
+/* ---------- type ---------- */
 .big{font-family:var(--f-display);font-weight:800;font-size:64px;line-height:.95;letter-spacing:-.03em}
 .big small{font-size:22px;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:8px}
-.sub{color:var(--muted);font-size:14px}
+.sub{color:var(--muted);font-size:14.5px}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:12px 0 0}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:14.5px;margin:14px 0 0}
 .facts dt{color:var(--muted)}
 .facts dd{margin:0}
 .empty{color:var(--muted);font-size:15px;max-width:34ch}
-.tips{display:grid;gap:8px}
-.tip{display:block;width:100%;text-align:left;border:1px solid var(--line);background:transparent;border-radius:12px;padding:10px 12px;cursor:pointer}
-.tip b{font-family:var(--f-display);font-size:16px;font-weight:700;display:block}
-.tip span{color:var(--muted);font-size:13.5px}
-.tip[aria-pressed="true"]{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 9%,transparent)}
-.prompt{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+.hint{font-size:13px;color:var(--muted);line-height:1.45}
+.prompt{font-family:var(--f-display);font-weight:750;font-size:26px;line-height:1.12;letter-spacing:-.015em;text-wrap:balance}
 .prompt em{font-style:normal;color:var(--amber)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chordname{font-family:var(--f-display);font-weight:800;font-size:52px;line-height:1;letter-spacing:-.025em}
+.tips{display:grid;gap:10px}
+.tip{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;cursor:pointer}
+.tip b{font-family:var(--f-display);font-size:16.5px;font-weight:700;display:block;margin-bottom:2px}
+.tip span{color:var(--muted);font-size:13.5px}
+.tip[aria-pressed="true"]{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 9%,var(--surface))}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stat{border-left:2px solid var(--line);padding-left:10px}
-.stat b{display:block;font-family:var(--f-display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat b{display:block;font-family:var(--f-display);font-size:25px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1.15}
 .stat span{font-size:12px;color:var(--muted)}
-.pad{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.pad{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
 .pad.n7{grid-template-columns:repeat(7,1fr)}
-.key{border:1px solid var(--line);background:var(--surface);border-radius:10px;height:52px;cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:19px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;padding:0}
+.key{border:1px solid var(--line);background:var(--surface);border-radius:14px;height:54px;cursor:pointer;font-family:var(--f-display);font-weight:750;font-size:19px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;padding:0;box-shadow:0 1px 0 rgba(0,0,0,.04);transition:transform .08s ease}
+.key:active{transform:scale(.96)}
 .key small{font-size:12px;color:var(--muted);font-weight:600}
-.key:hover{border-color:var(--muted)}
 .key.good{background:var(--good);border-color:var(--good);color:#fff}
 .key.bad{background:var(--bad);border-color:var(--bad);color:#fff}
 .key.good small,.key.bad small{color:inherit}
-.fb{min-height:22px;font-size:14px;font-weight:600}
+.fb{min-height:22px;font-size:14.5px;font-weight:650}
 .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
-.hint{font-size:12.5px;color:var(--muted)}
-.chordname{font-family:var(--f-display);font-weight:800;font-size:52px;line-height:1;letter-spacing:-.02em}
-.formula{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.tone{display:flex;flex-direction:column;align-items:center;min-width:44px;border:1px solid var(--line);border-radius:10px;padding:5px 8px}
+.formula{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.tone{display:flex;flex-direction:column;align-items:center;min-width:46px;border:1px solid var(--line);border-radius:12px;padding:6px 9px;background:var(--surface)}
 .tone b{font-family:var(--f-display);font-size:18px}
 .tone span{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
-.tone.r{border-color:var(--amber)}
+.tone.r{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 8%,var(--surface))}
 .vnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .vnav .mono{font-size:13px;color:var(--muted)}
-.dia{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.dia button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.dia{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.dia button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
 .dia button b{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:600}
 .dia button span{font-family:var(--f-display);font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.dia button[aria-pressed="true"]{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.dia button[aria-pressed="true"]{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--surface))}
 @media (max-width:560px){.dia{grid-template-columns:repeat(4,minmax(0,1fr))}}
 #cof{width:100%;max-width:300px;display:block;margin:0 auto}
 #cof .w{cursor:pointer;stroke:var(--surface);stroke-width:2}
 #cof text{font-family:var(--f-display);font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.opts .key{height:56px;font-size:20px}
+.opts .key{height:58px;font-size:20px}
+.ntab{border-collapse:collapse;font-size:14px}
+.ntab th{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:600;padding:4px 8px;text-align:left}
+.ntab td{padding:3px 4px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:699px){.cols2{grid-template-columns:1fr}}
 @media (max-width:699px){
   .big{font-size:52px}
   .chordname{font-size:44px}
-  .prompt{font-size:22px}
-  .dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
-  main.docked{padding-bottom:230px}
-  .stats b{font-size:20px}
+  .prompt{font-size:23px}
+  .vtitle{font-size:34px}
+  .dock{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px))}
+  main.docked{padding-bottom:300px!important}
+  .stats b{font-size:21px}
 }
-main{display:flex;flex-direction:column}
-main.lesson-first #panel{order:-1;margin:0 0 14px}
-.pathbox summary{cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);list-style:none;margin-bottom:6px}
-.pathbox summary::-webkit-details-marker{display:none}
-.pathbox[open] summary{display:none}
-@media (max-width:699px){.pathbox summary{display:block!important}.pathbox summary::after{content:" ▾"}}
-.streakpill{font-weight:600}
 .dockq{display:none}
 @media (max-width:699px){
   .dock .dockq{display:block;grid-column:1 / -1;font-size:13px;font-weight:600;color:var(--muted);text-align:center;margin-bottom:2px}
   .dockq b.g{color:var(--good)} .dockq b.b{color:var(--bad)}
-  main.lesson-first.practicing .ldesc, main.lesson-first.practicing .pathbox{display:none}
-  main.lesson-first.practicing #panel > .card:last-child{display:none}
 }
-.gset{display:none;padding:5px 9px;line-height:0}
-@media (max-width:699px){
-  .bar{display:grid;grid-template-columns:1fr auto auto;gap:10px 8px;padding-block:12px 10px}
-  .brand{margin:0}
-  .logo{font-size:24px}
-  .tune{display:none}
-  .gset{display:inline-block}
-  .tabs{grid-column:1 / -1;grid-row:3}
-  .globals{display:none;grid-column:1 / -1;grid-row:2}
-  .bar.open .globals{display:flex;flex-wrap:wrap}
-}
-.streakpill[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
-.step.daily{border:1px solid var(--line);margin-bottom:6px}
-.step small{color:var(--muted);margin-left:4px}
-.path{display:flex;flex-direction:column;gap:2px}
-.step{display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:6px 8px;border-radius:10px;cursor:pointer;font-size:14px}
-.step:hover{background:var(--chip)}
-.step .n{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font:600 11px var(--f-mono);color:var(--muted)}
-.step.done .n{background:var(--good);border-color:var(--good);color:#fff}
-.step.cur{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:600}
-.step.cur .n{border-color:var(--accent);color:var(--accent)}
-.ntab{border-collapse:collapse;font-size:14px}
-.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media (max-width:699px){.cols2{grid-template-columns:1fr}}
-.ntab th{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:600;padding:4px 8px;text-align:left}
-.ntab td{padding:3px 4px}
-#welcome{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+
+/* ---------- learn home ---------- */
+.hero{position:relative;overflow:hidden;border-radius:24px;padding:22px 22px 20px;color:var(--burst-ink);background:var(--burst);box-shadow:0 24px 46px -24px rgba(110,48,14,.7), inset 0 0 0 1px rgba(255,236,210,.14);isolation:isolate}
+.hero .strings{position:absolute;right:-6%;top:-20%;height:140%;width:52%;opacity:.2;z-index:-1;transform:rotate(14deg)}
+.hero .ring{position:absolute;right:-60px;bottom:-70px;width:210px;height:210px;border-radius:50%;border:16px solid rgba(255,241,220,.07);z-index:-1}
+.hero .eyebrow{font:600 11px/1.3 var(--f-mono);letter-spacing:.11em;text-transform:uppercase;opacity:.85}
+.hero h2{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.02;letter-spacing:-.03em;margin:8px 0 8px;text-wrap:balance;max-width:16ch}
+.hero p{margin:0;opacity:.9;max-width:44ch;font-size:15px;line-height:1.45}
+.hero .meter{display:flex;align-items:center;gap:10px;margin-top:18px;font:500 12px var(--f-mono);opacity:.92}
+.hero .meter i{flex:1;height:6px;border-radius:99px;background:rgba(255,240,220,.2);overflow:hidden;display:block}
+.hero .meter i b{display:block;height:100%;background:#FFEFD6;border-radius:inherit}
+.hero .acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.hbtn{height:48px;padding:0 20px;border-radius:15px;border:0;background:#FFF6EA;color:#3A190B;font-weight:750;font-size:15.5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .08s ease}
+.hbtn:active{transform:scale(.98)}
+.hbtn svg{width:16px;height:16px}
+.hbtn.ghost{background:rgba(255,246,234,.13);color:#FFF6EA;box-shadow:inset 0 0 0 1px rgba(255,246,234,.38)}
+.today{display:flex;align-items:center;gap:15px;border-radius:20px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
+.today:hover{border-color:color-mix(in srgb,var(--muted) 50%,var(--line))}
+.dial{width:58px;height:58px;flex:none;position:relative;display:grid;place-items:center}
+.dial svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.dial b{font:800 15px var(--f-display);font-variant-numeric:tabular-nums}
+.today .tt{display:block;font-family:var(--f-display);font-weight:750;font-size:18px;letter-spacing:-.01em}
+.today .td{display:block;margin-top:1px;color:var(--muted);font-size:13.5px;line-height:1.35}
+.today .go{margin-left:auto;color:var(--accent);flex:none}
+.homegrid{display:grid;gap:14px}
+@media (min-width:900px){.homegrid{grid-template-columns:1.6fr 1fr;align-items:stretch}.homegrid .today{flex-direction:column;align-items:flex-start;justify-content:center}.homegrid .today .go{margin:6px 0 0}}
+.phase{margin-top:10px}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:18px 0 2px}
+.phase-n{font:600 12px var(--f-mono);color:var(--amber);letter-spacing:.06em}
+.phase-h h3{margin:0;font-family:var(--f-display);font-size:22px;letter-spacing:-.02em}
+.phase-h .ct{margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+.phase-tag{color:var(--muted);font-size:14px;margin:2px 0 8px;max-width:62ch}
+.phase-bar{height:4px;border-radius:99px;background:var(--chip);overflow:hidden;margin:6px 0 6px}
+.phase-bar b{display:block;height:100%;background:var(--good);border-radius:inherit}
+.rail{position:relative;margin:0;padding:0}
+.rail::before{content:"";position:absolute;left:21px;top:24px;bottom:24px;width:6px;border-radius:3px;background:linear-gradient(90deg,var(--wood-a),var(--wood-b) 55%,var(--wood-a))}
+.srow{position:relative;display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:6px;width:100%;text-align:left;background:none;border:0;padding:9px 10px 9px 0;border-radius:16px;cursor:pointer}
+.srow:hover{background:var(--bg2)}
+.node{justify-self:center;width:20px;height:20px;border-radius:50%;background:var(--pearl);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.16), 0 0 0 3px var(--bg);display:grid;place-items:center;position:relative;z-index:1}
+.node svg{width:12px;height:12px}
+.srow.done .node{background:var(--good);color:#fff;box-shadow:0 0 0 3px var(--bg)}
+.srow.cur .node{background:var(--amber);box-shadow:0 0 0 3px var(--bg), 0 0 0 7px color-mix(in srgb,var(--amber) 30%,transparent);animation:halo 2s ease-in-out infinite}
+@keyframes halo{50%{box-shadow:0 0 0 3px var(--bg), 0 0 0 10px color-mix(in srgb,var(--amber) 14%,transparent)}}
+.srow b{display:block;font-weight:650;font-size:15.5px;line-height:1.3}
+.srow small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.srow .chev{color:var(--muted);width:16px;height:16px}
+.srow.cur b{color:var(--ink)}
+.kindtag{display:inline-block;font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-right:6px}
+.footlinks{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:18px}
+/* stage page */
+.stagehead{display:flex;flex-direction:column;gap:6px}
+.backlink{align-self:flex-start;display:inline-flex;align-items:center;gap:3px;border:0;background:none;color:var(--accent);font-weight:650;font-size:15px;padding:4px 6px 4px 0;cursor:pointer}
+.backlink svg{width:16px;height:16px}
+.stagehead .eyebrow{font:600 11px var(--f-mono);letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.stagehead h2{font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1.03;margin:0;text-wrap:balance}
+.stagehead p{color:var(--muted);max-width:64ch;margin:2px 0 0;font-size:15.5px}
+.passed{color:var(--good)}
+.ctabar{position:sticky;bottom:16px;z-index:7;display:flex;gap:10px;align-items:center;padding:10px;border-radius:20px;background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line);box-shadow:var(--shadow)}
+.ctabar .btn{height:50px;font-size:16px}
+.ctabar .ctasub{font-size:12.5px;color:var(--muted);padding:0 6px;line-height:1.3}
+@media (max-width:899px){.ctabar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}}
+/* practice hub */
+.pgrid{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:700px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+.pcard{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+.pcard .top{display:flex;align-items:center;gap:12px}
+.pcard .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.pcard .ic svg{width:22px;height:22px}
+.pcard h3{margin:0;font-family:var(--f-display);font-size:19px;letter-spacing:-.01em}
+.pcard p{margin:0;color:var(--muted);font-size:14px}
+.pcard .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.hero.mini h2{font-size:28px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- settings sheet ---------- */
+#sheet{position:fixed;inset:0;z-index:45;background:rgba(5,8,7,.42);display:flex;align-items:flex-end;justify-content:center}
+#sheet[hidden]{display:none}
+.sheetcard{background:var(--bg);width:100%;max-width:560px;max-height:90dvh;overflow-y:auto;border-radius:24px 24px 0 0;padding:10px max(18px,env(safe-area-inset-right,0px)) calc(26px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));box-shadow:0 -12px 40px rgba(0,0,0,.25);animation:sheetup .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheetup{from{transform:translateY(40px);opacity:.4}}
+@media (min-width:700px){#sheet{align-items:center}.sheetcard{border-radius:24px}}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 8px}
+.sheethead{display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px}
+.sheethead h2{margin:0;font-family:var(--f-display);font-size:26px;letter-spacing:-.02em}
+.glabel{font-size:11px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 4px 7px}
+.sgroup{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.sgroup.padded{padding:14px;display:flex;flex-direction:column;gap:12px}
+.sline{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:none;width:100%;text-align:left}
+.sline:last-child{border-bottom:0}
+.sline > div{flex:1;min-width:0}
+.sline b{display:block;font-weight:600;font-size:15px}
+.sline small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35;margin-top:1px}
+button.sline{cursor:pointer;color:var(--accent);font-weight:600}
+button.sline.danger{color:var(--bad)}
+.fine{text-align:center;color:var(--muted);font-size:12.5px;margin-top:18px}
+
+/* ---------- welcome ---------- */
+#welcome{position:fixed;inset:0;z-index:40;background:rgba(5,8,7,.5);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
 #welcome[hidden]{display:none}
-.wcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.wtext ul.why{margin:10px 0 0;padding-left:18px;display:grid;gap:7px}
+.wcard{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:24px;max-width:460px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.3);max-height:calc(100dvh - 40px);overflow-y:auto}
+.wtext ul.why{margin:12px 0 0;padding-left:18px;display:grid;gap:8px}
 .wtext ul.why b{color:var(--ink)}
-.wopts{display:grid;gap:8px}
-.wopt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 13px;cursor:pointer}
+.wopts{display:grid;gap:9px}
+.wopt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:13px 15px;cursor:pointer}
 .wopt:hover{border-color:var(--accent)}
-.wopt b{display:block;font-family:var(--f-display);font-size:16px}
+.wopt b{display:block;font-family:var(--f-display);font-size:16.5px;letter-spacing:-.01em}
 .wopt span{color:var(--muted);font-size:13.5px}
 .wneck svg{width:100%;display:block}
-.wcard{max-height:calc(100dvh - 40px);overflow-y:auto}
-.wart svg{width:100%;max-width:260px;display:block;margin:0 auto 14px}
+.wart{margin:-24px -24px 18px;height:150px;background:var(--burst);position:relative;overflow:hidden;border-radius:26px 26px 0 0}
+.wart svg{position:absolute;inset:0;width:100%;height:100%}
 .wdots{display:flex;gap:6px;margin-bottom:14px}
 .wdots span{width:22px;height:4px;border-radius:2px;background:var(--line)}
 .wdots span.on{background:var(--accent)}
+
+/* ---------- life-size practice ---------- */
 #life{position:fixed;inset:0;z-index:30;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #lifecv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.ltop,.lbot{position:absolute;left:0;right:0;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);pointer-events:none}
-.ltop{top:0;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px;border-bottom:1px solid var(--line)}
-.lbot{bottom:0;padding-top:8px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.ltop,.lbot{position:absolute;left:0;right:0;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);pointer-events:none}
+.ltop{top:0;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:10px;border-bottom:1px solid var(--line)}
+.lbot{bottom:0;padding-top:10px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .ltop button,.lbot button{pointer-events:auto}
 .lrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-@media (max-width:400px){.lbtn{padding:7px 10px;font-size:13.5px}.lrow{gap:6px}}
+.lbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;height:38px;padding:0 13px;font-weight:650;font-size:14px;cursor:pointer}
 .lbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.lbtn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;cursor:pointer}
-.lpos{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-left:auto}
-.lstat{font-size:13px;color:var(--muted)} .lstat b{color:var(--ink);font-family:var(--f-display);font-size:17px}
-.lprompt{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1.1;margin-top:4px}
+@media (max-width:400px){.lbtn{padding:0 10px;font-size:13.5px}.lrow{gap:6px}}
+.lpos{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-left:auto}
+.lstat{font-size:12.5px;color:var(--muted);font-weight:600}
+.lprompt{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1.08;letter-spacing:-.02em;margin-top:6px}
 .lprompt em{font-style:normal;color:var(--amber)}
-.lprompt small{display:block;font-family:var(--f-body);font-weight:500;font-size:14px;color:var(--muted);margin-top:2px}
-.lmeter{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--muted);font-weight:600}
+.lprompt small{display:block;font-family:var(--f-body);font-weight:500;font-size:13.5px;color:var(--muted);margin-top:3px;letter-spacing:0}
+.lmeter{display:flex;align-items:center;gap:10px;margin-top:7px;font-size:12.5px;color:var(--muted);font-weight:600}
 .lmeter i{flex:1;height:6px;border-radius:99px;background:var(--chip);overflow:hidden;display:block}
-.lmeter i b{display:block;height:100%;background:var(--good);transition:width .25s}
-#lpad .key{height:48px}
-.lfb{font-weight:600;font-size:13.5px;min-height:18px;line-height:1.3}
+.lmeter i b{display:block;height:100%;background:var(--good);transition:width .25s;border-radius:inherit}
+#lpad .key{height:50px}
+#life.celebrate .ltop{background:var(--burst);color:var(--burst-ink);border-bottom-color:transparent}
+#life.celebrate .lprompt{font-size:34px}
+#life.celebrate .lprompt small,#life.celebrate .lpos,#life.celebrate .lstat,#life.celebrate .lmeter{color:rgba(255,246,234,.85)}
+#life.celebrate .lmeter i{background:rgba(255,240,220,.25)}
+#life.celebrate .lmeter i b{background:#FFEFD6}
+#life.celebrate .ltop .lbtn{background:rgba(255,246,234,.14);border-color:rgba(255,246,234,.35);color:#FFF6EA}
+.lfb{font-weight:650;font-size:14px;min-height:18px;line-height:1.3}
 .lfb:empty{display:none}
 .lfb.good{color:var(--good)} .lfb.bad{color:var(--bad)}
-main.noboard .boardcard{display:none}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:min(92vw,440px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:11px 17px;border-radius:14px;font-size:14px;max-width:min(92vw,440px);box-shadow:0 8px 28px rgba(0,0,0,.28)}
+@media (max-width:899px){#toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){.pulse,.pop,.srow.cur .node,.sheetcard{animation:none}.btn,.key,.hbtn{transition:none}}
 </style>
 
 </head>
 <body>
-<header>
-  <div class="wrap bar">
-    <div class="brand">
-      <span class="logo">Fret<i>wise</i></span>
-      <span class="tune">Standard tuning · E A D G B E</span>
-    </div>
-    <nav class="tabs" role="tablist" aria-label="Modes">
-      <button role="tab" data-tab="learn">Learn</button>
-      <button role="tab" data-tab="explore">Explore</button>
-      <button role="tab" data-tab="drill">Drill</button>
-      <button role="tab" data-tab="chords">Chords</button>
-      <button role="tab" data-tab="scales">Scales &amp; Keys</button>
-      <button role="tab" data-tab="tuner">Tuner</button>
+<header class="appbar">
+  <div class="wrap appbar-in">
+    <div class="brand"><svg viewBox="0 0 28 28" aria-hidden="true"><defs><radialGradient id="lg" cx="30%" cy="22%" r="95%"><stop offset="0" stop-color="#F8CB74"/><stop offset=".3" stop-color="#E5953B"/><stop offset=".62" stop-color="#9C4719"/><stop offset="1" stop-color="#2A120A"/></radialGradient></defs><rect width="28" height="28" rx="8" fill="url(#lg)"/><path d="M9 4v20M14 4v20M19 4v20" stroke="#FFF1DC" stroke-opacity=".55" stroke-width="1.3"/><path d="M5 10.5h18M5 17h18" stroke="#FFF1DC" stroke-opacity=".28" stroke-width="1.6"/><circle cx="14" cy="13.8" r="2.6" fill="#FFF6EA"/></svg><span>Fret<i>wise</i></span></div>
+    <nav class="tabbar" role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7.4 16.6l3.2-3.2M13.4 10.6l3.2-3.2"/><circle cx="6" cy="18" r="2.3"/><circle cx="12" cy="12" r="2.3" class="fillme"/><circle cx="18" cy="6" r="2.3"/></svg><span>Learn</span></button>
+      <button role="tab" data-tab="practice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path class="fillme" d="M12 21.2c-3.1-3.3-7.2-8.9-7.2-12.6C4.8 5.4 8.1 3 12 3s7.2 2.4 7.2 5.6c0 3.7-4.1 9.3-7.2 12.6z"/></svg><span>Practice</span></button>
+      <button role="tab" data-tab="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4.5" y="2.8" width="15" height="18.4" rx="2.4"/><path d="M4.5 9h15M4.5 15h15M9.5 2.8v18.4M14.5 2.8v18.4"/><circle cx="12" cy="12" r="1.6" class="fillme"/></svg><span>Explore</span></button>
+      <button role="tab" data-tab="tune"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5a8.5 8.5 0 0 1 17 0"/><path d="M12 16.5l4.2-6.4"/><circle cx="12" cy="16.5" r="1.8" class="fillme"/><path d="M7 20.5h10"/></svg><span>Tune</span></button>
     </nav>
-    <button class="chip streakpill" id="daystreak" data-g="daily">Start a streak</button>
-    <button class="chip gset" id="gset" aria-expanded="false" aria-controls="globals" aria-label="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" style="stroke:currentColor;stroke-width:1.8;stroke-linecap:round"/><circle cx="7" cy="5" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="13" cy="10" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="8" cy="15" r="2" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/></svg></button>
-    <div class="globals" id="globals">
-      <div class="seg" aria-label="Accidentals"><button id="g-sharp" data-g="acc" data-v="sharp">♯</button><button id="g-flat" data-g="acc" data-v="flat">♭</button></div>
-      <button class="chip" id="g-color" data-g="color">Note colors</button>
-      <button class="chip" id="g-sound" data-g="sound">Sound on</button>
+    <div class="actions">
+      <button class="streak" id="daystreak" aria-label="Today's practice"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21.6c-3.1-3.3-7.4-9-7.4-12.8C4.6 5.5 8 3 12 3s7.4 2.5 7.4 5.8c0 3.8-4.3 9.5-7.4 12.8z"/></svg><span id="streakn">0</span></button>
+      <button class="iconbtn" id="gset" aria-label="Settings"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" style="stroke:currentColor;stroke-width:1.7;stroke-linecap:round"/><circle cx="7" cy="5" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="13" cy="10" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="8" cy="15" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/></svg></button>
     </div>
   </div>
 </header>
-<div class="pianobar">
-  <div class="wrap">
+<main class="wrap" id="main">
+  <h1 class="vtitle" id="vtitle">Learn</h1>
+  <section id="above"></section>
+  <div class="pianobar" id="pianobar" hidden>
     <div class="pcap" id="pcap">Sounding pitch<b>—</b></div>
     <svg id="piano" role="img" aria-label="Piano keyboard showing the notes currently selected"></svg>
   </div>
-</div>
-<main class="wrap" id="main">
-  <section class="boardcard"><svg id="board" role="img" aria-label="Guitar fretboard, 15 frets, standard tuning"></svg></section>
+  <section class="boardcard" id="boardcard" hidden><svg id="board" role="img" aria-label="Guitar fretboard, 15 frets, standard tuning"></svg></section>
   <section id="panel"></section>
+  <div class="ctabar" id="cta" hidden></div>
 </main>
+<div id="sheet" hidden><div class="sheetcard" role="dialog" aria-modal="true" aria-labelledby="sheettitle"><div class="grab"></div><div class="sheethead"><h2 id="sheettitle">Settings</h2><button class="btn small ghost" id="sheetdone">Done</button></div><div id="sheetbody"></div></div></div>
 <div id="toast" role="status" hidden></div>
 <div id="welcome" role="dialog" aria-modal="true" aria-labelledby="wtitle" hidden>
   <div class="wcard">
@@ -331,6 +454,7 @@ const store = {
 const DEF = {
   acc:'sharp', color:true, sound:true, labels:'all',
   learn:{ id:'open', phase:'study', sel:null },
+  profile:{ piano:null }, practice:{ cq:['maj','min','7'] }, exmode:'notes',
   explore:{ sel:{s:0,f:3}, octaves:true, tip:null },
   drill:{ type:'name', strings:[0,1,2,3,4,5], range:[0,12], naturals:true, heat:false },
   chords:{ root:0, q:'maj', v:0, labels:'int', map:false, mode:'study', quizQ:['maj','min','7'] },
@@ -671,9 +795,36 @@ function hlNotes(midis, { faintPcs = null, labels = true, rootPc = null } = {}){
 }
 
 /* ---------- UI helpers ---------- */
-const seg = (act, cur, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="${act}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`;
+const seg = (act, cur, opts, cls = '') => `<div class="seg ${cls}">${opts.map(([v, l]) => `<button data-act="${act}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`;
 const chip = (act, v, label, on, cls = '') => `<button class="chip ${cls}" data-act="${act}" data-v="${v}" aria-pressed="${!!on}">${label}</button>`;
 const toggle = (act, label, on) => chip(act, '', label, on);
+
+/* ---------- icons and page layout ---------- */
+const IC = {
+  play:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 2.6v10.8L13.2 8z" fill="currentColor"/></svg>',
+  check:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.4 6.4l2.4 2.3 4.8-5.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  back:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  notes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="9" cy="12" r="2.6" fill="currentColor" stroke="none"/><circle cx="16" cy="7" r="2" fill="currentColor" stroke="none"/></svg>',
+  chord:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 3v18M10 3v18M14 3v18M18 3v18M4 8h16M4 13h16"/><circle cx="10" cy="10.5" r="2" fill="currentColor" stroke="none"/><circle cx="14" cy="15.5" r="2" fill="currentColor" stroke="none"/><circle cx="18" cy="15.5" r="2" fill="currentColor" stroke="none"/></svg>'
+};
+const heroArt = () => `<svg class="strings" viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden="true">${[8,24,40,56,72,88].map((x, i) => `<line x1="${x}" x2="${x}" y1="0" y2="200" stroke="#FFF1DC" stroke-width="${(1.6 - i * .18).toFixed(2)}"/>`).join('')}${[40,95,145].map(y => `<line x1="0" x2="100" y1="${y}" y2="${y}" stroke="#FFF1DC" stroke-width="2.4" stroke-opacity=".6"/>`).join('')}</svg><span class="ring"></span>`;
+const firstSentence = t => { const m = String(t).match(/^.*?[.!?](\s|$)/); return m ? m[0].trim() : t; };
+// Which parts of the page this view uses; the board is measured once it is visible.
+function layout({ title = '', piano = false, board = false, cta = '' } = {}){
+  const t = $('#vtitle'); t.textContent = title; t.hidden = !title;
+  $('#pianobar').hidden = !piano; $('#boardcard').hidden = !board;
+  const c = $('#cta'); c.innerHTML = cta; c.hidden = !cta;
+  $('#above').innerHTML = ''; $('#main').classList.remove('docked');
+  if (board) ensureBoard();
+}
+function todayCard(){
+  const t = Math.min(days[todayKey()] || 0, DAILY_GOAL), n = dayStreak(), done = t >= DAILY_GOAL, C = 2 * Math.PI * 25;
+  return `<button class="today" data-act="today">
+    <span class="dial"><svg viewBox="0 0 58 58" aria-hidden="true"><circle cx="29" cy="29" r="25" fill="none" stroke="var(--chip)" stroke-width="6"/><circle cx="29" cy="29" r="25" fill="none" stroke="${done ? 'var(--good)' : 'var(--accent)'}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C * t / DAILY_GOAL).toFixed(1)} ${C.toFixed(1)}"/></svg><b>${done ? '✓' : t}</b></span>
+    <span><span class="tt">Today's practice</span><span class="td">${done ? `Done for today. ${n}-day streak.` : `${DAILY_GOAL - t} more right answers ${n ? `keep your ${n}-day streak going` : 'start a streak'}. About three minutes.`}</span></span>
+    <span class="go">${IC.chev}</span></button>`;
+}
 
 /* ================= EXPLORE ================= */
 const TIPS = [
@@ -717,9 +868,6 @@ const Explore = {
         <div><p class="lbl">When you tap a note</p>${toggle('octaves', 'Highlight every octave', e.octaves)}</div>
         <p class="hint">Hide the names, then tap around the neck and say each note before you look. Dashed rings mark the same pitch on another string.</p>
       </div>
-      <div class="card c7 stack"><div><p class="lbl">Life-size neck</p><p class="sub" style="margin:0;max-width:60ch">Practice happens on a neck drawn at real size: the fret spacing of a 25.5-inch steel-string acoustic, so a fret on screen is as wide as the one under your fingers. Open it here to tap around freely, or hold your phone beside your guitar to compare.</p></div>
-        <div class="row"><button class="btn" data-act="lfree">Open the life-size neck</button></div></div>
-      <div class="card c5 stack">${calCard()}</div>
       <div class="card"><p class="lbl">Landmarks</p><div class="tips" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
         ${TIPS.map((t, i) => `<button class="tip" data-act="tip" data-v="${i}" aria-pressed="${e.tip === i}"><b>${t.t}</b><span>${t.d}</span></button>`).join('')}
       </div></div>`;
@@ -727,7 +875,7 @@ const Explore = {
   readout(){
     const e = S.explore;
     if (e.tip != null) return `<p class="lbl">Landmark</p><div class="prompt">${TIPS[e.tip].t}</div><p class="sub" style="margin-top:8px">${TIPS[e.tip].d}</p><p class="hint">Tap the fretboard to leave this view.</p>`;
-    if (!e.sel) return `<p class="lbl">Selected note</p><p class="empty">Tap any fret to hear it and see where it lives on the piano.</p>`;
+    if (!e.sel) return `<p class="lbl">Selected note</p><p class="empty">Tap any fret to hear it and see where it lives on the piano.</p><button class="btn small ghost" data-act="lfree" style="margin-top:12px">Open the life-size neck</button>`;
     const {s, f} = e.sel, m = midiAt(s,f), pc = pcOf(m);
     const unis = cellsIn([0,1,2,3,4,5], 0, FRETS).filter(c => midiAt(c.s,c.f) === m && !(c.s === s && c.f === f));
     const alt = NAT[pc] ? '' : `<small>${S.acc === 'flat' ? SH[pc] : FL[pc]}</small>`;
@@ -737,72 +885,90 @@ const Explore = {
         <dt>Position</dt><dd>${SORD[s]} string (${SNAME[s]}), ${f ? 'fret ' + f : 'open'}</dd>
         <dt>Pitch</dt><dd class="mono">${nn(pc)}${octOf(m)} · ${hz(m).toFixed(1)} Hz</dd>
         <dt>Same pitch</dt><dd>${unis.length ? unis.map(c => `${SORD[c.s]} str. fret ${c.f}`).join(', ') : 'Only here'}</dd>
-      </dl>`;
+      </dl><button class="btn small ghost" data-act="lfree" style="margin-top:14px">Open the life-size neck</button>`;
   },
-  input(e){ calInput(e); },
   cell(s, f){ const e = S.explore; e.tip = null; e.sel = {s, f}; play(midiAt(s,f)); save(); this.render(); },
   act(a, v){
     const e = S.explore;
     if (a === 'labels') S.labels = v;
     if (a === 'octaves') e.octaves = !e.octaves;
     if (a === 'tip') e.tip = e.tip === +v ? null : +v;
-    if (a === 'lfree'){ Life.start({ type:'free' }); return; }
-    if (a === 'lcalreset'){ S.life.k = null; }
     save(); this.render();
   }
 };
 
-/* ================= DRILL ================= */
+/* ================= PRACTICE HUB ================= */
 const RANGES = [[[0,5],'Frets 0–5'],[[0,12],'0–12'],[[5,12],'5–12'],[[7,15],'7–15'],[[0,15],'Whole neck']];
-const Drill = {
+const CQ_SET = { maj:[[0,'maj'],[2,'maj'],[4,'maj'],[7,'maj'],[9,'maj']], min:[[9,'min'],[4,'min'],[2,'min']], '7':[[9,'7'],[11,'7'],[0,'7'],[2,'7'],[4,'7'],[7,'7']] };
+const Practice = {
+  confirmReset:false,
   pool(){ const d = S.drill; return cellsIn(d.strings, d.range[0], d.range[1]).filter(c => !d.naturals || NAT[pcOf(midiAt(c.s,c.f))]); },
+  quizSet(){ return (S.practice.cq.length ? S.practice.cq : ['maj']).flatMap(k => CQ_SET[k]); },
   render(){
-    const d = S.drill, M = [], pool = this.pool();
-    for (const {s,f} of cellsIn(ALL, 0, FRETS)) if (!d.strings.includes(s) || f < d.range[0] || f > d.range[1]) M.push({s, f, kind:'shade'});
+    layout({ title:'Practice', board:true });
+    const d = S.drill, t = Math.min(days[todayKey()] || 0, DAILY_GOAL), streak = dayStreak(), M = [];
     let n = 0, ok = 0; const weak = [];
-    for (const c of pool){ const st = stats.c[c.s + '-' + c.f]; if (!st) continue; n += st[0]; ok += st[1]; const a = st[1] / st[0];
-      if (d.heat) M.push({s:c.s, f:c.f, kind:'heat', fill: a >= .85 ? 'color-mix(in srgb,var(--good) 45%,transparent)' : a >= .6 ? 'color-mix(in srgb,var(--amber) 50%,transparent)' : 'color-mix(in srgb,var(--bad) 55%,transparent)'});
+    for (const c of cellsIn(ALL, 0, FRETS)){ const st = stats.c[c.s + '-' + c.f]; if (!st) continue; n += st[0]; ok += st[1]; const a = st[1] / st[0];
+      M.push({s:c.s, f:c.f, kind:'heat', fill: a >= .85 ? 'color-mix(in srgb,var(--good) 50%,transparent)' : a >= .6 ? 'color-mix(in srgb,var(--amber) 55%,transparent)' : 'color-mix(in srgb,var(--bad) 60%,transparent)'});
       if (st[0] >= 2 && a < .75) weak.push({ c, a }); }
     weak.sort((x, y) => x.a - y.a);
-    drawMarks(M); renderPiano(new Map(), 'Drill');
-    $('#panel').innerHTML = `
-      <div class="card c7 stack">
-        <div><p class="lbl">Drill</p><div class="prompt" style="font-size:28px">${d.type === 'name' ? 'Name the note at each fret' : 'Find every spot for a note'}</div>
-          <p class="sub" style="margin-top:6px;max-width:58ch">${d.type === 'name' ? 'A fret lights up on the life-size neck and you name it, or play it on your guitar. Frets you miss come back more often.' : 'Fretwise names a note; find it, then find its other spots for bonus points.'} Only the lit area of the neck counts.</p></div>
-        <div class="row"><button class="btn" data-act="dstart">Start drill</button></div>
-        <div class="stats">
-          <div class="stat"><b>${stats.best}</b><span>Best streak</span></div>
-          <div class="stat"><b>${n}</b><span>Answered here</span></div>
-          <div class="stat"><b>${n ? Math.round(100 * ok / n) + '%' : '—'}</b><span>Accuracy here</span></div>
-          <div class="stat"><b>${pool.length}</b><span>Frets in play</span></div>
-        </div>
-        ${weak.length ? `<p class="hint" style="margin:0">Shakiest: ${weak.slice(0, 4).map(w => `${SORD[w.c.s]} string ${w.c.f ? 'fret ' + w.c.f : 'open'}`).join(', ')}.</p>` : ''}
+    drawMarks(M); renderPiano(new Map(), 'Practice');
+    const labelQ = { maj:'Major', min:'Minor', '7':'7th chords' };
+    $('#above').innerHTML = `
+      <div class="hero mini">${heroArt()}
+        <div class="eyebrow">Every day · ${streak ? `${streak}-day streak` : 'Start a streak'}</div>
+        <h2>Today's practice</h2>
+        <p>Fifteen quick questions from the notes you've learned, leaning on the ones you miss.</p>
+        <div class="meter"><span>${t} of ${DAILY_GOAL} today</span><i><b style="width:${Math.round(100 * t / DAILY_GOAL)}%"></b></i></div>
+        <div class="acts"><button class="hbtn" data-act="today">${IC.play} ${t >= DAILY_GOAL ? 'Keep going' : t ? 'Continue' : 'Start'}</button></div>
       </div>
-      <div class="card c5 stack">
-        <div><p class="lbl">Game</p>${seg('type', d.type, [['name','Name the note'],['find','Find the note']])}</div>
-        <div><p class="lbl">Strings</p><div class="row">${[5,4,3,2,1,0].map(s => chip('str', s, `${SNAME[s]}<span class="sr"> ${SORD[s]} string</span>`, d.strings.includes(s), 'sq')).join('')}</div></div>
-        <div><p class="lbl">Frets</p><div class="row">${RANGES.map(([r, l]) => chip('range', r.join('-'), l, d.range[0] === r[0] && d.range[1] === r[1])).join('')}</div></div>
-        <div class="row">${chip('dstage', '', 'Match my Learn stage', false)}${toggle('naturals', 'Natural notes only', d.naturals)}${toggle('heat', 'Show weak spots', d.heat)}<button class="chip" data-act="reset">Reset history</button></div>
-        <p class="hint">Weak spots shades each fret by your accuracy there: green is solid, amber is shaky, red needs work.</p>
+      <div class="pgrid">
+        <div class="pcard">
+          <div class="top"><span class="ic">${IC.notes}</span><div><h3>Note drill</h3><p>Name or find notes in the part of the neck you choose. Frets you miss come back more often.</p></div></div>
+          ${seg('type', d.type, [['name','Name it'],['find','Find it']])}
+          <div class="row">${[5,4,3,2,1,0].map(s => chip('str', s, `${SNAME[s]}<span class="sr"> ${SORD[s]} string</span>`, d.strings.includes(s), 'sq')).join('')}</div>
+          <div class="row">${RANGES.map(([r, l]) => chip('range', r.join('-'), l, d.range[0] === r[0] && d.range[1] === r[1])).join('')}</div>
+          <div class="row">${toggle('naturals', 'Natural notes only', d.naturals)}${chip('dstage', '', 'Match my Learn stage', false)}</div>
+          <div class="acts"><button class="btn" data-act="dstart">${IC.play} Start drill</button></div>
+        </div>
+        <div class="pcard">
+          <div class="top"><span class="ic">${IC.chord}</span><div><h3>Chord quiz</h3><p>Name open chords by sight and sound, then build them with your fingertips on the neck.</p></div></div>
+          <div class="row">${['maj','min','7'].map(k => chip('cqq', k, labelQ[k], S.practice.cq.includes(k))).join('')}</div>
+          <p class="hint">${this.quizSet().map(([r, q]) => chordRoot(r) + CQ[q].sym).join(' · ')}</p>
+          <div class="acts"><button class="btn" data-act="cquiz">${IC.play} Start quiz</button></div>
+        </div>
+      </div>
+      <div class="sechead"><h3>Weak spots</h3><span>${n ? `${Math.round(100 * ok / n)}% right over ${n} answers` : 'Fills in as you practice'}</span></div>`;
+    $('#panel').innerHTML = `<div class="card stack">
+        <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 60%,transparent)"></i>Solid</span><span><i style="background:color-mix(in srgb,var(--amber) 65%,transparent)"></i>Shaky</span><span><i style="background:color-mix(in srgb,var(--bad) 70%,transparent)"></i>Needs work</span></div>
+        ${weak.length ? `<p style="margin:0">Shakiest: ${weak.slice(0, 5).map(w => `<b>${SORD[w.c.s]} string ${w.c.f ? 'fret ' + w.c.f : 'open'}</b>`).join(', ')}. The note drill brings these back more often.</p>` : `<p class="sub" style="margin:0">${n ? 'Nothing shaky yet. Nice.' : 'Every answer you give in practice colors its fret here: green when you know it, red when it needs work.'}</p>`}
+        <div class="stats"><div class="stat"><b>${stats.best}</b><span>Best drill streak</span></div><div class="stat"><b>${n}</b><span>Notes answered</span></div><div class="stat"><b>${n ? Math.round(100 * ok / n) + '%' : '—'}</b><span>Right</span></div><div class="stat"><b>${Object.keys(stats.c).length}</b><span>Frets tried</span></div></div>
+        <div class="row">${n ? `<button class="chip" data-act="reset">${this.confirmReset ? 'Tap again to erase your note history' : 'Reset note history'}</button>` : ''}</div>
       </div>`;
   },
   act(a, v){
     const d = S.drill;
+    if (a === 'today'){ Life.start({ type:'daily' }); return; }
     if (a === 'dstart'){ if (!this.pool().length){ toast('No notes match these settings. Turn on more strings or widen the frets.'); return; } save(); Life.start({ type:'drill' }); return; }
+    if (a === 'cquiz'){ save(); Life.start({ type:'chordquiz' }); return; }
+    if (a === 'cqq'){ const q = S.practice.cq; S.practice.cq = q.includes(v) ? (q.length > 1 ? q.filter(x => x !== v) : q) : q.concat([v]); }
     if (a === 'type') d.type = v;
     if (a === 'str'){ const s = +v; if (d.strings.includes(s)){ if (d.strings.length > 1) d.strings = d.strings.filter(x => x !== s); } else d.strings = [...d.strings, s].sort(); }
     if (a === 'range') d.range = v.split('-').map(Number);
     if (a === 'naturals') d.naturals = !d.naturals;
-    if (a === 'heat') d.heat = !d.heat;
-    if (a === 'reset'){ stats.c = {}; stats.best = 0; saveStats(); }
+    if (a === 'reset'){ if (!this.confirmReset){ this.confirmReset = true; this.render(); return; } stats.c = {}; stats.best = 0; saveStats(); toast('Note history erased.'); }
+    if (a !== 'reset') this.confirmReset = false; else this.confirmReset = false;
     if (a === 'dstage'){ const st = Learn.stage();
-      if (st.kind !== 'notes'){ toast(`Your Learn stage (${st.t}) is about chords and rhythm. Drill practices notes, so these settings stay as they are.`); return; }
+      if (st.kind !== 'notes'){ toast(`Your Learn stage (${st.t}) is about chords and rhythm. The note drill practices notes, so these settings stay as they are.`); return; }
       const cells = Learn.pool(st), fs = cells.map(c => c.f);
       d.strings = [...new Set(cells.map(c => c.s))].sort(); d.range = [Math.min(...fs), Math.max(...fs)]; d.naturals = !!st.nat;
       toast(`Matched to ${st.daily ? 'Today\'s practice' : st.t}.`); }
     save(); this.render();
-  }
+  },
+  cell(s, f){ play(midiAt(s, f)); },
+  leave(){ this.confirmReset = false; }
 };
+const Drill = Practice;
 
 /* ================= CHORDS ================= */
 const Chords = {
@@ -823,7 +989,7 @@ const Chords = {
     return M;
   },
   midis(vc){ return vc.frets.map((f, s) => f == null ? null : midiAt(s,f)).filter(x => x != null); },
-  render(){ S.chords.mode === 'quiz' ? this.renderQuiz() : this.renderStudy(); },
+  render(){ this.renderStudy(); },
   renderStudy(){
     const c = S.chords, r = c.root, q = c.q, vs = genVoicings(r, q);
     if (c.v >= vs.length) c.v = 0;
@@ -838,7 +1004,6 @@ const Chords = {
     const posLabel = v => v.open && v.lo <= 4 ? 'Open position' : `${v.shape === 'Jazz' ? 'Jazz voicing' : v.shape + ' shape'} · fret ${v.lo}`;
     $('#panel').innerHTML = `
       <div class="card c5 stack">
-        <div class="row" style="justify-content:space-between">${seg('mode', c.mode, [['study','Study'],['quiz','Quiz me']])}</div>
         <div><div class="chordname">${esc(this.name(r, q))}</div><div class="sub">${root} ${CQ[q].name.toLowerCase()}</div>
           <div class="formula">${CQ[q].f.map(iv => `<div class="tone ${iv === '1' ? 'r' : ''}"><b>${spell(root, iv)}</b><span>${ivDisp(iv)}</span></div>`).join('')}</div></div>
         <div class="vnav">
@@ -1030,7 +1195,7 @@ const Scales = {
     if (a === 'cof'){ const [pc, sc] = v.split('|'); z.root = +pc; z.scale = sc; z.chordSel = null; }
     if (a === 'chord'){ z.chordSel = z.chordSel === +v ? null : +v; const d = this.diatonic(); if (z.chordSel != null) strum(this.voice(d[z.chordSel]), .05); }
     if (a === 'playscale'){ const sc = SCALES[z.scale], base = 48 + z.root; arp(sc.iv.map(iv => base + IV[iv]).concat([base + 12])); return; }
-    if (a === 'toChords'){ const d = this.diatonic()[z.chordSel]; Object.assign(S.chords, { root:d.pc, q:d.q, v:0, mode:'study' }); save(); go('chords'); return; }
+    if (a === 'toChords'){ const d = this.diatonic()[z.chordSel]; Object.assign(S.chords, { root:d.pc, q:d.q, v:0, mode:'study' }); S.exmode = 'chords'; save(); go('explore'); window.scrollTo(0, 0); return; }
     save(); this.render();
   }
 };
@@ -1098,18 +1263,18 @@ function dayStreak(){
   while ((days[todayKey(d)] || 0) >= DAILY_GOAL){ n++; d.setDate(d.getDate() - 1); }
   return n;
 }
-function renderStreak(){
-  const el = document.getElementById('daystreak'); if (!el) return;
-  const n = dayStreak(), today = days[todayKey()] || 0;
-  el.textContent = n ? `${n}-day streak` : 'Start a streak';
-  el.setAttribute('aria-pressed', today >= DAILY_GOAL);
-  el.title = today >= DAILY_GOAL ? 'Today\'s practice is done' : `Today: ${today} of ${DAILY_GOAL}`;
-}
 const DAILY = { id:'daily', part:'Every day', t:'Today\'s practice', kind:'notes', daily:true, strings:ALL, range:[0,12], nat:true, goal:DAILY_GOAL,
   d:'A short mixed round from the notes you\'ve learned, weighted toward the ones you miss. Get 15 right (misses don\'t reset the count) to keep your streak going.' };
 const openVoicing = (r, q) => { const vs = genVoicings(r, q); return vs.find(v => v.open && v.lo <= 4) || vs[0]; };
+const PHASE_INFO = {
+  'Notes on the neck':{ tag:'Every note, one string at a time. Everything else is built on this.' },
+  'Bluegrass rhythm':{ tag:'The chords and the boom-chuck that hold a jam together.' },
+  'Fiddle-tune scales':{ tag:'The two keys most fiddle tunes live in, in first position.' },
+  'Ear training':{ tag:'Hear the change before anyone calls it.' },
+  'Theory':{ tag:'The number system: how players talk about any song in any key.' }
+};
 const Learn = {
-  q:null, streak:0, fb:null, lock:false, timer:null, flash:null, step:0,
+  q:null, streak:0, fb:null, lock:false, timer:null, flash:null, step:0, detail:false,
   stage(){ if (S.learn.id === 'daily') return DAILY; return LEARN.find(x => x.id === S.learn.id) || LEARN[0]; },
   idx(){ return LEARN.indexOf(this.stage()); },
   dailyPool(){
@@ -1149,8 +1314,50 @@ const Learn = {
       if (type === 'num') setTimeout(() => strum(Chords.midis(this.q.vc)), 120);
     }
   },
-  render(){
+  nextStage(){
+    const st = LEARN.find(x => x.id === S.learn.id);
+    if (st && !learnProg.done[st.id]) return st;
+    return LEARN.find(x => !learnProg.done[x.id]) || st || LEARN[0];
+  },
+  metaOf(st){
+    let k, d;
+    if (st.kind === 'notes'){ k = st.pcs ? 'Scale' : 'Notes'; d = Life.areaText(this.pool(st)); }
+    else if (st.kind === 'chords'){ k = 'Chords'; d = st.set.map(([r, q]) => chordRoot(r) + CQ[q].sym).join(' ') ; }
+    else if (st.kind === 'bass'){ k = 'Rhythm'; d = st.alt ? 'root, then the 5th' : 'find each root'; }
+    else if (st.kind === 'ear'){ k = 'Ear'; d = st.degrees.map(x => DEG_R[x]).join(' '); }
+    else { k = 'Theory'; d = st.degrees.map(x => DEG_R[x]).join(' '); }
+    return `<span class="kindtag">${k}</span>${esc(d)}${learnProg.done[st.id] ? ' · Passed' : ''}`;
+  },
+  render(){ if (this.detail) this.renderStage(); else this.renderHome(); },
+  renderHome(){
+    layout({ title:'Learn' });
+    const total = LEARN.length, doneN = LEARN.filter(x => learnProg.done[x.id]).length, nx = this.nextStage(), all = doneN === total;
+    $('#above').innerHTML = `<div class="homegrid">
+      <div class="hero">${heroArt()}
+        <div class="eyebrow">${all ? 'Path complete · review anything' : doneN ? 'Up next' : 'Start here'} · Stage ${LEARN.indexOf(nx) + 1} of ${total}</div>
+        <h2>${esc(nx.t)}</h2>
+        <p>${esc(firstSentence(nx.d))}</p>
+        <div class="meter"><span>${doneN} of ${total} passed</span><i><b style="width:${Math.round(100 * doneN / total)}%"></b></i></div>
+        <div class="acts"><button class="hbtn" data-act="lpractice" data-v="${nx.id}">${IC.play} ${nx.kind === 'ear' ? 'Start' : 'Practice'}</button><button class="hbtn ghost" data-act="lopen" data-v="${nx.id}">Study first</button></div>
+      </div>
+      ${todayCard()}
+    </div>`;
+    $('#panel').innerHTML = `<div style="grid-column:1 / -1">${this.path()}</div>`;
+  },
+  headHTML(st){
+    const n = LEARN.indexOf(st) + 1, done = learnProg.done[st.id], ph = S.learn.phase;
+    return `<div class="stagehead"><button class="backlink" data-act="${ph === 'practice' ? 'lphase' : 'lhome'}" data-v="study">${IC.back} ${ph === 'practice' ? 'Back to study' : 'All stages'}</button>
+      <div class="eyebrow">${st.daily ? 'Every day' : `${esc(st.part)} · Stage ${n} of ${LEARN.length}`}${done ? ' · <span class="passed">Passed</span>' : ''}</div>
+      <h2>${esc(st.t)}</h2>${ph === 'practice' ? '' : `<p>${st.d}</p>`}</div>`;
+  },
+  ctaHTML(st){
+    const sub = st.kind === 'ear' ? 'Listen, then answer' : st.daily ? `${DAILY_GOAL} right today` : `${st.goal} in a row to pass`;
+    return `<button class="btn wide" data-act="lstart">${IC.play} Start practice</button><span class="ctasub">${sub}</span>`;
+  },
+  renderStage(){
     const st = this.stage(); if (st.kind !== 'ear' && S.learn.view !== 'classic') S.learn.phase = 'study'; const ph = S.learn.phase;
+    layout({ piano:true, board:true, cta: ph === 'study' ? this.ctaHTML(st) : '' });
+    $('#above').innerHTML = this.headHTML(st);
     if (ph === 'practice' && !this.q) this.newQ();
     if (st.daily) this.streak = days[todayKey()] || 0;
     const M = []; let hl = new Map(), cap = '—';
@@ -1183,9 +1390,7 @@ const Learn = {
       hl = hlNotes(Chords.midis(vc)); cap = chordRoot(r) + CQ[cq].sym;
     }
     drawMarks(M); renderPiano(hl, cap);
-    $('#panel').innerHTML = `<div class="card c8 stack">${this.lesson(st)}</div><div class="card c4"><details class="pathbox"${G.v ? '' : ' open'}><summary>All ${LEARN.length} stages</summary>${this.path()}</details></div>`;
-    $('#main').classList.toggle('lesson-first', G.v);
-    $('#main').classList.toggle('practicing', ph === 'practice');
+    $('#panel').innerHTML = `<div class="card stack">${ph === 'study' ? this.studyBody(st) : this.practiceBody(st)}</div>`;
     $('#main').classList.toggle('docked', ph === 'practice' && st.kind === 'notes');
   },
   playEar(){ const q = this.q; if (!q) return; const I = openVoicing(q.key, 'maj'); strum(Chords.midis(I), 0.035, 0.12); strum(Chords.midis(q.vc), 0.035, 1.5); },
@@ -1211,24 +1416,24 @@ const Learn = {
     if (st.kind === 'notes'){
       const pcs = [...new Set(this.pool(st).map(c => pcOf(midiAt(c.s,c.f))))];
       return `<p class="hint">${st.daily ? 'These are the notes you\'ve learned so far. Practice runs on the life-size neck: name the note at a fret, or find a note and then hunt for its other spots.' : 'The lit notes are this stage\'s whole set. Tap each one, say its name out loud, and listen. Practice runs on the life-size neck, with the names hidden.'}</p>
-        <div class="row"><button class="btn ghost" data-act="lhear">Hear them in order</button><button class="btn" data-act="lstart">${st.daily ? 'Start today\'s practice' : 'Start practice'}</button></div>
+        <div class="row"><button class="btn ghost" data-act="lhear">Hear them in order</button></div>
         <p class="hint">${pcs.length} note names in this stage: ${[...pcs].sort((a,b) => a - b).map(nn).join(' ')}</p>`;
     }
     if (st.kind === 'chords' || st.kind === 'bass'){
       const sel = this.studySel(st);
       return `<div class="row">${st.set.map(([r, q], i) => chip('lsel', i, chordRoot(r) + CQ[q].sym, i === sel.i, 'sq')).join('')}</div>
         ${st.kind === 'bass' ? `<p class="hint">Square R is the root and 5 is the alternate bass. Faded dots show the chord shape. Hear the pattern: bass, strum, other bass, strum.</p>
-          <div class="row"><button class="btn ghost" data-act="lboom">Hear boom-chuck</button><button class="btn" data-act="lstart">Start practice</button></div>
+          <div class="row"><button class="btn ghost" data-act="lboom">Hear boom-chuck</button></div>
           ${Metro.controls('Play along: G–C–D boom-chuck')}`
         : `<p class="hint">Tap a chord to see and hear it. Square dots are the root. Labels show the chord tones: R, 3 and 5.</p>
-          <div class="row"><button class="btn ghost" data-act="lstrum">Strum it</button><button class="btn" data-act="lstart">Start practice</button></div>`}`;
+          <div class="row"><button class="btn ghost" data-act="lstrum">Strum it</button></div>`}`;
     }
     if (st.kind === 'ear'){
       const k = +(S.learn.sel || st.keys[0]);
       return `<div><p class="lbl">Key</p><div class="row">${st.keys.map(x => chip('lsel', x, chordRoot(x), x === k, 'sq')).join('')}</div></div>
         <div><p class="lbl">Listen to each chord</p><div class="row">${st.degrees.map(d => `<button class="btn ghost" data-act="learhear" data-v="${d}">${DEG_R[d]} · ${chordRoot((k + MAJ_SEMI[d]) % 12) + CQ[DEG_Q[d]].sym}</button>`).join('')}</div></div>
         <p class="hint">Play each one a few times, then go back and forth between I and the others. Hum the bass note along.</p>
-        <div class="row"><button class="btn" data-act="lstart">Start practice</button></div>`;
+        `;
     }
     if (st.kind === 'numbers'){
       const sel = this.studySel(st);
@@ -1237,7 +1442,7 @@ const Learn = {
           return `<td><button class="chip ${sel.key === k && sel.deg === d ? '' : ''}" aria-pressed="${sel.key === k && sel.deg === d}" data-act="lnum" data-v="${k}|${d}">${chordRoot(pc) + CQ[DEG_Q[d]].sym}</button></td>`; }).join('')}</tr>`).join('')}
         </tbody></table></div>
         <p class="hint">Read across a row to hear a key's chords. Read down a column: the IV chord is always five frets up from the I on the same string.</p>
-        <div class="row"><button class="btn" data-act="lstart">Start practice</button></div>`;
+        `;
     }
     return '';
   },
@@ -1288,14 +1493,15 @@ const Learn = {
     return `${this.meter(st)}<div>${p}${fbh}</div>${pad}${sw}`;
   },
   path(){
-    const today = days[todayKey()] || 0;
-    let h = `<button class="step daily${S.learn.id === 'daily' ? ' cur' : ''}${today >= DAILY_GOAL ? ' done' : ''}" data-act="lgo" data-v="daily"><span class="n">${today >= DAILY_GOAL ? '✓' : '★'}</span><span>Today's practice <small class="mono">${Math.min(today, DAILY_GOAL)}/${DAILY_GOAL}</small></span></button>`, part = '';
-    LEARN.forEach((st, i) => {
-      if (st.part !== part){ part = st.part; h += `${i ? '</div>' : ''}<p class="lbl" style="margin-top:${i ? 14 : 0}px">${part}</p><div class="path">`; }
-      const cur = st.id === S.learn.id, done = learnProg.done[st.id];
-      h += `<button class="step${cur ? ' cur' : ''}${done ? ' done' : ''}" data-act="lgo" data-v="${st.id}" aria-current="${cur}"><span class="n">${done ? '✓' : i + 1}</span><span>${st.t}</span></button>`;
-    });
-    return h + '</div><button class="chip" style="margin-top:12px" data-act="lplace">Find my starting stage</button>';
+    const groups = [], cur = this.nextStage();
+    LEARN.forEach(st => { let g = groups.find(x => x.part === st.part); if (!g){ g = { part:st.part, items:[] }; groups.push(g); } g.items.push(st); });
+    return groups.map((g, gi) => {
+      const dn = g.items.filter(x => learnProg.done[x.id]).length, info = PHASE_INFO[g.part] || {};
+      return `<section class="phase"><div class="phase-h"><span class="phase-n">${String(gi + 1).padStart(2, '0')}</span><h3>${esc(g.part)}</h3><span class="ct">${dn} / ${g.items.length}</span></div>
+        ${info.tag ? `<p class="phase-tag">${info.tag}</p>` : ''}<div class="phase-bar"><b style="width:${Math.round(100 * dn / g.items.length)}%"></b></div>
+        <div class="rail">${g.items.map(st => { const done = learnProg.done[st.id], isCur = st === cur;
+          return `<button class="srow${done ? ' done' : ''}${isCur ? ' cur' : ''}" data-act="lgo" data-v="${st.id}"${isCur ? ' aria-current="step"' : ''}><span class="node">${done ? IC.check : ''}</span><span><b>${esc(st.t)}</b><small>${this.metaOf(st)}</small></span>${IC.chev}</button>`; }).join('')}</div></section>`;
+    }).join('') + `<div class="footlinks"><button class="btn small ghost" data-act="lplace">Find my starting stage</button></div>`;
   },
   right(ok, extra){
     const st = this.stage(); haptic(ok ? 'success' : 'error');
@@ -1339,8 +1545,13 @@ const Learn = {
   },
   act(a, v){
     const st = this.stage();
-    if (a === 'lgo' && v === 'daily'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.reset(); save(); this.render(); Life.start({ type:'daily' }); return; }
-    if (a === 'lgo'){ S.learn.id = v; S.learn.phase = v === 'daily' ? 'practice' : 'study'; S.learn.sel = null; this.streak = v === 'daily' ? (days[todayKey()] || 0) : 0; this.reset(); }
+    if (a === 'today' || (a === 'lgo' && v === 'daily')){ Life.start({ type:'daily' }); return; }
+    if (a === 'lhome'){ this.detail = false; S.learn.phase = 'study'; this.reset(); save(); this.render(); window.scrollTo(0, 0); return; }
+    if (a === 'lopen' || a === 'lpractice'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.detail = true; this.streak = 0; this.reset(); save();
+      if (a === 'lopen'){ this.render(); window.scrollTo(0, 0); return; }
+      const s2 = this.stage(); if (s2.kind !== 'ear' && S.learn.view !== 'classic'){ this.render(); Life.start({ type:'learn', st:s2 }); return; }
+      S.learn.phase = 'practice'; this.render(); window.scrollTo(0, 0); return; }
+    if (a === 'lgo'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.detail = true; this.streak = 0; this.reset(); save(); this.render(); window.scrollTo(0, 0); return; }
     if ((a === 'lphase' && v === 'practice') || a === 'lstart'){
       if (st.kind !== 'ear' && S.learn.view !== 'classic'){ S.learn.phase = 'study'; save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st }); return; }
       S.learn.phase = 'practice'; this.streak = 0; this.reset(); save(); this.render(); return;
@@ -1360,7 +1571,7 @@ const Learn = {
     if (a === 'learans' && !this.lock){ const d = +v, ok = d === this.q.deg, nm = chordRoot(this.q.r) + CQ[this.q.cq].sym;
       this.right(ok, { d, t: ok ? `Yes, the ${DEG_R[d]}: ${nm}.` : `That was the ${DEG_R[this.q.deg]}: ${nm}.` }); return; }
     if (a === 'metro'){ Metro.toggle(v); this.render(); return; }
-    if (a === 'lplace'){ Welcome.show(WELCOME.length - 1); return; }
+    if (a === 'lplace'){ Welcome.show(WELCOME.findIndex(w => w.place)); return; }
     if (a === 'lview'){ S.learn.view = 'life'; S.learn.phase = 'study'; const streak = this.streak; this.reset(); save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st, streak }); return; }
     if (a === 'llisten'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
     if (a === 'lans' && !this.lock){ const pc = +v, m = midiAt(this.q.s, this.q.f), c = pcOf(m); play(m);
@@ -1386,7 +1597,7 @@ const Learn = {
     let pc = LETTER_PC[i]; if (e.shiftKey) pc = (pc + 1) % 12;
     e.preventDefault(); this.act('lans', String(pc));
   },
-  leave(){ Ear.stop(); Metro.stop(); clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked', 'lesson-first', 'practicing'); }
+  leave(){ Ear.stop(); Metro.stop(); clearTimeout(this.timer); this.lock = false; this.fb = null; this.q = null; $('#main').classList.remove('docked'); }
 };
 
 /* ================= MICROPHONE PITCH ================= */
@@ -1525,7 +1736,7 @@ const Tuner = {
   stopRing(){ clearInterval(this.loopT); this.loopT = 0; },
   render(){
     const t = S.tuner, notes = this.notes(), M = [];
-    $('#main').classList.toggle('lesson-first', G.v);
+    layout({ title:'Tune' });
     notes.forEach((m, s) => M.push({ s, f:0, pc:pcOf(m), text:nn(pcOf(m)), kind:'dot' }));
     if (this.sel != null) M.push({ s:this.sel, f:0, kind:'ring' });
     if (this.cur && this.cur.str != null) M.push({ s:this.cur.str, f:0, kind:'ring' });
@@ -1581,7 +1792,7 @@ const Tuner = {
     save(); this.render();
   },
   input(e){ Metro.input(e); },
-  leave(){ this.stopRing(); Metro.stop(); $('#main').classList.remove('lesson-first'); if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); } }
+  leave(){ this.stopRing(); Metro.stop(); if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); } }
 };
 
 /* ================= LIFE-SIZE NECK ================= */
@@ -1646,7 +1857,8 @@ const Life = {
     const ss = this.session || { type:'free' };
     if (ss.type === 'free') return { kind:'free' };
     if (ss.type === 'daily') return { kind:'notes', cells:Learn.dailyPool(), weighted:true };
-    if (ss.type === 'drill') return { kind:'notes', cells:Drill.pool(), only:S.drill.type, weighted:true };
+    if (ss.type === 'drill') return { kind:'notes', cells:Practice.pool(), only:S.drill.type, weighted:true };
+    if (ss.type === 'chordquiz') return { kind:'chords', set:Practice.quizSet().map(([r, cq]) => ({ r, cq })), recog:true };
     const st = ss.st;
     if (st.kind === 'notes') return { kind:'notes', cells:Learn.pool(st) };
     if (st.kind === 'bass') return { kind:'notes', bass:st, cells:cellsIn([0,1,2], 0, 3), only:'find' };
@@ -1669,6 +1881,9 @@ const Life = {
     const ss = this.session; this.done = true; this.pendingDone = false; this.lock = true; clearTimeout(this.timer);
     if (ss.type === 'learn' && !learnProg.done[ss.st.id]){ learnProg.done[ss.st.id] = true; store.set('fretwise.learn', learnProg); }
     haptic('success'); this.q = { mode:'done' }; this.fb = null; this.hud();
+    const W = this.cv.clientWidth, cols = ['#F8CB74','#E5953B','#B85B21','#F2EDE3','#7DB6D5','#5FC28B'];
+    this.confetti = Array.from({ length:46 }, (_, i) => ({ x:Math.random() * W, y:-20 - Math.random() * 260, vx:(Math.random() - .5) * 60, vy:140 + Math.random() * 160, r:Math.random() * 6.28, vr:(Math.random() - .5) * 7, s:7 + Math.random() * 7, c:cols[i % cols.length] }));
+    this.confT = performance.now();
   },
   // after an answer: move on, or celebrate if the goal was just reached
   after(ms){ clearTimeout(this.timer); this.timer = setTimeout(() => { if (this.pendingDone) this.complete(); else { this.newQ(); this.hud(); this.focusQ(); } }, ms); },
@@ -1745,12 +1960,13 @@ const Life = {
         : `Every <em>${nm}</em> in this area<small>You found ${q.found.length} of ${q.targets.length}</small>`;
     }
     $('#lprompt').innerHTML = pr;
-    const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today\'s practice' : ss.type === 'drill' ? 'Drill' : '';
+    $('#life').classList.toggle('celebrate', !!(q && q.mode === 'done'));
+    const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today\'s practice' : ss.type === 'drill' ? 'Note drill' : ss.type === 'chordquiz' ? 'Chord quiz' : '';
     $('#lstat').innerHTML = ss.type === 'free' ? '' : `${esc(label)}`;
     const m = $('#lmeter');
     if (g){ const have = ss.type === 'daily' ? this.count : this.streak, pct = Math.min(100, Math.round(100 * have / g));
       m.hidden = false; m.innerHTML = `<span>${ss.type === 'daily' ? `${Math.min(have, g)} of ${g} today` : `${have} of ${g} in a row`}${this.bonus ? ` · +${this.bonus} bonus` : ''}</span><i><b style="width:${pct}%"></b></i>`; }
-    else if (ss.type === 'drill'){ m.hidden = false; m.innerHTML = `<span>Streak ${this.streak} · best ${stats.best} · ${this.n ? Math.round(100 * this.ok / this.n) : 0}% right</span>`; }
+    else if (ss.type === 'drill' || ss.type === 'chordquiz'){ m.hidden = false; m.innerHTML = `<span>Streak ${this.streak} · best ${stats.best} · ${this.n ? Math.round(100 * this.ok / this.n) : 0}% right</span>`; }
     else m.hidden = true;
     $('#lfb').className = 'lfb ' + (this.fb && this.fb.ok != null ? (this.fb.ok ? 'good' : 'bad') : '');
     $('#lfb').textContent = this.fb ? this.fb.t : '';
@@ -1769,7 +1985,7 @@ const Life = {
     const B = [];
     if (q && q.mode === 'done'){
       if (ss.type === 'learn'){ const nx = LEARN[LEARN.indexOf(ss.st) + 1]; if (nx) B.push(['nextstage', `Next: ${nx.t}`]); }
-      B.push(['keep', ss.type === 'daily' ? 'Keep going' : 'Keep practicing'], ['exit', 'Done']);
+      B.push(['keep', ss.type === 'daily' ? 'Keep going' : 'Keep practicing']);
     } else if (q && (q.mode === 'note' || q.mode === 'name')){
       if (q.mode === 'note' && q.phase === 'first') B.push(['hint','Hint']);
       else if (q.mode === 'note' && q.phase === 'bonus') B.push(['reveal','Show them all']);
@@ -2035,8 +2251,18 @@ const Life = {
         c.globalAlpha = a * (.10 + .08 * (i % 3)); c.lineWidth = 2 + (i % 3); c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + len); c.stroke(); }
       c.globalAlpha = 1; c.lineCap = 'butt';
     }
+    if (this.confetti){
+      const age = (t - this.confT) / 1000, dt2 = 1 / 60;
+      if (age > 3.2) this.confetti = null;
+      else for (const p of this.confetti){
+        p.x += p.vx * dt2; p.y += p.vy * dt2; p.r += p.vr * dt2;
+        c.save(); c.translate(p.x, p.y); c.rotate(p.r); c.globalAlpha = Math.max(0, Math.min(1, 3.2 - age)); c.fillStyle = p.c;
+        c.beginPath(); c.moveTo(0, p.s); c.bezierCurveTo(-p.s * .9, p.s * .1, -p.s * .7, -p.s * .9, 0, -p.s * .9); c.bezierCurveTo(p.s * .7, -p.s * .9, p.s * .9, p.s * .1, 0, p.s); c.fill(); c.restore();
+      }
+      c.globalAlpha = 1;
+    }
     const ff = this.flashFret, fa = ff.n >= 0 ? Math.max(0, 1 - (t - ff.t) / 700) : 0;
-    if (fa > 0 && ff.n > 0){ c.globalAlpha = fa * .9; c.fillStyle = C.ink; c.font = `800 ${Math.round(W * .28)}px ${getComputedStyle($('.logo')).fontFamily}`; c.fillText(ff.n, W / 2, H / 2); c.font = `600 14px ${getComputedStyle(document.body).fontFamily}`; c.fillText('FRET', W / 2, H / 2 + W * .17); c.globalAlpha = 1; }
+    if (fa > 0 && ff.n > 0){ c.globalAlpha = fa * .9; c.fillStyle = C.ink; c.font = `800 ${Math.round(W * .28)}px ${(getComputedStyle(document.documentElement).getPropertyValue('--f-display') || 'sans-serif')}`; c.fillText(ff.n, W / 2, H / 2); c.font = `600 14px ${getComputedStyle(document.body).fontFamily}`; c.fillText('FRET', W / 2, H / 2 + W * .17); c.globalAlpha = 1; }
     // minimap rail
     const rx = W - 16 - (parseFloat(getComputedStyle($('#life')).paddingRight) || 0), r0 = 120, r1 = H - 170, total = end + 48, my = mm => r0 + (mm + 48) / total * (r1 - r0);
     c.strokeStyle = C.line; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(rx, r0); c.lineTo(rx, r1); c.stroke(); c.lineCap = 'butt';
@@ -2070,11 +2296,11 @@ const Life = {
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); }
       if (a === 'reveal') this.reveal();
       if (a === 'classic'){ const ss = this.session, streak = ss.type === 'daily' ? (days[todayKey()] || 0) : this.streak;
-        this.close(); S.learn.view = 'classic'; S.learn.phase = 'practice'; if (ss.type === 'learn') S.learn.id = ss.st.id; Learn.reset(); Learn.streak = streak; save(); go('learn'); setTimeout(() => Learn.scroll(), 60); }
+        this.close(); S.learn.view = 'classic'; S.learn.phase = 'practice'; Learn.detail = true; if (ss.type === 'learn') S.learn.id = ss.st.id; Learn.reset(); Learn.streak = streak; save(); go('learn'); setTimeout(() => Learn.scroll(), 60); }
       if (a === 'name') this.answerName(+b.dataset.v);
       if (a === 'cname') this.answerCName(b.dataset.v);
       if (a === 'keep'){ this.done = false; this.pendingDone = false; if (this.session.type === 'learn') this.streak = 0; this.newQ(); this.hud(); this.focusQ(); }
-      if (a === 'nextstage'){ const nx = LEARN[LEARN.indexOf(this.session.st) + 1]; this.close(); if (nx){ S.learn.id = nx.id; S.learn.phase = 'study'; save(); go('learn'); window.scrollTo(0, 0); } }
+      if (a === 'nextstage'){ const nx = LEARN[LEARN.indexOf(this.session.st) + 1]; this.close(); if (nx){ S.learn.id = nx.id; S.learn.phase = 'study'; Learn.detail = true; save(); go('learn'); window.scrollTo(0, 0); } }
       if (a === 'check' && !this.lock) this.check();
       if (a === 'strum' && this.q && this.q.mode === 'cname') strum(Chords.midis(this.q.vc));
       if (a === 'strum' && this.q && this.q.mode === 'chord'){ const fr = this.showMe ? this.showMe.frets : this.shape(); strum(fr.map((f, s) => f == null ? null : midiAt(s, f)).filter(x => x != null)); }
@@ -2103,9 +2329,10 @@ const WELCOME = [
       <li><b>Keep up at a jam.</b> When someone calls "it's in D, 1-4-5", you can find D, G and A fast, with or without a capo.</li>
       <li><b>Learn tunes by ear.</b> Work out a fiddle tune or a melody you hum without hunting for tab.</li>
     </ul>` },
-  { t:'One string at a time', art:true, b:'Fretwise starts small and adds a little at a time: the open strings, then the low E string, then the next one. After the notes come bluegrass chords, boom-chuck rhythm, the number system and ear training. Each stage has a short lesson and a practice round, and you pass by getting answers right in a row.' },
+  { t:'One string at a time', b:'Fretwise starts small and adds a little at a time: the open strings, then the low E string, then the next one. After the notes come bluegrass chords, boom-chuck rhythm, the number system and ear training. Each stage has a short lesson and a practice round, and you pass by getting answers right in a row.' },
   { t:'Hear it, play it', b:'Every tap plays a real acoustic guitar, and the piano strip at the top shows the exact pitch. In any quiz you can tap "Answer by playing your guitar": Fretwise listens through the microphone and hears which note you play. The sound stays on your phone and is never recorded.' },
   { t:'A little every day', b:'Today\'s practice is 15 quick questions from the notes you\'ve learned, leaning on the ones you miss. Practice happens on a life-size neck, drawn at the real spacing of an acoustic guitar.' },
+  { t:'Do you play piano?', piano:true },
   { t:'Where should we start?', place:true }
 ];
 // Placement quiz: questions get harder in sections; the first missed section is where you start.
@@ -2116,6 +2343,7 @@ const PLACE = [
   { name:'the 4th, 3rd and 2nd strings', stages:['d4','g3','b2','first'], n:3, cells:() => cellsIn([2,3,4], 1, 12).filter(c => NAT[pcOf(midiAt(c.s, c.f))]) },
   { name:'sharps and flats', stages:['sharps','neck'], n:2, cells:() => cellsIn(ALL, 1, 12).filter(c => !NAT[pcOf(midiAt(c.s, c.f))]) }
 ];
+const WART = `<svg viewBox="0 0 460 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g transform="rotate(-9 230 75)"><rect x="-40" y="38" width="560" height="78" rx="6" fill="#2D1A12"/><rect x="-40" y="38" width="560" height="78" rx="6" fill="url(#wg)" opacity=".5"/>${[60,140,210,272,326,374,416].map(x => `<rect x="${x}" y="38" width="3" height="78" fill="#CBD2D5" opacity=".85"/>`).join('')}${[0,1,2,3,4,5].map(i => `<line x1="-40" x2="520" y1="${46 + i * 12.4}" y2="${46 + i * 12.4}" stroke="${i < 4 ? '#C4AB7A' : '#DCE1E3'}" stroke-width="${(2.2 - i * .28).toFixed(2)}"/>`).join('')}${[176,241,299].map(x => `<circle cx="${x}" cy="77" r="5" fill="#F2EDE3" opacity=".9"/>`).join('')}<circle cx="241" cy="58.6" r="10" fill="#E5953B" stroke="#FFF6EA" stroke-width="2.5"/></g><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A3421"/><stop offset=".5" stop-color="#2D1A12"/><stop offset="1" stop-color="#5A3421"/></linearGradient></defs></svg>`;
 const Welcome = {
   i:0, quiz:null,
   show(at = 0){ this.i = at; this.quiz = null; $('#welcome').hidden = false; this.draw(); },
@@ -2124,6 +2352,17 @@ const Welcome = {
     $('#wdots').innerHTML = WELCOME.map((_, j) => `<span class="${j === this.i ? 'on' : ''}"></span>`).join('');
     next.hidden = false; $('#wskip').hidden = false; $('#wskip').textContent = 'Skip';
     if (this.quiz){ this.drawQuiz(); return; }
+    if (w.piano){
+      next.hidden = true;
+      body.innerHTML = `<h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2>
+        <p class="sub" style="font-size:15px;margin:0 0 14px">If you do, Fretwise leans on the keyboard you already know: the piano strip shows every note you play, and theory you already have moves faster. You can change this later in Settings.</p>
+        <div class="wopts">
+          <button class="wopt" data-w="piano" data-v="yes"><b>Yes, I play</b><span>Scales, chords and keys feel familiar on piano.</span></button>
+          <button class="wopt" data-w="piano" data-v="some"><b>A little</b><span>Some lessons or self-taught basics.</span></button>
+          <button class="wopt" data-w="piano" data-v="no"><b>No</b><span>Guitar is my way in.</span></button>
+        </div>`;
+      return;
+    }
     if (w.place){
       next.hidden = true; $('#wskip').textContent = 'Not now';
       body.innerHTML = `<h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2>
@@ -2135,6 +2374,7 @@ const Welcome = {
         </div>`;
       return;
     }
+    if (this.i === 0){ body.innerHTML = `<div class="wart">${WART}</div><h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2><div class="sub wtext">${w.b}</div>`; next.textContent = 'Next'; return; }
     body.innerHTML = `${w.art ? `<div class="wart">${'<svg viewBox="0 0 220 70" aria-hidden="true"><rect x="10" y="10" width="200" height="50" rx="4" style="fill:var(--wood-b)"/>' + [0,1,2,3,4,5].map(i => `<line x1="10" x2="210" y1="${15 + i * 8}" y2="${15 + i * 8}" style="stroke:${i > 3 ? 'var(--string)' : 'var(--wound)'};stroke-width:${2.2 - i * .25}"/>`).join('') + [55,95,130,160,188].map(x => `<line x1="${x}" x2="${x}" y1="10" y2="60" style="stroke:var(--fretwire);stroke-width:2"/>`).join('') + '<circle cx="75" cy="55" r="7" style="fill:var(--amber)"/></svg>'}</div>` : ''}<h2 id="wtitle" class="prompt" style="font-size:26px;margin:0 0 8px">${w.t}</h2><div class="sub wtext">${w.b}</div>`;
     next.textContent = 'Next';
   },
@@ -2186,7 +2426,7 @@ const Welcome = {
   },
   finish(startId, markUpTo){
     if (markUpTo){ for (const st of LEARN){ if (st.id === startId) break; learnProg.done[st.id] = true; } store.set('fretwise.learn', learnProg); }
-    this.close(); S.learn.id = startId; S.learn.phase = 'study'; save(); go('learn');
+    this.close(); S.learn.id = startId; S.learn.phase = 'study'; Learn.detail = false; save(); go('learn'); window.scrollTo(0, 0);
   },
   close(){ $('#welcome').hidden = true; store.set('fretwise.welcomed2', true); store.set('fretwise.welcomed', true); }
 };
@@ -2194,6 +2434,7 @@ $('#wnext').addEventListener('click', () => { if (Welcome.i < WELCOME.length - 1
 $('#wskip').addEventListener('click', () => { if (Welcome.quiz){ Welcome.quiz.i = Welcome.quiz.qs.length; Welcome.draw(); return; } Welcome.close(); });
 $('#wbody').addEventListener('click', e => {
   const b = e.target.closest('[data-w]'); if (!b) return; const w = b.dataset.w; actx();
+  if (w === 'piano'){ S.profile.piano = b.dataset.v; save(); Welcome.i++; Welcome.draw(); return; }
   if (w === 'new') Welcome.finish('open', false);
   if (w === 'rhythm') Welcome.finish('gcd', true);
   if (w === 'quiz') Welcome.startQuiz();
@@ -2201,40 +2442,116 @@ $('#wbody').addEventListener('click', e => {
   if (w === 'go') Welcome.finish(b.dataset.v, b.dataset.v !== 'open');
 });
 
+/* ---------- explore tab: notes, chords, scales ---------- */
+const ExploreTab = {
+  sub(){ return { notes:Explore, chords:Chords, scales:Scales }[S.exmode] || Explore; },
+  render(){
+    layout({ title:'Explore', piano:true, board:true });
+    $('#above').innerHTML = seg('exmode', S.exmode || 'notes', [['notes','Notes'],['chords','Chords'],['scales','Scales & keys']], 'lg');
+    this.sub().render();
+  },
+  act(a, v){
+    if (a === 'exmode'){ const m = this.sub(); m.leave && m.leave(); S.exmode = v; save(); this.render(); return; }
+    if (a === 'lfree'){ Life.start({ type:'free' }); return; }
+    this.sub().act(a, v);
+  },
+  cell(s, f){ const m = this.sub(); m.cell && m.cell(s, f); },
+  input(e){ const m = this.sub(); m.input && m.input(e); },
+  key(e){ const m = this.sub(); m.key && m.key(e); },
+  leave(){ const m = this.sub(); m.leave && m.leave(); }
+};
+
+/* ---------- settings sheet ---------- */
+const Settings = {
+  confirmReset:false,
+  open(){ this.confirmReset = false; $('#sheet').hidden = false; this.render(); },
+  close(){ $('#sheet').hidden = true; renderStreak(); MODES[tab].render(); },
+  sw(key, on){ return `<button class="switch" role="switch" aria-checked="${!!on}" data-s="${key}" aria-label="${key}"></button>`; },
+  render(){
+    const pianoOn = S.profile.piano === 'yes' || S.profile.piano === 'some';
+    $('#sheetbody').innerHTML = `
+      <p class="glabel">Sound</p>
+      <div class="sgroup"><div class="sline"><div><b>Sound</b><small>Recorded acoustic guitar. Plays even with the silent switch on.</small></div>${this.sw('sound', S.sound)}</div></div>
+      <p class="glabel">Notes</p>
+      <div class="sgroup">
+        <div class="sline"><div><b>Sharps or flats</b><small>How the in-between notes are named</small></div>${seg('acc', S.acc, [['sharp','♯'],['flat','♭']])}</div>
+        <div class="sline"><div><b>Note colors</b><small>Each note keeps its own color on the neck and the keys</small></div>${this.sw('color', S.color)}</div>
+      </div>
+      <p class="glabel">About you</p>
+      <div class="sgroup"><div class="sline"><div><b>I play piano</b><small>Explanations lean on the keyboard you already know, and theory you have moves faster</small></div>${this.sw('piano', pianoOn)}</div></div>
+      <p class="glabel">Life-size neck</p>
+      <div class="sgroup padded">${calCard()}</div>
+      <p class="glabel">Progress</p>
+      <div class="sgroup">
+        <button class="sline" data-s="place">Find my starting stage</button>
+        <button class="sline danger" data-s="reset">${this.confirmReset ? 'Tap again to erase every stage, streak and note history' : 'Reset all progress'}</button>
+      </div>
+      <p class="fine">Fretwise · <a href="support.html">Help</a> · <a href="privacy.html">Privacy</a></p>`;
+  },
+  act(k, v){
+    if (k === 'sound'){ S.sound = !S.sound; if (S.sound){ unlockAudio(); play(55); } else if (silentEl) silentEl.pause(); }
+    if (k === 'acc') S.acc = v;
+    if (k === 'color') S.color = !S.color;
+    if (k === 'piano') S.profile.piano = (S.profile.piano === 'yes' || S.profile.piano === 'some') ? 'no' : 'yes';
+    if (k === 'place'){ $('#sheet').hidden = true; Welcome.show(WELCOME.findIndex(w => w.place)); return; }
+    if (k === 'reset'){
+      if (!this.confirmReset){ this.confirmReset = true; this.render(); return; }
+      learnProg.done = {}; store.set('fretwise.learn', learnProg);
+      for (const d in days) delete days[d]; store.set('fretwise.days', days);
+      stats.c = {}; stats.best = 0; saveStats();
+      S.learn.id = 'open'; S.learn.phase = 'study'; Learn.detail = false; this.confirmReset = false; save();
+      toast('Progress reset. Back to stage 1.');
+    }
+    if (k !== 'reset') this.confirmReset = false;
+    save(); this.render();
+  }
+};
+$('#gset').addEventListener('click', () => Settings.open());
+$('#sheetdone').addEventListener('click', () => Settings.close());
+$('#sheet').addEventListener('click', e => {
+  if (e.target.id === 'sheet'){ Settings.close(); return; }
+  const b = e.target.closest('[data-s],[data-act]'); if (!b) return;
+  if (b.dataset.act === 'lcalreset'){ S.life.k = null; save(); Settings.render(); return; }
+  if (b.dataset.act === 'acc'){ Settings.act('acc', b.dataset.v); return; }
+  if (b.dataset.s) Settings.act(b.dataset.s, b.dataset.v);
+});
+$('#sheet').addEventListener('input', e => calInput(e));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) Settings.close(); });
+
 /* ---------- shell ---------- */
-const MODES = { learn:Learn, explore:Explore, drill:Drill, chords:Chords, scales:Scales, tuner:Tuner };
+const MODES = { learn:Learn, practice:Practice, explore:ExploreTab, tune:Tuner };
+const ALIAS = { drill:'practice', chords:'explore', scales:'explore', tuner:'tune', life:'explore' };
 Life.bind();
-$('#panel').addEventListener('input', e => { MODES[tab].input && MODES[tab].input(e); });
+function renderStreak(){
+  const el = $('#daystreak'); if (!el) return;
+  const n = dayStreak(), t = days[todayKey()] || 0;
+  $('#streakn').textContent = n;
+  el.classList.toggle('done', t >= DAILY_GOAL);
+  el.setAttribute('aria-label', `${n}-day streak. Today's practice: ${Math.min(t, DAILY_GOAL)} of ${DAILY_GOAL}.`);
+  el.title = t >= DAILY_GOAL ? 'Today\'s practice is done' : `Today: ${Math.min(t, DAILY_GOAL)} of ${DAILY_GOAL}`;
+}
 function syncGlobals(){
-  $('#g-sharp').setAttribute('aria-pressed', S.acc === 'sharp');
-  $('#g-flat').setAttribute('aria-pressed', S.acc === 'flat');
-  $('#g-color').setAttribute('aria-pressed', S.color);
-  $('#g-sound').setAttribute('aria-pressed', S.sound); $('#g-sound').textContent = S.sound ? 'Sound on' : 'Sound off';
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
-  const sel = document.querySelector(`[data-tab="${tab}"]`), bar = document.querySelector('.tabs');
-  if (sel && bar) bar.scrollLeft = Math.max(0, sel.offsetLeft - (bar.clientWidth - sel.offsetWidth) / 2);
 }
 function go(t, fromHash){
+  if (ALIAS[t]){ if (t === 'chords' || t === 'scales') S.exmode = t; t = ALIAS[t]; }
   if (!MODES[t]) t = 'learn';
-  if (tab !== t && MODES[tab].leave) MODES[tab].leave();
+  if (tab !== t && MODES[tab] && MODES[tab].leave) MODES[tab].leave();
   tab = t; if (!fromHash && location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
-  syncGlobals(); ensureBoard(); MODES[tab].render();
+  syncGlobals(); MODES[tab].render();
 }
-document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); });
-$('#gset').addEventListener('click', () => { const bar = $('.bar'), open = !bar.classList.contains('open'); bar.classList.toggle('open', open); $('#gset').setAttribute('aria-expanded', open); });
-$('#daystreak').addEventListener('click', () => { S.learn.id = 'daily'; S.learn.phase = 'study'; Learn.reset(); save(); go('learn'); Life.start({ type:'daily' }); });
-document.querySelector('.globals').addEventListener('click', e => {
-  const b = e.target.closest('[data-g]'); if (!b) return;
-  const g = b.dataset.g;
-  if (g === 'acc') S.acc = b.dataset.v;
-  if (g === 'color') S.color = !S.color;
-  if (g === 'sound'){ S.sound = !S.sound; if (S.sound){ unlockAudio(); play(55); } else if (silentEl) silentEl.pause(); }
-  save(); syncGlobals(); MODES[tab].render();
+$('.tabbar').addEventListener('click', e => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  if (b.dataset.tab === tab){ if (tab === 'learn' && Learn.detail){ Learn.detail = false; S.learn.phase = 'study'; Learn.reset(); Learn.render(); } window.scrollTo({ top:0, behavior:'smooth' }); return; }
+  go(b.dataset.tab); window.scrollTo(0, 0);
 });
-$('#panel').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; actx(); MODES[tab].act(b.dataset.act, b.dataset.v); });
-document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; MODES[tab].key && MODES[tab].key(e); });
+$('#daystreak').addEventListener('click', () => Life.start({ type:'daily' }));
+$('#main').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; actx(); MODES[tab].act(b.dataset.act, b.dataset.v); });
+$('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input(e); });
+document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ensureBoard()) MODES[tab].render(); }, 120); });
+ensureBoard();
 go((location.hash || '#learn').slice(1), true);
 renderStreak();
 if (!store.get('fretwise.welcomed2', false)) Welcome.show();

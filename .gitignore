@@ -4,3 +4,4 @@ node_modules/
 *.mobileprovision
 *.p12
 .env
+research_notes/
