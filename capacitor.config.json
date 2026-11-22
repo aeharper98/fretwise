@@ -1,0 +1,10 @@
+{
+  "appId": "com.aeharper98.fretwise",
+  "appName": "Fretwise",
+  "webDir": "web",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#EDF1F0",
+    "scheme": "Fretwise"
+  }
+}
