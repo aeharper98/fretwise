@@ -291,7 +291,7 @@ main.noboard .boardcard{display:none}
 <div id="life" hidden>
   <canvas id="lifecv" aria-label="Life-size guitar neck. Swipe to slide along it, tap a string to play."></canvas>
   <div class="ltop">
-    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><button class="lbtn" id="lskip" data-l="skip" hidden>Skip</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
+    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><button class="lbtn" id="lskip" data-l="skip" hidden>Skip</button><button class="lbtn" id="lview" data-l="classic" hidden>Whole-neck view</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
     <div class="lprompt" id="lprompt"></div>
     <div class="lmeter" id="lmeter" hidden></div>
   </div>
@@ -1150,7 +1150,7 @@ const Learn = {
     }
   },
   render(){
-    const st = this.stage(); if (st.kind !== 'ear') S.learn.phase = 'study'; const ph = S.learn.phase;
+    const st = this.stage(); if (st.kind !== 'ear' && S.learn.view !== 'classic') S.learn.phase = 'study'; const ph = S.learn.phase;
     if (ph === 'practice' && !this.q) this.newQ();
     if (st.daily) this.streak = days[todayKey()] || 0;
     const M = []; let hl = new Map(), cap = '—';
@@ -1284,7 +1284,8 @@ const Learn = {
       p = `<div class="prompt"><em>${name}</em> chord: tap ${want} on a bass string.</div>`;
       pad = `<p class="hint">Only the lit area counts: strings 6, 5 and 4, frets 0–3. ${this.step === 1 ? `The 5th of ${chordRoot(q.r)} is ${spell(chordRoot(q.r), '5')}.` : ''}</p>${Ear.button('llisten')}`;
     }
-    return `${this.meter(st)}<div>${p}${fbh}</div>${pad}`;
+    const sw = st.kind !== 'ear' ? `<div class="row"><button class="chip" data-act="lview">Switch to the life-size neck</button></div>` : '';
+    return `${this.meter(st)}<div>${p}${fbh}</div>${pad}${sw}`;
   },
   path(){
     const today = days[todayKey()] || 0;
@@ -1341,7 +1342,7 @@ const Learn = {
     if (a === 'lgo' && v === 'daily'){ S.learn.id = v; S.learn.phase = 'study'; S.learn.sel = null; this.reset(); save(); this.render(); Life.start({ type:'daily' }); return; }
     if (a === 'lgo'){ S.learn.id = v; S.learn.phase = v === 'daily' ? 'practice' : 'study'; S.learn.sel = null; this.streak = v === 'daily' ? (days[todayKey()] || 0) : 0; this.reset(); }
     if ((a === 'lphase' && v === 'practice') || a === 'lstart'){
-      if (st.kind !== 'ear'){ S.learn.phase = 'study'; save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st }); return; }
+      if (st.kind !== 'ear' && S.learn.view !== 'classic'){ S.learn.phase = 'study'; save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st }); return; }
       S.learn.phase = 'practice'; this.streak = 0; this.reset(); save(); this.render(); return;
     }
     if (a === 'lphase'){ S.learn.phase = v; this.streak = 0; this.reset(); }
@@ -1360,6 +1361,7 @@ const Learn = {
       this.right(ok, { d, t: ok ? `Yes, the ${DEG_R[d]}: ${nm}.` : `That was the ${DEG_R[this.q.deg]}: ${nm}.` }); return; }
     if (a === 'metro'){ Metro.toggle(v); this.render(); return; }
     if (a === 'lplace'){ Welcome.show(WELCOME.length - 1); return; }
+    if (a === 'lview'){ S.learn.view = 'life'; S.learn.phase = 'study'; const streak = this.streak; this.reset(); save(); this.render(); Life.start(st.daily ? { type:'daily' } : { type:'learn', st, streak }); return; }
     if (a === 'llisten'){ Ear.toggle(r => this.heard(r)).then(() => this.render()); return; }
     if (a === 'lans' && !this.lock){ const pc = +v, m = midiAt(this.q.s, this.q.f), c = pcOf(m); play(m);
       { const k = this.q.s + '-' + this.q.f, t = stats.c[k] || [0,0,0]; t[0]++; if (pc === c) t[1]++; stats.c[k] = t; saveStats(); }
@@ -1622,7 +1624,7 @@ const Life = {
     const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
     this.col = { bg:g('--bg'), ink:g('--ink'), muted:g('--muted'), woodA:g('--wood-a'), woodB:g('--wood-b'), fret:g('--fretwire'), bone:g('--bone'), pearl:g('--pearl'), str:g('--string'), wound:g('--wound'), amber:g('--amber'), good:g('--good'), bad:g('--bad'), line:g('--line') };
     if (!this.grain){ this.grain = []; let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280; for (let i = 0; i < 26; i++) this.grain.push({ x:r(), a:r() * 6.28, w:.4 + r() * .8, o:.05 + r() * .12 }); }
-    this.resize(); this.off = this.homeOff(); this.v = 0; this.tour = null; this.taps = []; this.streak = 0; this.fb = null; this.hint = false; this.lock = false;
+    this.resize(); this.off = this.homeOff(); this.v = 0; this.tour = null; this.taps = []; this.streak = session.streak || 0; this.fb = null; this.hint = false; this.lock = false;
     this.bonus = 0; this.newQ();
     this.hud(); this.focusQ();
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { this.wl = l; }).catch(() => {}); } catch(e){}
@@ -1774,6 +1776,7 @@ const Life = {
       B.push(['listen', this.listenFn ? 'Stop listening' : 'Listen to my guitar']);
     }
     else if (q && q.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me']);
+    $('#lview').hidden = !(ss.type === 'learn' || ss.type === 'daily') || (q && q.mode === 'done');
     $('#lskip').hidden = !(q && (q.mode === 'chord' || (q.mode === 'note' && q.phase === 'first')));
     $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' ? ' primary' : ''}" data-l="${a}">${esc(l)}</button>`).join('');
   },
@@ -1812,7 +1815,7 @@ const Life = {
         this.progress(true);
         const secs = ((performance.now() - this.t0) / 1000).toFixed(1);
         if (q.targets.length > 1){ q.phase = 'bonus'; this.fb = { ok:true, t:`${viaMic ? 'Heard it! ' : 'Yes! '}${nm} on the ${where} (${secs}s). Now find another one.` }; }
-        else { this.fb = { ok:true, t:`Yes! ${nm} on the ${where}. That's the only one in this area.` }; this.reveal(true); return; }
+        else { this.fb = { ok:true, t:`Yes! ${nm} on the ${where}. ${secs}s` }; this.lock = true; this.hud(); this.after(900); return; }
       } else {
         this.bonus = (this.bonus || 0) + 1;
         this.fb = { ok:true, t:`Bonus! ${nm} on the ${where}.` };
@@ -2066,6 +2069,8 @@ const Life = {
       if (a === 'hint') this.doHint();
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); }
       if (a === 'reveal') this.reveal();
+      if (a === 'classic'){ const ss = this.session, streak = ss.type === 'daily' ? (days[todayKey()] || 0) : this.streak;
+        this.close(); S.learn.view = 'classic'; S.learn.phase = 'practice'; if (ss.type === 'learn') S.learn.id = ss.st.id; Learn.reset(); Learn.streak = streak; save(); go('learn'); setTimeout(() => Learn.scroll(), 60); }
       if (a === 'name') this.answerName(+b.dataset.v);
       if (a === 'cname') this.answerCName(b.dataset.v);
       if (a === 'keep'){ this.done = false; this.pendingDone = false; if (this.session.type === 'learn') this.streak = 0; this.newQ(); this.hud(); this.focusQ(); }
