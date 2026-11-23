@@ -33,6 +33,10 @@ cd web && python3 -m http.server 8000
 
 Open http://localhost:8000. The microphone works on `localhost` and on the HTTPS site.
 
+## On a TV
+
+In the iPhone app, AirPlay Screen Mirroring (Control Centre, Screen Mirroring, pick the Apple TV or AirPlay TV) or a cable gives the TV its own landscape view instead of a copy of the phone: the whole neck with the current question, an outline of the stretch the phone is showing, the piano lighting the notes being played or heard, and a large tuner. The phone stays the controller and shows an "On TV" badge. To preview the TV page in a browser, open http://localhost:8000/?display (it waits for the phone's snapshots, so it shows the start screen).
+
 ## Shipping to TestFlight
 
 The **Build for TestFlight** workflow runs from the Actions tab (Run workflow) or when a `v*` tag is pushed.
