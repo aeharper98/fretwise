@@ -1,14 +1,38 @@
 import UIKit
 import AVFoundation
+import WebKit
 import Capacitor
+
+/// Passes messages from the web pages to the app delegate. It holds the delegate weakly because
+/// WKUserContentController keeps a strong reference to its message handlers.
+final class ScreenMessages: NSObject, WKScriptMessageHandler {
+    weak var delegate: AppDelegate?
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.received(message)
+    }
+}
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    // Second screen (AirPlay or a cable): instead of a copy of the phone, the TV gets its own window
+    // running the page in display mode. The phone page sends a snapshot of what it shows ("fwDisplay");
+    // this passes it to the TV page, which says "ready" ("fwTV") once it has loaded.
+    private let messages = ScreenMessages()
+    private var phoneHooked = false
+    private var tvWindow: UIWindow?
+    private var tvView: WKWebView?
+    private var tvReady = false
+    private var tvLatest: String?
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureAudioSession()
+        messages.delegate = self
+        let center = NotificationCenter.default
+        center.addObserver(self, selector: #selector(screenDidConnect(_:)), name: UIScreen.didConnectNotification, object: nil)
+        center.addObserver(self, selector: #selector(screenDidDisconnect(_:)), name: UIScreen.didDisconnectNotification, object: nil)
         return true
     }
 
@@ -42,11 +66,111 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         configureAudioSession()
+        hookPhonePage()
+        if tvWindow == nil, let screen = UIScreen.screens.dropFirst().first {
+            showTV(on: screen)
+        }
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+
+    // MARK: - Second screen
+
+    private var phoneWebView: WKWebView? {
+        return (window?.rootViewController as? CAPBridgeViewController)?.bridge?.webView
+    }
+
+    private func hookPhonePage() {
+        guard !phoneHooked, let web = phoneWebView else { return }
+        web.configuration.userContentController.add(messages, name: "fwDisplay")
+        phoneHooked = true
+    }
+
+    @objc private func screenDidConnect(_ note: Notification) {
+        guard let screen = note.object as? UIScreen else { return }
+        hookPhonePage()
+        showTV(on: screen)
+    }
+
+    @objc private func screenDidDisconnect(_ note: Notification) {
+        hideTV()
+        if let screen = UIScreen.screens.dropFirst().first {
+            showTV(on: screen)
+        } else {
+            tellPhone()
+        }
+    }
+
+    private func showTV(on screen: UIScreen) {
+        hideTV()
+        let config = WKWebViewConfiguration()
+        config.userContentController.add(messages, name: "fwTV")
+        config.userContentController.addUserScript(WKUserScript(source: "window.__FW_DISPLAY = true;", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        let web = WKWebView(frame: screen.bounds, configuration: config)
+        web.isOpaque = false
+        web.backgroundColor = UIColor(red: 0.05, green: 0.07, blue: 0.067, alpha: 1)
+        web.scrollView.isScrollEnabled = false
+        web.scrollView.contentInsetAdjustmentBehavior = .never
+        let controller = UIViewController()
+        controller.view = web
+
+        let win: UIWindow
+        if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first(where: { $0.screen == screen }) {
+            win = UIWindow(windowScene: scene)
+            win.frame = screen.bounds
+        } else {
+            win = UIWindow(frame: screen.bounds)
+            win.screen = screen
+        }
+        win.rootViewController = controller
+        win.isHidden = false
+        tvWindow = win
+        tvView = web
+        tvReady = false
+        if let dir = Bundle.main.url(forResource: "public", withExtension: nil) {
+            web.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
+        }
+        tellPhone()
+    }
+
+    private func hideTV() {
+        tvView?.configuration.userContentController.removeScriptMessageHandler(forName: "fwTV")
+        tvWindow?.isHidden = true
+        tvWindow = nil
+        tvView = nil
+        tvReady = false
+    }
+
+    /// Tells the phone page whether a TV is showing the big view, so it starts or stops sending.
+    private func tellPhone() {
+        let on = tvWindow != nil ? "true" : "false"
+        phoneWebView?.evaluateJavaScript("window.__fwScreen && window.__fwScreen(\(on))", completionHandler: nil)
+    }
+
+    private func sendToTV(_ json: String) {
+        guard tvReady, let web = tvView else { return }
+        web.callAsyncJavaScript("if (window.__fwDisplay) window.__fwDisplay(s);", arguments: ["s": json], in: nil, in: .page, completionHandler: nil)
+    }
+
+    func received(_ message: WKScriptMessage) {
+        guard let body = message.body as? String else { return }
+        if message.name == "fwTV" {
+            if body == "ready" {
+                tvReady = true
+                if let latest = tvLatest { sendToTV(latest) }
+                tellPhone()
+            }
+            return
+        }
+        if body == "hello" {
+            tellPhone()
+            return
+        }
+        tvLatest = body
+        sendToTV(body)
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {

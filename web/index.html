@@ -58,6 +58,52 @@
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
+/* ---------- TV: the second screen over AirPlay or a cable. The phone stays the controller; this is the stage. ---------- */
+.tvbadge{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font:700 12px var(--f-body);letter-spacing:.02em;white-space:nowrap}
+.tvbadge svg{width:15px;height:15px}
+.tvbadge[hidden]{display:none}
+body.tv{margin:0;height:100vh;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f-body);cursor:none}
+body.tv > header, body.tv > main, body.tv > #sheet, body.tv > #toast, body.tv > #welcome, body.tv > #life{display:none !important}
+#tv{position:fixed;inset:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto auto;row-gap:2.4vh;padding:4.4vh 5vw 4.8vh;
+  background:radial-gradient(80% 70% at 8% -10%, rgba(229,149,59,.16), transparent 62%), radial-gradient(60% 60% at 105% 110%, rgba(125,182,213,.09), transparent 60%), var(--bg);transition:background .6s}
+#tv.done{background:var(--burst)}
+#tv.done .tvprompt, #tv.done .tvprompt small, #tv.done .tvtop, #tv.done .tvtop .brand, #tv.done .tvmeter span{color:var(--burst-ink)}
+.tvtop{display:flex;align-items:center;gap:1.4vw;font-size:1.2vw;font-weight:600;color:var(--muted);min-height:2.4vw}
+.tvtop .brand{display:flex;flex:none;align-items:center;gap:.7vw;margin:0;color:var(--ink);font-family:var(--f-display);font-weight:800;font-size:1.55vw;letter-spacing:-.01em}
+#tvlabel:not(:empty)::before{content:'';display:inline-block;width:2px;height:1.3vw;border-radius:1px;background:var(--line);margin-right:1.4vw;vertical-align:-.15vw}
+.tvtop .brand svg{width:2.1vw;height:2.1vw}
+.tvtop .grow{flex:1}
+.tvpill{display:inline-flex;align-items:center;gap:.6vw;padding:.55vh 1.1vw;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+.tvpill i{display:inline-block;width:1.5vw;height:.9vw;border:2px solid var(--amber);border-radius:.3vw;background:rgba(229,165,91,.14)}
+.tvpill[hidden]{display:none}
+.tvprompt{font-family:var(--f-display);font-weight:800;font-size:4.4vw;line-height:1.02;letter-spacing:-.03em;max-width:86vw;min-height:4.5vw}
+.tvprompt em{font-style:normal;color:var(--amber)}
+.tvprompt small{display:block;margin-top:1.3vh;font-family:var(--f-body);font-weight:500;font-size:1.55vw;letter-spacing:0;color:var(--muted)}
+.tvstage{position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
+.tvboard{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.tvboard[hidden], .tvtun[hidden]{display:none}
+body.tv #board{width:100%;height:100%;max-width:none;max-height:100%;filter:drop-shadow(0 2.2vh 3vh rgba(0,0,0,.45))}
+.tvfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3vw;min-height:3vw}
+.tvfb{font-weight:700;font-size:2vw;line-height:1.2}
+.tvfb.good{color:var(--good)} .tvfb.bad{color:var(--bad)}
+.tvmeter{display:grid;gap:.8vh;justify-items:end;min-width:24vw}
+.tvmeter span{font-size:1.15vw;font-weight:600;color:var(--muted)}
+.tvmeter i{display:block;width:24vw;height:.9vh;border-radius:1vh;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden}
+.tvmeter b{display:block;height:100%;border-radius:1vh;background:var(--amber);transition:width .4s}
+.tvpiano{display:flex;align-items:center;justify-content:center;gap:2.4vw;height:15vh}
+body.tv #piano{height:100%;width:auto;max-width:none;margin:0}
+body.tv .pcap{display:block;width:13vw;font-size:.95vw}
+body.tv .pcap b{font-size:2.8vw;margin-top:.4vh}
+.tvtun{display:grid;grid-template-columns:1fr 1.3fr;align-items:center;gap:4vw;width:100%;height:100%}
+.tvnote{font-family:var(--f-display);font-weight:800;font-size:15vw;line-height:.86;letter-spacing:-.045em;transition:color .2s}
+.tvnote.ok{color:var(--good)}
+.tvnote.wait{color:color-mix(in srgb,var(--ink) 30%,transparent)}
+.tvcents{font-family:var(--f-mono);font-size:1.6vw;color:var(--muted);margin-top:2.6vh}
+.tvstrs{display:flex;gap:.9vw;margin-top:3.4vh}
+.tvstrs span{width:4.4vw;height:4.4vw;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 9%,transparent);font-weight:800;font-size:1.7vw;color:var(--muted);transition:background .2s,color .2s}
+.tvstrs span.cur{background:var(--amber);color:#1C1612}
+.tvgauge svg{width:100%;height:auto;max-height:58vh;max-width:none !important;display:block}
+#tv .miclvl.wide{margin:3.4vh 0 0;width:24vw;height:1vh;border-radius:1vh}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button{font:inherit;color:inherit}
@@ -393,6 +439,7 @@ button.sline.danger{color:var(--bad)}
       <button role="tab" data-tab="tune"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5a8.5 8.5 0 0 1 17 0"/><path d="M12 16.5l4.2-6.4"/><circle cx="12" cy="16.5" r="1.8" class="fillme"/><path d="M7 20.5h10"/></svg><span>Tune</span></button>
     </nav>
     <div class="actions">
+      <span class="tvbadge" id="tvbadge" hidden title="Your TV is showing the big view. Use the phone as the controller."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="4" width="15" height="10" rx="1.8"/><path d="M7 17h6"/></svg>On TV</span>
       <button class="streak" id="daystreak" aria-label="Today's practice"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21.6c-3.1-3.3-7.4-9-7.4-12.8C4.6 5.5 8 3 12 3s7.4 2.5 7.4 5.8c0 3.8-4.3 9.5-7.4 12.8z"/></svg><span id="streakn">0</span></button>
       <button class="iconbtn" id="gset" aria-label="Settings"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" style="stroke:currentColor;stroke-width:1.7;stroke-linecap:round"/><circle cx="7" cy="5" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="13" cy="10" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/><circle cx="8" cy="15" r="2.1" style="fill:var(--surface);stroke:currentColor;stroke-width:1.6"/></svg></button>
     </div>
@@ -638,6 +685,7 @@ function play(m, when = 0, vel = 1, opts = {}){
   const g = ac.createGain(); g.gain.value = (k != null ? 1.0 : 0.8) * vel; src.connect(g); g.connect(master);
   src.start(ac.currentTime + when);
   if (typeof Mic !== 'undefined' && Mic.on) Mic.quietUntil = Math.max(Mic.quietUntil, performance.now() + when * 1000 + 1300);
+  if (typeof TV !== 'undefined') TV.sound(m, performance.now() + when * 1000);
   if (!warned) setTimeout(() => { if (ac.state !== 'running' && !warned){ warned = true; toast('Sound is blocked by the browser. Tap the fretboard again, and turn up your volume.'); } }, 400);
   return { src, g };
 }
@@ -733,8 +781,15 @@ function ensureBoard(){
 }
 /* marks: {s,f,kind,pc,text,fill} kinds: dot root ghost ring ring2 target good bad mute heat shade link barre */
 function drawMarks(M){
+  drawMarks.last = M;
   const g = G, R = g.R; let under = '', mid = '', over = '';
   for (const m of M){
+    if (m.kind === 'window'){      // the stretch of neck the phone is showing (TV view)
+      const a1 = m.f <= 0 ? 2 : g.pos(m.f - 1) - 3, a2 = g.pos(Math.min(FRETS, Math.max(1, m.f2))) + 3, c1 = g.c0 - 3, c2 = g.c0 + g.sp * 6 + 3;
+      under += `<rect ${g.rect(a1, a2, c1, c2)} rx="9" style="fill:rgba(229,165,91,.13);stroke:var(--amber);stroke-width:2.6"/>`;
+      continue;
+    }
+    if (m.kind === 'open'){ const [x,y] = g.xy(g.along(0), g.cr(m.s)); over += `<circle cx="${x}" cy="${y}" r="${R * .55}" style="fill:none;stroke:var(--pearl);stroke-width:2"/>`; continue; }
     if (m.kind === 'shade' && m.f === 0) continue;
     if (m.kind === 'shade' || m.kind === 'heat'){
       const a1 = m.f === 0 ? 2 : g.pos(m.f - 1) + 1.5, a2 = m.f === 0 ? g.nut - 6 : g.pos(m.f) - 1.5, c = g.cr(m.s);
@@ -782,6 +837,7 @@ function cellsIn(strings, lo, hi){ const out = []; for (const s of strings) for 
 /* ---------- piano ---------- */
 const piano = $('#piano');
 function renderPiano(hl = new Map(), caption = '—'){
+  renderPiano.last = { hl, caption };
   const WW = 22, WH = 76, BW = 13, BH = 47, whites = [];
   for (let m = LO; m <= HI; m++) if (NAT[pcOf(m)]) whites.push(m);
   let h = '', blacks = '';
@@ -2073,7 +2129,7 @@ const Mic = {
     if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
     if (this.stream && this.stream.getAudioTracks().some(t => t.readyState === 'ended')) this.rewire();
   },
-  stop(){ clearInterval(this.timer); this.timer = 0; this.on = false; this.release(); this.hist = []; this.level = 0; this.heard = false; this.dead = false; },
+  stop(){ clearInterval(this.timer); this.timer = 0; this.on = false; this.lastF = -1; this.release(); this.hist = []; this.level = 0; this.heard = false; this.dead = false; },
   floor:0.002, quietUntil:0,
   tick(){
     if (!this.an || this.fixing) return;
@@ -2094,6 +2150,7 @@ const Mic = {
     if (f > 60 && f < 1400){ this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); }
     else { this.hist = []; }
     const med = this.hist.length >= 3 ? [...this.hist].sort((a,b) => a - b)[this.hist.length >> 1] : -1;
+    this.lastF = med;
     this.subs.forEach(fn => fn(med));
   },
   // 0..1 on a log scale, for level meters
@@ -2195,6 +2252,19 @@ const TUNINGS = {
   dadgad:{ name:'DADGAD', notes:[38,45,50,55,57,62] },
   opend:{ name:'Open D', notes:[38,45,50,54,57,62] }
 };
+// The tuner's needle gauge; also drawn big on the TV.
+function gaugeSVG(nid){
+  const ticks = [-50,-40,-30,-20,-10,0,10,20,30,40,50].map(c => { const a = (c / 50) * 60 * Math.PI / 180, r1 = c % 50 === 0 || c === 0 ? 70 : 76;
+    return `<line x1="${110 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${110 + 84 * Math.sin(a)}" y2="${100 - 84 * Math.cos(a)}" style="stroke:${c === 0 ? 'var(--good)' : 'var(--muted)'};stroke-width:${c === 0 ? 3 : 1.5}"/>`; }).join('');
+  return `<svg viewBox="0 0 220 120" style="width:100%;max-width:420px;display:block;margin:0 auto" role="img" aria-label="Tuning gauge">
+          <path d="M 26 100 A 84 84 0 0 1 194 100" style="fill:none;stroke:var(--chip);stroke-width:14"/>
+          <path d="M 99 17 A 84 84 0 0 1 121 17" style="fill:none;stroke:color-mix(in srgb,var(--good) 45%,transparent);stroke-width:14"/>
+          ${ticks}
+          <g id="${nid}" style="transform-origin:110px 100px;transition:transform .12s linear;transform:rotate(0deg)"><line x1="110" y1="100" x2="110" y2="24" style="stroke:var(--amber);stroke-width:3;stroke-linecap:round"/></g>
+          <circle cx="110" cy="100" r="6" style="fill:var(--ink)"/>
+          <text x="40" y="116" style="font:500 9px var(--f-mono);fill:var(--muted);text-anchor:middle">flat</text><text x="180" y="116" style="font:500 9px var(--f-mono);fill:var(--muted);text-anchor:middle">sharp</text>
+        </svg>`;
+}
 const Tuner = {
   sel:null, loopT:0, cur:null, unsub:null,
   notes(){ return TUNINGS[S.tuner.tuning].notes; },
@@ -2213,19 +2283,10 @@ const Tuner = {
     if (this.cur && this.cur.str != null) M.push({ s:this.cur.str, f:0, kind:'ring' });
     drawMarks(M);
     renderPiano(this.sel != null ? hlNotes([notes[this.sel]]) : new Map(), this.sel != null ? nn(pcOf(notes[this.sel])) + octOf(notes[this.sel]) : TUNINGS[t.tuning].name);
-    const ticks = [-50,-40,-30,-20,-10,0,10,20,30,40,50].map(c => { const a = (c / 50) * 60 * Math.PI / 180, r1 = c % 50 === 0 || c === 0 ? 70 : 76;
-      return `<line x1="${110 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${110 + 84 * Math.sin(a)}" y2="${100 - 84 * Math.cos(a)}" style="stroke:${c === 0 ? 'var(--good)' : 'var(--muted)'};stroke-width:${c === 0 ? 3 : 1.5}"/>`; }).join('');
     $('#panel').innerHTML = `
       <div class="card c7 stack">
         <div class="row" style="justify-content:space-between"><p class="lbl" style="margin:0">Listen and tune</p><button class="btn ${Mic.on ? 'ghost' : ''}" data-act="mic">${Mic.on ? 'Stop listening' : 'Use microphone'}</button></div>
-        <svg viewBox="0 0 220 120" style="width:100%;max-width:420px;display:block;margin:0 auto" role="img" aria-label="Tuning gauge">
-          <path d="M 26 100 A 84 84 0 0 1 194 100" style="fill:none;stroke:var(--chip);stroke-width:14"/>
-          <path d="M 99 17 A 84 84 0 0 1 121 17" style="fill:none;stroke:color-mix(in srgb,var(--good) 45%,transparent);stroke-width:14"/>
-          ${ticks}
-          <g id="tneedle" style="transform-origin:110px 100px;transition:transform .12s linear;transform:rotate(0deg)"><line x1="110" y1="100" x2="110" y2="24" style="stroke:var(--amber);stroke-width:3;stroke-linecap:round"/></g>
-          <circle cx="110" cy="100" r="6" style="fill:var(--ink)"/>
-          <text x="40" y="116" style="font:500 9px var(--f-mono);fill:var(--muted);text-anchor:middle">flat</text><text x="180" y="116" style="font:500 9px var(--f-mono);fill:var(--muted);text-anchor:middle">sharp</text>
-        </svg>
+        ${gaugeSVG('tneedle')}
         <div style="text-align:center"><div class="big" id="tnote">${Mic.on ? '–' : '♪'}</div><div class="sub mono" id="tinfo">${Mic.on ? 'Play one string at a time.' : 'Tap Use microphone, then pluck a string.'}</div>${Mic.on ? '<div class="miclvl wide" id="tlvl" aria-hidden="true"><i></i></div>' : ''}</div>
         <p class="hint" id="tmsg">${Mic.err ? Mic.errText() : 'The needle shows how far you are from the nearest note, in cents. Green in the middle means in tune.'}</p>
       </div>
@@ -2250,6 +2311,7 @@ const Tuner = {
     this.lastT = performance.now(); nEl.style.opacity = '';
     const m = f2m(f), r = Math.round(m), cents = Math.round((m - r) * 100), notes = this.notes();
     let str = 0; notes.forEach((x, i) => { if (Math.abs(x - m) < Math.abs(notes[str] - m)) str = i; });
+    this.reading = { r, cents, f, str, t:this.lastT };
     nEl.textContent = nn(pcOf(r)) + octOf(r);
     $('#tinfo').textContent = `${f.toFixed(1)} Hz · ${cents > 0 ? '+' : ''}${cents} cents · closest string: ${SORD[str]} (${nn(pcOf(notes[str]))})`;
     $('#tneedle').style.transform = `rotate(${Math.max(-60, Math.min(60, cents * 1.2))}deg)`;
@@ -2270,6 +2332,13 @@ const Tuner = {
     save(); this.render();
   },
   input(e){ Metro.input(e); },
+  tvState(){
+    const r = this.reading, held = !!(r && Mic.on && performance.now() - r.t < 1500), notes = this.notes();
+    return { on:Mic.on, note:held ? nn(pcOf(r.r)) + octOf(r.r) : '', cents:held ? r.cents : null, hz:held ? r.f.toFixed(1) : '',
+      str:held ? r.str : this.sel, level:Mic.on ? +Mic.meter().toFixed(2) : 0, heard:Mic.heard,
+      status:Mic.on ? Mic.status() : Mic.err ? 'The microphone is off' : 'Tap Use microphone on your phone, then pluck a string',
+      strings:notes.map(x => nn(pcOf(x))), tuning:TUNINGS[S.tuner.tuning].name };
+  },
   leave(){ this.stopRing(); Metro.stop(); if (Mic.on){ Mic.stop(); if (this.unsub) this.unsub(); } }
 };
 
@@ -2863,8 +2932,50 @@ const Life = {
     if (this.hint && this.auto == null && this.q && this.q.phase !== 'reveal'){ const T = this.targets().filter(x => !this.q.found.some(y => y.s === x.s && y.f === x.f)), above = T.some(x => this.along(x.f) < yTop + 6), below = T.some(x => this.along(x.f) > yBot - 6), vis = T.some(x => { const y = this.along(x.f); return y >= yTop + 6 && y <= yBot - 6; });
       if (!vis){ c.fillStyle = C.amber; c.font = `700 14px ${getComputedStyle(document.body).fontFamily}`; const bob = Math.sin(t / 200) * 4;
         if (below) c.fillText('▼  Slide toward the body  ▼', W / 2, H - 150 + bob); else if (above) c.fillText('▲  Slide toward the nut  ▲', W / 2, 140 - bob); } }
-    $('#lpos').textContent = this.z < .99 ? `Zoomed to fit · ${Math.round(this.z * 100)}% size` : 'Real size';
+    $('#lpos').textContent = (this.z < .99 ? `Zoomed to fit · ${Math.round(this.z * 100)}% size` : 'Real size') + (TV.on ? ' · On TV' : '');
   },
+  // The same picture as the canvas, as board marks for the whole-neck TV view.
+  tvMarks(){
+    const q = this.q, M = [];
+    if (q && (q.mode === 'note' || q.mode === 'name') && q.cells){
+      const fs = q.cells.map(x => x.f), lo = Math.min(...fs), hi = Math.max(...fs), ss = new Set(q.cells.map(x => x.s));
+      for (let s = 0; s < 6; s++) for (let f = 1; f <= FRETS; f++) if (!(f >= lo && f <= hi && ss.has(s))) M.push({ s, f, kind:'shade' });
+    }
+    if (S.life.labels || !q) for (let s = 0; s < 6; s++) for (let f = 0; f <= FRETS; f++){ const pc = pcOf(midiAt(s, f)); if (S.life.nat && !NAT[pc]) continue; M.push({ s, f, kind:'ghost', pc, text:nn(pc) }); }
+    if (q && q.mode === 'note'){
+      const open = q.targets.filter(tg => !q.found.some(x => x.s === tg.s && x.f === tg.f));
+      if (this.hint && q.phase !== 'reveal') open.forEach(tg => M.push({ s:tg.s, f:tg.f, kind:'ring' }));
+      if (q.phase === 'reveal') open.forEach(tg => M.push({ s:tg.s, f:tg.f, kind:'dot', fill:'var(--amber)', text:nn(q.pc) }));
+      q.found.forEach(x => M.push({ s:x.s, f:x.f, kind:'good', text:nn(q.pc) }));
+    }
+    if (q && q.anchors) q.anchors.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)', text:'1' }));
+    if (q && q.ghost) q.ghost.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'ghost', fill:'var(--pearl)' }); });
+    if (q && q.ref) M.push({ s:q.ref.s, f:q.ref.f, kind:'dot', fill:'var(--pearl)', text:q.ref.label }, { s:q.ref.s, f:q.ref.f, kind:'ring' });
+    if (q && q.mode === 'mc' && q.vc && q.answered != null) q.vc.frets.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'good', text:nn(pcOf(midiAt(s, f))) }); });
+    if (q && q.mode === 'name'){
+      const pc = pcOf(midiAt(q.s, q.f));
+      if (q.answered == null) M.push({ s:q.s, f:q.f, kind:'target' });
+      else M.push({ s:q.s, f:q.f, kind:(q.opts ? q.answered === q.answer : q.answered === pc) ? 'good' : 'bad', text:nn(pc) });
+    }
+    if (q && q.mode === 'cname') q.vc.frets.forEach((f, s) => {
+      if (f == null) M.push({ s, f:0, kind:'mute' }); else if (f === 0) M.push({ s, f:0, kind:'open' });
+      else { const right = q.answered === q.r + '|' + q.cq; M.push({ s, f, kind:q.answered && right ? 'good' : 'dot', fill:q.answered ? 'var(--amber)' : 'var(--pearl)', text:q.answered ? nn(pcOf(midiAt(s, f))) : '' }); }
+    });
+    if (q && q.mode === 'chord'){
+      const fr = this.shape();
+      if (this.showMe) this.showMe.frets.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'ring' }); });
+      for (let s = 0; s < 6; s++){
+        const muted = this.showMe ? this.showMe.frets[s] == null : fr[s] == null;
+        if (muted) M.push({ s, f:0, kind:'mute' }); else if (fr[s] === 0) M.push({ s, f:0, kind:'open' });
+        if (fr[s]){ const pc = pcOf(midiAt(s, fr[s])); M.push({ s, f:fr[s], kind:q.done ? 'good' : 'dot', pc, text:nn(pc) }); }
+      }
+    }
+    const now = performance.now();
+    for (const tp of this.taps){ if (now - tp.t > (tp.ok === false ? 1600 : 1800)) continue; const pc = pcOf(midiAt(tp.s, tp.f)); M.push({ s:tp.s, f:tp.f, kind:tp.ok === false ? 'bad' : tp.ok ? 'good' : 'dot', pc, text:nn(pc) }); }
+    return M;
+  },
+  // which frets the phone is showing right now
+  tvWindow(){ const top = this.off, bot = this.off + this.view(); return [top < 0 ? 0 : this.fretAt(top), this.fretAt(Math.max(0, bot))]; },
   bind(){
     const cv = $('#lifecv');
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); this.auto = null; this.tour = null; this.drag = { y:e.clientY, x:e.clientX, y0:e.clientY, t:performance.now(), moved:false }; this.v = 0; });
@@ -3109,6 +3220,123 @@ $('#sheet').addEventListener('change', e => { if (e.target.id === 'pianolvl'){ S
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) Settings.close(); });
 
 /* ---------- shell ---------- */
+/* ---------- second screen (AirPlay or a cable) ----------
+   In the iPhone app, a TV gets its own window running this page in display mode (window.__FW_DISPLAY).
+   The phone stays the controller and sends a small snapshot of what's on screen about eight times a
+   second; the native side passes it to the TV page, which draws the whole neck, piano and prompt big. */
+const TV = {
+  on:false, timer:0, last:'', snd:[],
+  link(){ const w = window.webkit; return w && w.messageHandlers && w.messageHandlers.fwDisplay; },
+  hello(){ const h = this.link(); if (h) try { h.postMessage('hello'); } catch(e){} },
+  set(on){
+    this.on = !!on; clearInterval(this.timer); this.timer = 0; this.last = '';
+    if (this.on){ this.timer = setInterval(() => this.push(), 120); this.push(); }
+    const b = $('#tvbadge'); if (b) b.hidden = !this.on;
+  },
+  sound(m, t){ if (!this.on) return; this.snd.push({ m, t }); if (this.snd.length > 24) this.snd.shift(); },
+  push(){
+    const h = this.link(); if (!h) return;
+    let js; try { js = JSON.stringify(this.state()); } catch(e){ return; }
+    if (js === this.last) return; this.last = js;
+    try { h.postMessage(js); } catch(e){}
+  },
+  // notes the app is playing plus the note the microphone hears, for the TV piano
+  sounding(){
+    const now = performance.now(); this.snd = this.snd.filter(x => now - x.t < 1600);
+    const ms = this.snd.filter(x => x.t <= now + 30).map(x => x.m);
+    if (Mic.on && Mic.lastF > 0) ms.push(Math.round(f2m(Mic.lastF)));
+    const u = [...new Set(ms)].filter(m => m >= LO && m <= HI), top = u[u.length - 1];
+    return { keys:u.map(m => [m, noteFill(pcOf(m)), nn(pcOf(m)), 0]), cap:top != null ? nn(pcOf(top)) + octOf(top) : '—' };
+  },
+  state(){
+    const base = { v:1, acc:S.acc, color:!!S.color, streak:dayStreak() };
+    if (Life.open && Life.cv){
+      const fb = $('#lfb'), q = Life.q;
+      return Object.assign(base, { scene:'life', label:$('#lstat').textContent, prompt:$('#lprompt').innerHTML,
+        meter:$('#lmeter').hidden ? '' : $('#lmeter').innerHTML, fb:{ cls:fb.className, t:fb.textContent },
+        done:!!(q && q.mode === 'done'), marks:Life.tvMarks(), win:Life.tvWindow(), piano:this.sounding() });
+    }
+    if (tab === 'tune') return Object.assign(base, { scene:'tuner', tuner:Tuner.tvState(), piano:this.sounding() });
+    const title = $('#vtitle').hidden ? '' : $('#vtitle').textContent;
+    if (!$('#boardcard').hidden && drawMarks.last){
+      const rp = renderPiano.last, snd = this.sounding();
+      const piano = snd.keys.length || !rp || $('#pianobar').hidden ? snd : { keys:[...rp.hl].map(([m, o]) => [m, o.fill, o.label || '', o.faint ? 1 : 0]), cap:rp.caption };
+      return Object.assign(base, { scene:'board', title, marks:drawMarks.last, piano });
+    }
+    const nx = Learn.nextStage();
+    return Object.assign(base, { scene:'home', title, next:nx ? (LEARN.indexOf(nx) + 1) + '. ' + nx.t : '', today:Math.min(days[todayKey()] || 0, DAILY_GOAL), goal:DAILY_GOAL, piano:this.sounding() });
+  }
+};
+window.__fwScreen = on => TV.set(on);
+
+// The TV page: built once, then redrawn from each snapshot the phone sends.
+const TVView = {
+  mk:'', pk:'', scene:'',
+  boot(){
+    document.documentElement.dataset.theme = 'dark';
+    document.body.classList.add('tv');
+    const el = document.createElement('div'); el.id = 'tv';
+    el.innerHTML = `
+      <div class="tvtop"><span class="brand" id="tvbrand"></span><span id="tvlabel"></span><span class="grow"></span>
+        <span class="tvpill" id="tvlegend" hidden><i></i>Your phone’s view</span><span class="tvpill" id="tvstreak" hidden></span></div>
+      <div class="tvprompt" id="tvprompt"></div>
+      <div class="tvstage">
+        <div class="tvboard" id="tvboard"></div>
+        <div class="tvtun" id="tvtun" hidden>
+          <div><div class="tvnote wait" id="tvnote">♪</div><div class="tvcents" id="tvcents"></div><div class="tvstrs" id="tvstrs"></div><div class="miclvl wide" id="tvlvl"><i></i></div></div>
+          <div class="tvgauge">${gaugeSVG('tvneedle')}</div>
+        </div>
+      </div>
+      <div class="tvfoot"><div class="tvfb" id="tvfb"></div><div class="tvmeter" id="tvmeter"></div></div>
+      <div class="tvpiano" id="tvpiano"></div>`;
+    document.body.appendChild(el);
+    const br = document.querySelector('.appbar .brand'); if (br) $('#tvbrand').innerHTML = br.innerHTML.replace(/id="lg"/g, 'id="tvlg"').replace(/url\(#lg\)/g, 'url(#tvlg)');
+    $('#tvboard').appendChild(board); $('#tvpiano').append($('#pcap'), piano);
+    G = null; ensureBoard();
+    window.addEventListener('resize', () => { if (ensureBoard()){ this.mk = ''; if (this.st) this.apply(this.st); } });
+    window.__fwDisplay = st => { try { this.apply(typeof st === 'string' ? JSON.parse(st) : st); } catch(e){} };
+    this.apply({ scene:'home', piano:{ keys:[], cap:'—' } });
+    const w = window.webkit, h = w && w.messageHandlers && w.messageHandlers.fwTV; if (h) try { h.postMessage('ready'); } catch(e){}
+  },
+  apply(st){
+    this.st = st;
+    if (st.acc) S.acc = st.acc; if (st.color != null) S.color = st.color;
+    const sc = st.scene || 'home', tv = $('#tv');
+    tv.dataset.scene = sc; tv.classList.toggle('done', !!st.done);
+    $('#tvlabel').textContent = sc === 'life' ? st.label || '' : sc === 'home' ? st.title || '' : '';
+    const sk = $('#tvstreak'); sk.hidden = !st.streak; sk.textContent = st.streak ? `${st.streak}-day streak` : '';
+    $('#tvlegend').hidden = sc !== 'life';
+    let pr = '';
+    if (sc === 'life') pr = st.prompt || '';
+    else if (sc === 'board') pr = esc(st.title || '');
+    else if (sc === 'tuner'){ const c = st.tuner.cents; pr = `Tune<small>${esc(st.tuner.tuning)} · ${c == null ? esc(st.tuner.status) : Math.abs(c) <= 5 ? 'In tune' : c < 0 ? 'Flat: tighten the string a little' : 'Sharp: loosen the string a little'}</small>`; }
+    else pr = st.next ? `Up next: <em>${esc(st.next)}</em><small>${st.today} of ${st.goal} in today’s practice · pick a lesson on your phone and the whole neck shows up here</small>`
+      : `Fretwise<small>Pick a lesson on your phone. The whole neck shows up here while you play.</small>`;
+    if (this.prev !== pr){ this.prev = pr; $('#tvprompt').innerHTML = pr; }
+    const fb = st.fb || {}; $('#tvfb').className = 'tvfb' + (/\bgood\b/.test(fb.cls || '') ? ' good' : /\bbad\b/.test(fb.cls || '') ? ' bad' : ''); $('#tvfb').textContent = fb.t || '';
+    if ($('#tvmeter').innerHTML !== (st.meter || '')) $('#tvmeter').innerHTML = st.meter || '';
+    $('#tvboard').hidden = sc === 'tuner'; $('#tvtun').hidden = sc !== 'tuner';
+    if (sc !== 'tuner'){
+      const M = (st.marks || []).map(m => { const c = Object.assign({}, m); delete c.pop; return c; });
+      if (st.win) M.unshift({ kind:'window', f:st.win[0], f2:st.win[1] });
+      const k = JSON.stringify(M); if (k !== this.mk){ this.mk = k; drawMarks(M); }
+    }
+    if (sc === 'tuner') this.tuner(st.tuner);
+    const p = st.piano || { keys:[], cap:'—' }, pk = JSON.stringify(p);
+    if (pk !== this.pk){ this.pk = pk; renderPiano(new Map(p.keys.map(([m, fill, label, faint]) => [m, { fill, label, faint:!!faint }])), p.cap); }
+  },
+  tuner(t){
+    const n = $('#tvnote'), ok = t.cents != null && Math.abs(t.cents) <= 5;
+    n.textContent = t.note || (t.on ? '–' : '♪'); n.classList.toggle('ok', ok); n.classList.toggle('wait', !t.note);
+    $('#tvcents').textContent = t.note ? `${t.cents > 0 ? '+' : ''}${t.cents} cents · ${t.hz} Hz` : t.on ? (t.heard ? 'Hearing sound…' : 'Listening…') : '';
+    $('#tvneedle').style.transform = `rotate(${t.cents != null ? Math.max(-60, Math.min(60, t.cents * 1.2)) : 0}deg)`;
+    const strs = t.strings.map((x, i) => `<span class="${i === t.str ? 'cur' : ''}">${esc(x)}</span>`).join('');
+    if ($('#tvstrs').innerHTML !== strs) $('#tvstrs').innerHTML = strs;
+    const lv = $('#tvlvl'); lv.hidden = !t.on; lv.classList.toggle('on', !!t.heard); lv.firstChild.style.transform = `scaleX(${t.level || 0})`;
+  }
+};
+const DISPLAY = !!window.__FW_DISPLAY || /[?&]display\b/.test(location.search);
+
 const MODES = { learn:Learn, practice:Practice, explore:ExploreTab, tune:Tuner };
 const ALIAS = { drill:'practice', chords:'explore', scales:'explore', tuner:'tune', life:'explore' };
 Life.bind();
@@ -3141,11 +3369,14 @@ $('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input
 document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ensureBoard()) MODES[tab].render(); }, 120); });
+if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, actx: () => ac };
+if (DISPLAY){ TVView.boot(); return; }
 ensureBoard();
 go((location.hash || '#learn').slice(1), true);
 renderStreak();
 if (!store.get('fretwise.welcomed2', false)) Welcome.show();
-if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, actx: () => ac }; window.__openV = (r, q) => openVoicing(r, q).frets;   // test hook for automated checks only
+TV.hello();
+window.__openV = (r, q) => openVoicing(r, q).frets;   // test hook for automated checks only
 })();
 </script>
 
