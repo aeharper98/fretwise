@@ -403,6 +403,13 @@ button.sline.danger{color:var(--bad)}
 .lztrack b{position:absolute;left:100%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:#fff;border:2px solid var(--accent);box-shadow:0 1px 5px rgba(0,0,0,.28);transition:transform .12s}
 .lztrack.drag b, .lztrack:focus-visible b{transform:scale(1.15)}
 #life.celebrate .lzoom{display:none}
+/* whole-neck option: the normal fretboard between the panels; the canvas stays on top for confetti and the beat */
+.lflat{position:absolute;left:0;right:0;top:130px;bottom:160px;display:none;padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px))}
+#life.flat .lflat{display:block}
+.lflat #board{width:100%;height:100%;max-width:none;max-height:none}
+#life.flat #lifecv{pointer-events:none}
+#life.flat .lzoom{display:none}
+#life.flat .lfb,#life.flat .lfb:empty{display:block;min-height:2.6em}
 .lbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;height:38px;padding:0 13px;font-weight:650;font-size:14px;cursor:pointer}
 .lbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .miclvl{display:inline-block;width:30px;height:6px;border-radius:3px;background:color-mix(in srgb,var(--muted) 22%,transparent);overflow:hidden;vertical-align:middle;margin-left:8px}
@@ -476,9 +483,10 @@ button.sline.danger{color:var(--bad)}
   </div>
 </div>
 <div id="life" hidden>
+  <div class="lflat" id="lflat"></div>
   <canvas id="lifecv" aria-label="Life-size guitar neck. Swipe to slide along it, tap a string to play."></canvas>
   <div class="ltop">
-    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><button class="lbtn" id="lskip" data-l="skip" hidden>Skip</button><button class="lbtn" id="lview" data-l="classic" hidden>Whole-neck view</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
+    <div class="lrow"><button class="lbtn" data-l="exit">Done</button><button class="lbtn" id="lskip" data-l="skip" hidden>Skip</button><button class="lbtn" id="lview" data-l="flat" hidden>Whole neck</button><span class="lpos" id="lpos"></span><span class="lstat" id="lstat"></span></div>
     <div class="lprompt" id="lprompt"></div>
     <div class="lmeter" id="lmeter" hidden></div>
   </div>
@@ -523,7 +531,7 @@ const DEF = {
   explore:{ sel:{s:0,f:3}, octaves:true, tip:null },
   drill:{ type:'name', strings:[0,1,2,3,4,5], range:[0,12], naturals:true, heat:false },
   chords:{ root:0, q:'maj', v:0, labels:'int', map:false, mode:'study', quizQ:['maj','min','7'] },
-  life:{ k:null, zoom:1, src:'stage', where:'any', nat:true, maxFret:12, labels:false, chords:['7|maj','0|maj','2|maj','9|maj','4|maj'] },
+  life:{ k:null, zoom:1, flat:false, src:'stage', where:'any', nat:true, maxFret:12, labels:false, chords:['7|maj','0|maj','2|maj','9|maj','4|maj'] },
   tuner:{ tuning:'standard', loop:false },
   scales:{ root:9, scale:'minpent', labels:'int', sevenths:false, chordSel:null }
 };
@@ -532,6 +540,8 @@ const S = JSON.parse(JSON.stringify(DEF));
 for (const k in saved){ if (S[k] && typeof S[k] === 'object' && !Array.isArray(S[k])) Object.assign(S[k], saved[k]); else if (k in S) S[k] = saved[k]; }
 let tab = 'learn';
 if (!S.life.chords) S.life.chords = ['7|maj','0|maj','2|maj','9|maj','4|maj'];
+// The old in-page whole-neck practice became the whole-neck option of the practice screen.
+if (S.learn.view === 'classic'){ S.learn.view = 'life'; S.life.flat = true; }
 const save = () => store.set('fretwise.settings', S);
 const stats = store.get('fretwise.stats', { c:{}, best:0, chordBest:0 });
 const saveStats = () => store.set('fretwise.stats', stats);
@@ -727,15 +737,21 @@ const arp = (ms, gap = 0.24) => ms.forEach((m, i) => play(m, i * gap, 0.85));
 /* ---------- fretboard ---------- */
 const board = $('#board');
 let G = null;
-function geom(v){
+function geom(v, fit){
   const g = { v };
   g.open = v ? 54 : 58; g.nut = g.open; g.span = v ? 610 : 920;
-  g.end = g.nut + g.span + (v ? 12 : 14); g.len = g.end + (v ? 22 : 24);
   g.sp = v ? 44 : 36; g.c0 = v ? 26 : 6; g.R = v ? 14 : 13;
+  let lin = 0.4;
+  if (fit){   // whole neck between the practice panels: fill the box, one unit to a pixel, frets a little more even
+    lin = 0.7; g.sp = Math.max(28, Math.min(50, (fit.W - 32) / 6));
+    g.open = g.nut = Math.round(Math.max(34, Math.min(54, fit.H * .085))); g.span = Math.max(220, fit.H - g.nut - 34);
+  }
+  g.end = g.nut + g.span + (v ? 12 : 14); g.len = g.end + (v ? 22 : 24);
   g.cross = v ? g.c0 + g.sp * 6 + 6 : g.c0 + g.sp * 6 + 26;
   g.numC = v ? 12 : g.c0 + g.sp * 6 + 15;
   const d = n => 1 - Math.pow(2, -n / 12), D = d(FRETS);
-  g.pos = n => n === 0 ? g.nut : g.nut + g.span * (0.6 * d(n) / D + 0.4 * n / FRETS);
+  g.pos = n => n === 0 ? g.nut : g.nut + g.span * ((1 - lin) * d(n) / D + lin * n / FRETS);
+  if (fit) g.R = Math.max(8, Math.min(14, (g.pos(FRETS) - g.pos(FRETS - 1)) * .46, g.sp * .3));
   g.along = f => f === 0 ? g.nut - g.open / 2 - 2 : (g.pos(f - 1) + g.pos(f)) / 2;
   g.cr = s => g.c0 + g.sp / 2 + g.sp * (v ? s : 5 - s);
   g.xy = (a, c) => v ? [c, a] : [a, c];
@@ -788,9 +804,13 @@ function drawStatic(){
   board.innerHTML = h;
 }
 function ensureBoard(){
-  const w = board.parentElement.clientWidth || window.innerWidth;
+  const host = board.parentElement, w = host.clientWidth || window.innerWidth;
   const v = w < 700;
-  if (!G || G.v !== v){ G = geom(v); drawStatic(); return true; }
+  let fit = null;
+  if (v && host.id === 'lflat' && host.clientHeight){ const cs = getComputedStyle(host);
+    fit = { W:Math.floor(w - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), H:Math.floor(host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) }; }
+  const key = v + (fit ? ` ${fit.W}x${fit.H}` : '');
+  if (!G || G.key !== key){ G = geom(v, fit); G.key = key; drawStatic(); return true; }
   return false;
 }
 /* marks: {s,f,kind,pc,text,fill} kinds: dot root ghost ring ring2 target good bad mute heat shade link barre */
@@ -803,7 +823,7 @@ function drawMarks(M){
       under += `<rect ${g.rect(a1, a2, c1, c2)} rx="9" style="fill:rgba(229,165,91,.13);stroke:var(--amber);stroke-width:2.6"/>`;
       continue;
     }
-    if (m.kind === 'open'){ const [x,y] = g.xy(g.along(0), g.cr(m.s)); over += `<circle cx="${x}" cy="${y}" r="${R * .55}" style="fill:none;stroke:var(--pearl);stroke-width:2"/>`; continue; }
+    if (m.kind === 'open'){ const [x,y] = g.xy(g.along(0), g.cr(m.s)); over += `<circle cx="${x}" cy="${y}" r="${Math.max(5, R * .55)}" style="fill:none;stroke:var(--ink);stroke-width:1.8;opacity:.8"/>`; continue; }
     if (m.kind === 'shade' && m.f === 0) continue;
     if (m.kind === 'shade' || m.kind === 'heat'){
       const a1 = m.f === 0 ? 2 : g.pos(m.f - 1) + 1.5, a2 = m.f === 0 ? g.nut - 6 : g.pos(m.f) - 1.5, c = g.cr(m.s);
@@ -836,7 +856,8 @@ function drawMarks(M){
     const shape = (m.kind === 'root' || m.root)
       ? `<rect${cls} x="${x - r}" y="${y - r}" width="${2*r}" height="${2*r}" rx="${r*0.38}" style="${op}fill:${fill};stroke:rgba(0,0,0,.35);stroke-width:1"/>`
       : `<circle${cls} cx="${x}" cy="${y}" r="${r}" style="${op}fill:${fill};stroke:rgba(0,0,0,.3);stroke-width:1"/>`;
-    const t = m.text != null && m.text !== '' ? `<text class="dl" x="${x}" y="${y}" style="${ghost ? 'opacity:.8;' : ''}fill:${ink};font-size:${ghost ? 10 : (String(m.text).length > 2 ? 10.5 : 12.5)}px">${esc(m.text)}</text>` : '';
+    const fs = (ghost ? 10 : (String(m.text).length > 2 ? 10.5 : 12.5)) * Math.max(.78, Math.min(1, R / 13));
+    const t = m.text != null && m.text !== '' ? `<text class="dl" x="${x}" y="${y}" style="${ghost ? 'opacity:.8;' : ''}fill:${ink};font-size:${fs.toFixed(1)}px">${esc(m.text)}</text>` : '';
     mid += shape + t;
   }
   $('#marks').innerHTML = under + mid + over;
@@ -844,6 +865,7 @@ function drawMarks(M){
 board.addEventListener('click', e => {
   const t = e.target.closest('[data-s]'); if (!t) return;
   const s = +t.dataset.s, f = +t.dataset.f;
+  if (Life.open && Life.flat){ Life.cell(s, f); return; }
   MODES[tab].cell && MODES[tab].cell(s, f);
 });
 function cellsIn(strings, lo, hi){ const out = []; for (const s of strings) for (let f = lo; f <= hi; f++) out.push({s, f}); return out; }
@@ -2411,6 +2433,7 @@ const Life = {
     const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
     this.col = { bg:g('--bg'), ink:g('--ink'), muted:g('--muted'), woodA:g('--wood-a'), woodB:g('--wood-b'), fret:g('--fretwire'), bone:g('--bone'), pearl:g('--pearl'), str:g('--string'), wound:g('--wound'), amber:g('--amber'), good:g('--good'), bad:g('--bad'), line:g('--line') };
     if (!this.grain){ this.grain = []; let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280; for (let i = 0; i < 26; i++) this.grain.push({ x:r(), a:r() * 6.28, w:.4 + r() * .8, o:.05 + r() * .12 }); }
+    this.flat = !!S.life.flat; this.flatQ = undefined; this.applyFlat();
     this.z = this.uz(); this.resize(); this.off = this.homeOff(); this.v = 0; this.tour = null; this.taps = []; this.streak = session.streak || 0; this.fb = null; this.hint = false; this.lock = false;
     this.bonus = 0; this.newQ();
     this.hud(); this.focusQ();
@@ -2421,12 +2444,34 @@ const Life = {
     clearTimeout(this.timer); if (this.tapLoop){ clearInterval(this.tapLoop); this.tapLoop = 0; } this.open = false; $('#life').hidden = true; document.body.style.overflow = ''; cancelAnimationFrame(this.raf);
     if (this.wl){ try { this.wl.release(); } catch(e){} this.wl = null; }
     if (this.listenFn){ Mic.subs.delete(this.listenFn); this.listenFn = null; Mic.stop(); }
+    this.placeBoard(false);
     MODES[tab].render();
   },
   resize(){
     const dpr = Math.min(3, window.devicePixelRatio || 1), W = this.cv.clientWidth, H = this.cv.clientHeight;
     this.cv.width = Math.round(W * dpr); this.cv.height = Math.round(H * dpr); this.dpr = dpr;
     this.off = Math.max(this.lowOff(), Math.min(this.maxOff(), this.off));
+    if (this.flat) this.fitFlat();
+  },
+  // Whole-neck option: the page's fretboard moves into the practice screen and shows tvMarks().
+  flat:false,
+  setFlat(on){
+    this.flat = S.life.flat = !!on; save(); this.applyFlat();
+    if (!this.flat){ this.z = this.uz(); this.resize(); this.focusQ(); }
+    this.hud();
+  },
+  applyFlat(){ $('#life').classList.toggle('flat', this.flat); this.placeBoard(this.flat); if (this.flat) this.fitFlat(); },
+  placeBoard(on){ if (!this.home) this.home = board.parentElement; const host = on ? $('#lflat') : this.home; if (board.parentElement !== host) host.appendChild(board); },
+  // fit the board between the top and bottom panels (done per question, so it doesn't jump under a finger)
+  fitFlat(){
+    const el = $('#lflat'); el.style.top = $('.ltop').offsetHeight + 'px'; el.style.bottom = $('.lbot').offsetHeight + 'px';
+    ensureBoard(); this.flatKey = null; this.drawFlat();
+  },
+  drawFlat(){
+    this.flatDirty = false; this.flatT = performance.now();
+    const M = this.tvMarks(), key = JSON.stringify(M);
+    if (key === this.flatKey && drawMarks.last === this.flatM) return;   // unchanged, and nothing else drew on the board
+    this.flatKey = key; this.flatM = M; drawMarks(M);
   },
   // What this practice session asks: a Learn stage, today's practice, Drill settings, or free play.
   spec(){
@@ -2599,9 +2644,11 @@ const Life = {
       B.push(['listen', this.listenFn ? 'Stop listening' : 'Listen to my guitar']);
     }
     else if (q && q.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me']);
-    $('#lview').hidden = !(ss.type === 'learn' || ss.type === 'daily') || (q && q.mode === 'done') || !!(ss.st && KINDS[ss.st.kind]) || !!(q && q.stage);
+    const lv = $('#lview'); lv.hidden = !!(q && q.mode === 'done'); lv.textContent = this.flat ? 'Life size' : 'Whole neck';
+    lv.setAttribute('aria-label', this.flat ? 'Switch to the life-size neck' : 'Show the whole neck at once');
     $('#lskip').hidden = !(q && (q.mode === 'chord' || q.mode === 'echo' || (q.mode === 'note' && q.phase === 'first')));
     $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' ? ' primary' : ''}" data-l="${a}">${esc(l)}${a === 'listen' && this.listenFn ? '<span class="miclvl" id="llvl" aria-hidden="true"><i></i></span>' : ''}</button>`).join('');
+    if (this.flat){ if (q !== this.flatQ){ this.flatQ = q; this.fitFlat(); } else this.flatDirty = true; }
   },
   answerName(pc){
     const q = this.q; if (!q || q.mode !== 'name' || this.lock) return;
@@ -2673,6 +2720,7 @@ const Life = {
   // the neck visible between the top and bottom panels, in mm from the top of the canvas
   gap(){ const t = ($('.ltop') || {}).offsetHeight || 110, b = ($('.lbot') || {}).offsetHeight || 140, k = this.K(); return { top:t / k, mid:(t + (this.cv.clientHeight - t - b) / 2) / k, size:(this.cv.clientHeight - t - b) / k }; },
   scrollTo(mm){
+    if (this.flat) return;
     const target = Math.max(this.lowOff(), Math.min(this.maxOff(), mm - this.gap().mid));
     if (Math.abs(target - this.off) > 40) whoosh(Math.min(1, Math.abs(target - this.off) / 150), target > this.off);
     this.auto = target; this.v = 0;
@@ -2709,6 +2757,7 @@ const Life = {
     const q = this.q; q.phase = 'reveal'; this.lock = true;
     if (!keep) this.fb = { ok:null, t:`Here are all ${q.targets.length}. The green ones are yours.` };
     this.hud();
+    if (this.flat){ this.after(2800); return; }   // all of them are on screen already
     const T = q.targets.map(c => this.along(c.f)), lo = Math.min(...T), hi = Math.max(...T), view = this.view();
     let wait = 2800;
     if (hi - lo < view * .6) this.scrollTo((lo + hi) / 2);
@@ -2742,18 +2791,22 @@ const Life = {
     const f = this.fretAt(mm), mx = (x - this.cx()) / k;
     let best = -1, bd = 1e9; for (let s = 0; s < 6; s++){ const d = Math.abs(this.strX(s, mm) - mx); if (d < bd){ bd = d; best = s; } }
     const sp = (neckW(mm) - 6.8) / 5; if (bd > sp * 0.6 + 2) return;
-    const q = this.q;
-    if (q && q.mode === 'echo'){ play(midiAt(best, f)); this.echoNote(midiAt(best, f), best, f); return; }
-    if (q && (q.mode === 'name' || q.mode === 'cname' || q.mode === 'done' || q.mode === 'mc' || q.mode === 'tap')){ play(midiAt(best, f)); return; }
+    this.cell(best, f);
+  },
+  // a tap on string s at fret f (0 is above the nut), from the life-size neck or the whole-neck board
+  cell(s, f){
+    const q = this.q; this.flatDirty = true;
+    if (q && q.mode === 'echo'){ play(midiAt(s, f)); this.echoNote(midiAt(s, f), s, f); return; }
+    if (q && (q.mode === 'name' || q.mode === 'cname' || q.mode === 'done' || q.mode === 'mc' || q.mode === 'tap')){ play(midiAt(s, f)); return; }
     if (q && q.mode === 'chord'){
       if (this.lock) return;
-      if (f === 0){ q.mutes[best] = !q.mutes[best]; if (q.mutes[best]) delete q.fingers[best]; else play(midiAt(best, 0)); }
-      else { if (q.fingers[best] === f) delete q.fingers[best]; else { q.fingers[best] = f; delete q.mutes[best]; } play(midiAt(best, f)); }
+      if (f === 0){ q.mutes[s] = !q.mutes[s]; if (q.mutes[s]) delete q.fingers[s]; else play(midiAt(s, 0)); }
+      else { if (q.fingers[s] === f) delete q.fingers[s]; else { q.fingers[s] = f; delete q.mutes[s]; } play(midiAt(s, f)); }
       this.fb = null; this.hud(); return;
     }
-    play(midiAt(best, f));
-    if (!q){ this.taps = this.taps.filter(t => performance.now() - t.t < 1800).concat([{ s:best, f, ok:null, t:performance.now() }]); return; }
-    this.answer(best, f, false);
+    play(midiAt(s, f));
+    if (!q){ this.taps = this.taps.filter(t => performance.now() - t.t < 1800).concat([{ s, f, ok:null, t:performance.now() }]); return; }
+    this.answer(s, f, false);
   },
   doHint(){
     this.hint = true;
@@ -2816,6 +2869,11 @@ const Life = {
   draw(t){
     const c = this.c, k = this.K(), W = this.cv.clientWidth, H = this.cv.clientHeight, C = this.col, end = this.end();
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    if (this.flat){
+      c.clearRect(0, 0, W, H);
+      if (this.flatDirty || t - (this.flatT || 0) > 120) this.drawFlat();   // taps fade, so look again a few times a second
+      this.overlay(t); $('#lpos').textContent = TV.on ? 'On TV' : ''; return;
+    }
     c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
     const yTop = this.off, yBot = this.off + this.view();
     // headstock
@@ -2924,6 +2982,28 @@ const Life = {
         c.globalAlpha = a * (.10 + .08 * (i % 3)); c.lineWidth = 2 + (i % 3); c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + len); c.stroke(); }
       c.globalAlpha = 1; c.lineCap = 'butt';
     }
+    this.overlay(t);
+    const ff = this.flashFret, fa = ff.n >= 0 ? Math.max(0, 1 - (t - ff.t) / 700) : 0;
+    if (fa > 0 && ff.n > 0){ c.globalAlpha = fa * .9; c.fillStyle = C.ink; c.font = `800 ${Math.round(W * .28)}px ${(getComputedStyle(document.documentElement).getPropertyValue('--f-display') || 'sans-serif')}`; c.fillText(ff.n, W / 2, H / 2); c.font = `600 14px ${getComputedStyle(document.body).fontFamily}`; c.fillText('FRET', W / 2, H / 2 + W * .17); c.globalAlpha = 1; }
+    // minimap rail
+    const rx = W - 16 - (parseFloat(getComputedStyle($('#life')).paddingRight) || 0), r0 = 120, r1 = H - 170, total = end + 48, my = mm => r0 + (mm + 48) / total * (r1 - r0);
+    c.strokeStyle = C.line; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(rx, r0); c.lineTo(rx, r1); c.stroke(); c.lineCap = 'butt';
+    c.fillStyle = C.muted; c.font = `500 9px ${getComputedStyle(document.body).fontFamily}`; c.textAlign = 'right';
+    for (const n of [0,3,5,7,9,12,15]){ const y = my(n ? (mmPos(n - 1) + mmPos(n)) / 2 : -10); c.fillText(n, rx - 9, y); }
+    c.fillStyle = C.amber; c.globalAlpha = .85; const w0 = my(yTop), w1 = my(Math.min(yBot, end + 30)); c.beginPath(); c.roundRect ? c.roundRect(rx - 5, w0, 10, Math.max(8, w1 - w0), 5) : c.rect(rx - 5, w0, 10, Math.max(8, w1 - w0)); c.fill(); c.globalAlpha = 1;
+    if ((this.hint || (this.q && this.q.phase === 'reveal'))){ c.fillStyle = C.good; for (const tg of this.targets()){ c.beginPath(); c.arc(rx, my(this.along(tg.f)), 3.5, 0, 7); c.fill(); } }
+    c.textAlign = 'center';
+    // edge arrows toward hinted targets that are off screen
+    if (this.hint && this.auto == null && this.q && this.q.phase !== 'reveal'){ const T = this.targets().filter(x => !this.q.found.some(y => y.s === x.s && y.f === x.f)), above = T.some(x => this.along(x.f) < yTop + 6), below = T.some(x => this.along(x.f) > yBot - 6), vis = T.some(x => { const y = this.along(x.f); return y >= yTop + 6 && y <= yBot - 6; });
+      if (!vis){ c.fillStyle = C.amber; c.font = `700 14px ${getComputedStyle(document.body).fontFamily}`; const bob = Math.sin(t / 200) * 4;
+        if (below) c.fillText('▼  Slide toward the body  ▼', W / 2, H - 150 + bob); else if (above) c.fillText('▲  Slide toward the nut  ▲', W / 2, 140 - bob); } }
+    $('#lpos').textContent = (this.z >= .995 ? 'Real size' : `${Math.round(this.z * 100)}% size`) + (TV.on ? ' · On TV' : '');
+    this.syncZoom();
+  },
+  // drawn over either view: the boom-chuck beat and the confetti
+  overlay(t){
+    const c = this.c, W = this.cv.clientWidth, H = this.cv.clientHeight, C = this.col, q = this.q;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
     if (q && q.mode === 'tap' && q.t0 && ac){
       const lat = (ac.outputLatency || 0) + (ac.baseLatency || 0), pos = (ac.currentTime - lat - q.t0) / q.beat, cur = pos >= 0 ? Math.floor(pos) % 4 : -1, frac = pos >= 0 ? pos - Math.floor(pos) : 1;
       const bw = Math.min(W - 40, 340), bh = 120, bx = (W - bw) / 2, by = H * .42 - bh / 2;
@@ -2947,24 +3027,8 @@ const Life = {
       }
       c.globalAlpha = 1;
     }
-    const ff = this.flashFret, fa = ff.n >= 0 ? Math.max(0, 1 - (t - ff.t) / 700) : 0;
-    if (fa > 0 && ff.n > 0){ c.globalAlpha = fa * .9; c.fillStyle = C.ink; c.font = `800 ${Math.round(W * .28)}px ${(getComputedStyle(document.documentElement).getPropertyValue('--f-display') || 'sans-serif')}`; c.fillText(ff.n, W / 2, H / 2); c.font = `600 14px ${getComputedStyle(document.body).fontFamily}`; c.fillText('FRET', W / 2, H / 2 + W * .17); c.globalAlpha = 1; }
-    // minimap rail
-    const rx = W - 16 - (parseFloat(getComputedStyle($('#life')).paddingRight) || 0), r0 = 120, r1 = H - 170, total = end + 48, my = mm => r0 + (mm + 48) / total * (r1 - r0);
-    c.strokeStyle = C.line; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(rx, r0); c.lineTo(rx, r1); c.stroke(); c.lineCap = 'butt';
-    c.fillStyle = C.muted; c.font = `500 9px ${getComputedStyle(document.body).fontFamily}`; c.textAlign = 'right';
-    for (const n of [0,3,5,7,9,12,15]){ const y = my(n ? (mmPos(n - 1) + mmPos(n)) / 2 : -10); c.fillText(n, rx - 9, y); }
-    c.fillStyle = C.amber; c.globalAlpha = .85; const w0 = my(yTop), w1 = my(Math.min(yBot, end + 30)); c.beginPath(); c.roundRect ? c.roundRect(rx - 5, w0, 10, Math.max(8, w1 - w0), 5) : c.rect(rx - 5, w0, 10, Math.max(8, w1 - w0)); c.fill(); c.globalAlpha = 1;
-    if ((this.hint || (this.q && this.q.phase === 'reveal'))){ c.fillStyle = C.good; for (const tg of this.targets()){ c.beginPath(); c.arc(rx, my(this.along(tg.f)), 3.5, 0, 7); c.fill(); } }
-    c.textAlign = 'center';
-    // edge arrows toward hinted targets that are off screen
-    if (this.hint && this.auto == null && this.q && this.q.phase !== 'reveal'){ const T = this.targets().filter(x => !this.q.found.some(y => y.s === x.s && y.f === x.f)), above = T.some(x => this.along(x.f) < yTop + 6), below = T.some(x => this.along(x.f) > yBot - 6), vis = T.some(x => { const y = this.along(x.f); return y >= yTop + 6 && y <= yBot - 6; });
-      if (!vis){ c.fillStyle = C.amber; c.font = `700 14px ${getComputedStyle(document.body).fontFamily}`; const bob = Math.sin(t / 200) * 4;
-        if (below) c.fillText('▼  Slide toward the body  ▼', W / 2, H - 150 + bob); else if (above) c.fillText('▲  Slide toward the nut  ▲', W / 2, 140 - bob); } }
-    $('#lpos').textContent = (this.z >= .995 ? 'Real size' : `${Math.round(this.z * 100)}% size`) + (TV.on ? ' · On TV' : '');
-    this.syncZoom();
   },
-  // The same picture as the canvas, as board marks for the whole-neck TV view.
+  // The same picture as the canvas, as board marks: the whole-neck option and the TV view.
   tvMarks(){
     const q = this.q, M = [];
     if (q && (q.mode === 'note' || q.mode === 'name') && q.cells){
@@ -2993,6 +3057,7 @@ const Life = {
     });
     if (q && q.mode === 'chord'){
       const fr = this.shape();
+      if (q.strings) for (let s = 0; s < 6; s++) if (!q.strings.includes(s)) for (let f = 1; f <= FRETS; f++) M.push({ s, f, kind:'shade' });
       if (this.showMe) this.showMe.frets.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'ring' }); });
       for (let s = 0; s < 6; s++){
         const muted = this.showMe ? this.showMe.frets[s] == null : fr[s] == null;
@@ -3032,8 +3097,7 @@ const Life = {
       if (a === 'hint') this.doHint();
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); }
       if (a === 'reveal') this.reveal();
-      if (a === 'classic'){ const ss = this.session, streak = ss.type === 'daily' ? (days[todayKey()] || 0) : this.streak;
-        this.close(); S.learn.view = 'classic'; S.learn.phase = 'practice'; Learn.detail = true; if (ss.type === 'learn') S.learn.id = ss.st.id; Learn.reset(); Learn.streak = streak; save(); go('learn'); setTimeout(() => Learn.scroll(), 60); }
+      if (a === 'flat') this.setFlat(!this.flat);
       if (a === 'name') this.answerName(this.q && this.q.opts ? b.dataset.v : +b.dataset.v);
       if (a === 'mc') this.answerMC(b.dataset.v);
       if (a === 'replay' && this.q && this.q.replay) this.q.replay();
@@ -3292,7 +3356,7 @@ const TV = {
       const fb = $('#lfb'), q = Life.q;
       return Object.assign(base, { scene:'life', label:$('#lstat').textContent, prompt:$('#lprompt').innerHTML,
         meter:$('#lmeter').hidden ? '' : $('#lmeter').innerHTML, fb:{ cls:fb.className, t:fb.textContent },
-        done:!!(q && q.mode === 'done'), marks:Life.tvMarks(), win:Life.tvWindow(), piano:this.sounding() });
+        done:!!(q && q.mode === 'done'), marks:Life.tvMarks(), win:Life.flat ? null : Life.tvWindow(), piano:this.sounding() });
     }
     if (tab === 'tune') return Object.assign(base, { scene:'tuner', tuner:Tuner.tvState(), piano:this.sounding() });
     const title = $('#vtitle').hidden ? '' : $('#vtitle').textContent;
@@ -3343,7 +3407,7 @@ const TVView = {
     tv.dataset.scene = sc; tv.classList.toggle('done', !!st.done);
     $('#tvlabel').textContent = sc === 'life' ? st.label || '' : sc === 'home' ? st.title || '' : '';
     const sk = $('#tvstreak'); sk.hidden = !st.streak; sk.textContent = st.streak ? `${st.streak}-day streak` : '';
-    $('#tvlegend').hidden = sc !== 'life';
+    $('#tvlegend').hidden = sc !== 'life' || !st.win;
     let pr = '';
     if (sc === 'life') pr = st.prompt || '';
     else if (sc === 'board') pr = esc(st.title || '');
@@ -3406,7 +3470,7 @@ $('#main').addEventListener('click', e => { const b = e.target.closest('[data-ac
 $('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input(e); });
 document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
-let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ensureBoard()) MODES[tab].render(); }, 120); });
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (Life.open && Life.flat){ Life.fitFlat(); return; } if (ensureBoard()) MODES[tab].render(); }, 120); });
 if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, actx: () => ac };
 if (DISPLAY){ TVView.boot(); return; }
 ensureBoard();
