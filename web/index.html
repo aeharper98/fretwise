@@ -318,6 +318,11 @@ main{display:flex;flex-direction:column;gap:16px;padding-block:6px 56px}
 .srow small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
 .srow .chev{color:var(--muted);width:16px;height:16px}
 .srow.cur b{color:var(--ink)}
+.newtag{display:inline-block;font:700 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;margin-right:6px}
+.gapnote{font-size:13.5px;opacity:.9;margin:6px 0 0}
+.scalerow{display:flex;flex-wrap:wrap;align-items:center;gap:5px 4px;font:800 20px/1.2 var(--f-display);letter-spacing:-.01em}
+.scalerow i{font:600 10.5px var(--f-mono);font-style:normal;color:var(--muted);background:var(--chip);border-radius:6px;padding:2px 5px;letter-spacing:0}
+.scalerow i.h{background:color-mix(in srgb,var(--amber) 28%,transparent);color:var(--ink)}
 .kindtag{display:inline-block;font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-right:6px}
 .footlinks{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:18px}
 /* stage page */
@@ -708,7 +713,11 @@ function play(m, when = 0, vel = 1, opts = {}){
   else src.buffer = pluckBuf(m);
   const g = ac.createGain(); g.gain.value = (k != null ? 1.0 : 0.8) * vel; src.connect(g); g.connect(master);
   src.start(ac.currentTime + when);
-  if (typeof Mic !== 'undefined' && Mic.on) Mic.quietUntil = Math.max(Mic.quietUntil, performance.now() + when * 1000 + 1300);
+  if (typeof Mic !== 'undefined' && Mic.on){
+    // while listening, the microphone ignores this pitch for a second, so the app's own note is cut short
+    Mic.appNote(m, performance.now() + when * 1000);
+    if (!opts.keep){ const t = ac.currentTime + when; g.gain.setValueAtTime(g.gain.value, t + .5); g.gain.linearRampToValueAtTime(0.0001, t + .95); src.stop(t + 1); }
+  }
   if (typeof TV !== 'undefined') TV.sound(m, performance.now() + when * 1000);
   if (!warned) setTimeout(() => { if (ac.state !== 'running' && !warned){ warned = true; toast('Sound is blocked by the browser. Tap the fretboard again, and turn up your volume.'); } }, 400);
   return { src, g };
@@ -1323,8 +1332,11 @@ const LEARN_ALL = [
   { id:'open', part:'Home and three chords', t:'The open strings', kind:'notes', strings:ALL, range:[0,0], nat:true, goal:8,
     d:'Six strings, thickest to thinnest: E A D G B E. A memory line: "Eddie Ate Dynamite, Good Bye Eddie." Every other note is counted up from these, so learn them cold first.',
     dp:'Six strings, thickest to thinnest: E A D G B E, from E2, more than an octave below middle C, up to E4, just above it. Careful with the names: the "high" E is the thin string nearest the floor.' },
+  { id:'alphabet', part:'Home and three chords', t:'Letters on the neck', kind:'alphabet', fill:true, goal:8,
+    d:'Notes use seven letters, A to G, and then start again. Neighbouring letters are two frets apart, except E–F and B–C, which sit on neighbouring frets. Knowing that, you can count your way to any note.',
+    dp:'The seven letters are the white keys. E–F and B–C have no black key between them, so on the guitar they sit on neighbouring frets; every other pair is two frets apart.' },
   { id:'e6a', part:'Home and three chords', t:'6th string, frets 0–5', kind:'notes', strings:[0], range:[0,5], nat:true, goal:8,
-    d:'Only four natural notes live here: E (open), F (1), G (3), A (5). That G on fret 3 is the bass note of the G chord, the home chord of bluegrass.' },
+    d:'Only four natural notes live here: E (open), F (1), G (3), A (5). E to F is one fret, then two to G and two more to A. That G on fret 3 is the bass note of the G chord, the home chord of bluegrass.' },
   { id:'a5a', part:'Home and three chords', t:'5th string, frets 0–5', kind:'notes', strings:[1], range:[0,5], nat:true, goal:8,
     d:'A (open), B (2), C (3), D (5). With the 6th string, these frets hold the bass note of almost every chord in G, C, D and A.' },
   { id:'gcd', part:'Home and three chords', t:'G, C and D', kind:'chords', set:G_C_D, goal:8,
@@ -1336,42 +1348,49 @@ const LEARN_ALL = [
   { id:'ae', part:'Home and three chords', t:'Add A and E', kind:'chords', set:G_C_D_A_E, goal:8,
     d:'D, G and A make the key of D; A, D and E make the key of A. With these five shapes you can play in G, C, D and A, the most common bluegrass keys.' },
   { id:'alt', part:'Home and three chords', t:'Alternating bass', kind:'bass', alt:true, set:G_C_D_A_E, goal:8,
-    d:'Real boom-chuck alternates: root, strum, then the 5th of the chord, strum. For G that is G, then D. Tap the root, then the 5th.' },
+    d:'Real boom-chuck alternates: root, strum, then the 5th of the chord, strum. The 5th is five letters up from the root, counting the root as one: G A B C D, so for G it is D. Tap the root, then the 5th.' },
   { id:'bassear', part:'Home and three chords', t:'Hear the bass note', kind:'bassear', set:G_C_D_A_E, goal:8,
     d:'Hear a chord, then find its root on the bass strings. It is how you follow a song nobody has called: listen to the low end first.' },
   { id:'chuck', part:'Home and three chords', t:'Chuck on 2 and 4', kind:'chuck', bpm:72, tol:90, goal:12,
     d:'Boom-chuck is a bass note on beats 1 and 3 and a strum on 2 and 4. Fretwise plays the bass; you tap the chuck. Steady time matters more than speed at any jam.' },
   { id:'ear1', part:'Home and three chords', t:'Hear 1, 4 and 5', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5], goal:8,
-    d:'Jam changes come fast. You hear the key\'s home chord, the 1, then a mystery chord. Is it the 1 again, the 4 or the 5? The 5 sounds like it wants to go home; the 4 sounds like a lift.' },
+    d:'Chords get numbers by counting letters up from the key note: in G, G is 1, A 2, B 3, C 4 and D 5, so the 4 chord is C and the 5 chord is D. Jam changes come fast. You hear the key\'s home chord, the 1, then a mystery chord. Is it the 1 again, the 4 or the 5? The 5 sounds like it wants to go home; the 4 sounds like a lift.' },
   // ---------- Numbers in the hand
   { id:'high', part:'Numbers in the hand', t:'Top four strings, first position', kind:'notes', strings:[2,3,4,5], range:[0,4], nat:true, goal:10,
     d:'The D, G, B and high E strings, frets 0–4. Melodies and fiddle tunes in G and D mostly live right here.' },
   { id:'first', part:'Numbers in the hand', t:'First position, all strings', kind:'notes', strings:ALL, range:[0,4], nat:true, goal:12,
     d:'Frets 0–4 across every string. This is where bluegrass guitar lives: open chords, G runs and fiddle tunes are mostly played right here.' },
+  { id:'halfsteps', part:'Numbers in the hand', t:'Half steps, sharps and flats', kind:'steps', theory:true, fill:true, goal:8,
+    d:'One fret is a half step, two frets a whole step. A sharp (♯) is one fret up and a flat (♭) one fret down, so F♯ and G♭ are the same fret. Scales, keys and the capo all count this way.',
+    dp:'One fret is one piano key, black keys included: a half step. Sharps and flats work as on the keyboard, so F♯ and G♭ are the same fret.' },
+  { id:'majscale', part:'Numbers in the hand', t:'The major scale', kind:'majscale', theory:true, fill:true, keys:[0,7,2], goal:8,
+    d:'Do-re-mi is one pattern of steps: whole, whole, half, whole, whole, whole, half. Start it on C and every note is natural; start on G and it needs F♯; start on D and it needs F♯ and C♯. Numbers, keys and chords all build on this.' },
+  { id:'scalerun', part:'Numbers in the hand', t:'G and D major in first position', kind:'scalerun', fill:true, keys:[7,2], goal:6,
+    d:'The same scales as fingerings: G major and D major in frets 0–4, played in order, up and down. Fiddle tunes in G and D are built from these shapes.' },
+  { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', fill:true, strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
+    d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G.' },
+  { id:'dmaj', part:'Numbers in the hand', t:'D major, first position', kind:'notes', fill:true, strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
+    d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
   { id:'deg135', part:'Numbers in the hand', t:'Notes as numbers: 1, 3 and 5', kind:'degrees', theory:true, keys:[7,0,2], degrees:[1,3,5], strings:ALL, range:[0,4], anchor:true, goal:8,
-    d:'In any key, the key note is 1. Count up the major scale from it: in G, 1 is G, 3 is B and 5 is D. Those three notes are the G chord.',
-    dp:'The same scale degrees you use on piano, now on the neck: 1, 3 and 5 in G, C and D, first position.',
+    d:'In any key, the key note is 1, and every other note is numbered by its place in that key\'s major scale. In G (G A B C D E F♯), 1 is G, 3 is B and 5 is D. Those three notes are the G chord.',
+    dt:'The same scale degrees you use on piano, now on the neck: 1, 3 and 5 in G, C and D, first position.',
     study:'In G, 1 is G, 3 is B and 5 is D: the G chord. Square dots are the 1s. Tap around and hear how 1, 3 and 5 belong together.' },
   { id:'num1', part:'Numbers in the hand', t:'Numbers: 1, 4 and 5', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,4,5], goal:8,
-    d:'Bluegrass players call changes by number so a song works in any key: "it\'s a 1-4-5." Songs nearly always start and end on 1, and the chord just before the end is almost always 5.' },
+    d:'Bluegrass players call changes by number so a song works in any key: "it\'s a 1-4-5." The 4 and 5 chords are built on the 4th and 5th notes of the key\'s scale: C and D in G, G and A in D. Songs nearly always start and end on 1, and the chord just before the end is almost always 5.' },
   { id:'chart1', part:'Numbers in the hand', t:'Hear the form', kind:'chart', keys:[7,2,9], goal:6,
     progs:['1 4 1 5','1 1 4 1','1 5 1 1','1 4 5 1','1 1 5 1','1 5 4 1'],
     examples:[{ name:'Nine Pound Hammer: 1 1 4 4, 1 5 1 1', prog:'1 1 4 4 1 5 1 1' }, { name:'Will the Circle Be Unbroken (ending): 1 1 1 1, 1 5 1 1', prog:'1 1 1 1 1 5 1 1' }, { name:'New River Train (middle): 1 1 4 4, 5 5 1 1', prog:'1 1 4 4 5 5 1 1' }],
     d:'Jammers hear a song as a number pattern. Nine Pound Hammer is "1 1 4 4, 1 5 1 1" in any key. Listen to four bars and pick the chart.',
     study:'A chart is the song\'s chords as numbers, one per bar. Learn to hear when the chord changes and whether it went to 4 or 5: the 4 lifts, the 5 pulls back home.' },
   { id:'octaves', part:'Numbers in the hand', t:'Octave shapes', kind:'octaves', nat:true, goal:8,
-    d:'Octave shapes carry note names across the neck: two strings over and two frets up, or three frets up when you cross the B string.' },
+    d:'An octave is the same note name 12 frets (12 half steps) higher: it sounds like the same note, only higher. Octave shapes carry note names across the neck: two strings over and two frets up, or three frets up when you cross the B string.' },
   { id:'capo', part:'Numbers in the hand', t:'Capo math', kind:'capo', theory:true, goal:8,
     d:'Guitarists play G, C, D and A shapes and move the capo to match the singer. The shape keeps its name; the key goes up one half step per fret.',
     dp:'A capo transposes: the fingering stays a "G shape" while the key that sounds moves up a half step per fret.' },
   { id:'degscale', part:'Numbers in the hand', t:'The whole scale as numbers', kind:'degrees', theory:true, keys:[7,2], degrees:[1,2,3,4,5,6,7], strings:ALL, range:[0,4], anchor:true, goal:10,
-    d:'Every note of the major scale has a number. 1, 3 and 5 are the chord; 2, 4, 6 and 7 are the notes in between that melodies walk through.',
-    dp:'Major-scale degrees 1 to 7 in G and D, first position. You know these from piano; the work here is finding them fast on the neck.',
+    d:'Every note of the major scale has a number, its place in the scale: in G, G A B C D E F♯ are 1 to 7. 1, 3 and 5 are the chord; 2, 4, 6 and 7 are the notes in between that melodies walk through.',
+    dt:'Major-scale degrees 1 to 7 in G and D, first position. You know these from piano; the work here is finding them fast on the neck.',
     study:'Every note of the scale has a number. 1, 3 and 5 make the chord; 2, 4, 6 and 7 are the passing notes melodies walk through.' },
-  { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
-    d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G.' },
-  { id:'dmaj', part:'Numbers in the hand', t:'D major, first position', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
-    d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
   { id:'hear135', part:'Numbers in the hand', t:'Hear 1, 3 and 5', kind:'degear', keys:[7,2,9], degrees:[1,3,5], goal:8,
     d:'Each number has its own feeling in a key. Hear the key, then a note, and name its number, or play it on your guitar.',
     study:'1 sounds settled, 5 sounds open and strong, 3 sounds warm. Hear the key first, then each note, and notice how it sits against home.' },
@@ -1385,20 +1404,20 @@ const LEARN_ALL = [
     d:'Longer phrases from the pentatonic. Sing or hum each one before you play it; your voice finds it faster than your fingers.',
     study:'Four-note phrases from 1 2 3 5 6. Hum the phrase back first, then play it. Your voice finds a melody faster than your fingers.' },
   { id:'ear2', part:'Numbers in the hand', t:'Add the 6 minor', kind:'ear', keys:[7,0,2,9], degrees:[1,4,5,6], goal:8,
-    d:'The 6 minor (Em in G) sounds sad next to the bright major chords. Same game, one more choice.' },
+    d:'The 6 minor (Em in G) is the chord built on the 6th note of the scale. Made only from scale notes, it comes out minor and sounds sad next to the bright 1, 4 and 5. Same game, one more choice.' },
   // ---------- Chord tones and first breaks
   { id:'sev', part:'Chord tones and first breaks', t:'Sevenths and minors', kind:'chords', set:[[7,'7'],[2,'7'],[9,'7'],[4,'7'],[4,'min'],[9,'min']], goal:8,
-    d:'A 7th chord pulls toward the next chord: D7 leads back to G, G7 leads to C. Em and Am give the minor color heard in songs like "Wayfaring Stranger."' },
+    d:'A 7 chord adds one note to a major chord, a whole step below the root an octave up: G7 is G B D plus F. That note makes it pull toward the next chord: D7 leads back to G, G7 leads to C. Em and Am give the minor color heard in songs like "Wayfaring Stranger."' },
   { id:'tones', part:'Chord tones and first breaks', t:'Chord tones: root, 3rd, 5th', kind:'tones', set:G_C_D, ivs:['1','3','5'], goal:10,
-    d:'A solo that lands on a chord tone when the chord changes sounds right. Root, 3rd and 5th are the safe landing spots; the 3rd says major or minor.',
+    d:'A solo that lands on a chord tone when the chord changes sounds right. Count letters up from the root, counting it as one: the 3rd is three letters up (G A B: B) and the 5th is five (D). The 3rd says major or minor: 4 frets above the root in a major chord, 3 in a minor one.',
     study:'Root, 3rd and 5th of each chord are its safe landing notes. When the chord changes, landing on one of them makes a solo sound right.' },
   { id:'triads1', part:'Chord tones and first breaks', t:'Triads on the top strings', kind:'triads', set:G_C_D, goal:8,
-    d:'G, C and D as three-note shapes on the top three strings, in every inversion up the neck. Bluegrass players use them for fills, backup and double stops.' },
+    d:'G, C and D as three-note shapes on the top three strings, in every inversion up the neck: the same three notes, with a different one on the bottom each time. Bluegrass players use them for fills, backup and double stops.' },
   { id:'triads2', part:'Chord tones and first breaks', t:'More triads: A, E and minors', kind:'triads', set:[[9,'maj'],[4,'maj'],[9,'min'],[4,'min'],[2,'min']], goal:8,
     d:'The same idea for A and E and the minor chords. A minor triad is a major one with its 3rd lowered one fret.' },
   // ---------- Off-chords and roots colour
   { id:'num2', part:'Off-chords and roots colour', t:'Minor chords: 2m and 6m', kind:'numbers', theory:true, keys:[7,0,2,9], degrees:[1,2,4,5,6], goal:8,
-    d:'Inside a major key the 2 and 6 chords are minor: in G, Am (the 2m) and Em (the 6m). Jam charts write them 2m and 6m, or 2- and 6-. A bare 2 means something else: the major 2 (A or A7 in G), which comes next.' },
+    d:'Build a chord on each note of the major scale using only scale notes, and 1, 4 and 5 come out major while 2, 3 and 6 come out minor. In G that makes Am the 2m and Em the 6m. Jam charts write them 2m and 6m, or 2- and 6-. A bare 2 means something else: the major 2 (A or A7 in G), which comes next.' },
   { id:'offchord', part:'Off-chords and roots colour', t:'The 2 chord and the ♭7', kind:'chordear', keys:[7,2,9],
     opts:[{ v:'1', label:'1' }, { v:'4', label:'4' }, { v:'5', label:'5' }, { v:'2', label:'2⁷' }, { v:'b7', label:'♭7' }], goal:8,
     d:'Bluegrass has two favorite chords from outside the key. The major 2 (A7 in G) pushes toward the 5, as in "Salty Dog" and "Red Wing." The ♭7 (F in G) is the mountain sound of "Old Joe Clark."',
@@ -1409,11 +1428,13 @@ const LEARN_ALL = [
     d:'The same chart game with the 2⁷, the ♭7 and the 6 minor mixed in. Listen for the chord that pulls outside the key.',
     study:'Same game, more colors: the major 2 pushes to 5, the ♭7 drops a whole step below home, and the 6 minor sounds sad. Tap a chart to hear it in G.' },
   { id:'gpent', part:'Off-chords and roots colour', t:'G major pentatonic', kind:'notes', strings:ALL, range:[0,4], nat:true, pcs:[7,9,11,2,4], from:43, goal:10,
-    d:'G A B D E: the major scale without its two leaning notes. Most bluegrass and country licks in G come from these five.' },
+    d:'G A B D E: the G major scale without its two leaning notes, C (the 4) and F♯ (the 7). Most bluegrass and country licks in G come from these five.' },
   { id:'blue', part:'Off-chords and roots colour', t:'The blue note', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,10,11,2,4], from:43, goal:10,
-    d:'Add B♭, the ♭3, and slide or hammer it up to B, the 3. That bluesy rub is all over bluegrass and blues guitar.' },
+    d:'Add B♭, the ♭3 (the 3 lowered a half step), and slide or hammer it up to B, the 3. That bluesy rub is all over bluegrass and blues guitar.' },
+  { id:'majscale2', part:'Off-chords and roots colour', t:'Major scales in A, E and F', kind:'majscale', theory:true, fill:true, keys:[9,4,5], goal:8,
+    d:'The same whole, whole, half pattern from A, E and F. A major needs F♯, C♯ and G♯; E major adds D♯; F major needs a flat, B♭. Fiddle tunes in A, and the Mixolydian sound next, start here.' },
   { id:'mixo', part:'Off-chords and roots colour', t:'The ♭7: Mixolydian', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[9,11,1,2,4,6,7], from:45, goal:12,
-    d:'A major with a ♭7: G natural instead of G♯. "Old Joe Clark" is the classic Mixolydian fiddle tune, and "Salt Creek" leans on the same ♭7 chord.' },
+    d:'A major with a ♭7 (the 7th note lowered a half step): G natural instead of G♯. "Old Joe Clark" is the classic Mixolydian fiddle tune, and "Salt Creek" leans on the same ♭7 chord.' },
   { id:'hearscale', part:'Off-chords and roots colour', t:'Hear the whole scale', kind:'degear', keys:[7,2], degrees:[1,2,3,4,5,6,7], goal:10,
     d:'Now 4 and 7, the two notes that lean: 4 leans down to 3, and 7 leans up to 1.',
     study:'4 and 7 are the notes that lean: 4 wants to fall to 3, 7 wants to rise to 1. Listen for the pull.' },
@@ -1433,7 +1454,7 @@ const LEARN_ALL = [
   { id:'e1', part:'Up the neck', t:'1st string', kind:'notes', strings:[5], range:[0,12], nat:true, goal:8,
     d:'The thin high E string has the same note names at the same frets as the low E, two octaves up. Everything from the 6th string carries over.' },
   { id:'sharps', part:'Up the neck', t:'Sharps and flats', kind:'notes', strings:[0,1], range:[0,12], nat:false, goal:10,
-    d:'A sharp is one fret up from a natural, a flat is one fret down, so the fret between G and A is both G♯ and A♭. Back on the bass strings to learn them.' },
+    d:'Now every sharp and flat by position: the frets between the letters on both bass strings, to fret 12. Each has two names, like G♯ and A♭.' },
   { id:'neck', part:'Up the neck', t:'The whole neck', kind:'notes', strings:ALL, range:[0,12], nat:false, goal:15,
     d:'Every string, every note to fret 12. Take your time. Speed comes from repetition.' },
   // ---------- Blues, circle chains and beyond
@@ -1448,7 +1469,7 @@ const LEARN_ALL = [
 const LEARN = [];
 function rebuildPath(){ LEARN.length = 0; for (const st of LEARN_ALL) if (!st.piano || isPianist()) LEARN.push(st); }
 rebuildPath();
-const stageDesc = st => (isPianist() && st.dp) ? st.dp : st.d;
+const stageDesc = st => (theoryFluent() && st.dt) ? st.dt : (isPianist() && st.dp) ? st.dp : st.d;
 // pianists move faster through stages that are mostly theory they already have; fretboard stages keep the full bar
 const stageGoal = st => (theoryFluent() && st.theory) ? Math.max(5, Math.round(st.goal * .6)) : st.goal;
 // pass when at least 7 of every 8 recent answers are right (about 90%), not a perfect streak
@@ -1554,8 +1575,13 @@ const Learn = {
       if (type === 'num') setTimeout(() => strum(Chords.midis(this.q.vc)), 120);
     }
   },
+  // A lesson that fills in what later stages assume comes first when you are already past it.
+  isGap(st){ return !!st.fill && !learnProg.done[st.id] && LEARN.slice(LEARN.indexOf(st) + 1).some(y => learnProg.done[y.id]); },
+  // after passing a stage: a skipped gap lesson first, else the next one not passed yet
+  after(st){ const i = LEARN.indexOf(st); return LEARN.slice(0, i).find(x => x.fill && !learnProg.done[x.id]) || LEARN.slice(i + 1).find(x => !learnProg.done[x.id]) || LEARN[i + 1]; },
   nextStage(){
-    const st = LEARN.find(x => x.id === S.learn.id);
+    const st = LEARN.find(x => x.id === S.learn.id), i = st ? LEARN.indexOf(st) : 0;
+    const gap = LEARN.slice(0, i).find(x => x.fill && !learnProg.done[x.id]); if (gap) return gap;
     if (st && !learnProg.done[st.id]) return st;
     return LEARN.find(x => !learnProg.done[x.id]) || st || LEARN[0];
   },
@@ -1568,7 +1594,7 @@ const Learn = {
     else if (st.kind === 'ear'){ k = 'Ear'; d = st.degrees.map(x => DEG_R[x]).join(' '); }
     else { k = 'Theory'; d = st.degrees.map(x => DEG_R[x]).join(' '); }
     const m = Review.mastered(st.id), due = learnProg.done[st.id] ? Review.dueIn(st.id) : null;
-    return `<span class="kindtag">${k}</span>${esc(d)}${m ? ' · Mastered' : learnProg.done[st.id] ? (due <= 0 ? ' · Review today' : ` · Passed, review in ${due} day${due === 1 ? '' : 's'}`) : ''}`;
+    return `${this.isGap(st) ? '<span class="newtag">New lesson</span>' : ''}<span class="kindtag">${k}</span>${esc(d)}${m ? ' · Mastered' : learnProg.done[st.id] ? (due <= 0 ? ' · Review today' : ` · Passed, review in ${due} day${due === 1 ? '' : 's'}`) : ''}`;
   },
   render(){ if (this.detail) this.renderStage(); else this.renderHome(); },
   renderHome(){
@@ -1576,9 +1602,9 @@ const Learn = {
     const total = LEARN.length, doneN = LEARN.filter(x => learnProg.done[x.id]).length, nx = this.nextStage(), all = doneN === total;
     $('#above').innerHTML = `<div class="homegrid">
       <div class="hero">${heroArt()}
-        <div class="eyebrow">${all ? 'Path complete · review anything' : doneN ? 'Up next' : 'Start here'} · Stage ${LEARN.indexOf(nx) + 1} of ${total}</div>
+        <div class="eyebrow">${all ? 'Path complete · review anything' : this.isGap(nx) ? 'New lesson' : doneN ? 'Up next' : 'Start here'} · Stage ${LEARN.indexOf(nx) + 1} of ${total}</div>
         <h2>${esc(nx.t)}</h2>
-        <p>${esc(firstSentence(stageDesc(nx)))}</p>
+        <p>${esc(firstSentence(stageDesc(nx)))}</p>${this.isGap(nx) ? `<p class="gapnote">Added to fill a gap: later stages build on it. ${LEARN.filter(x => this.isGap(x)).length > 1 ? `${LEARN.filter(x => this.isGap(x)).length} short lessons like this` : 'One short lesson'}, then you carry on where you were.</p>` : ''}
         <div class="meter"><span>${doneN} of ${total} passed</span><i><b style="width:${Math.round(100 * doneN / total)}%"></b></i></div>
         <div class="acts"><button class="hbtn" data-act="lpractice" data-v="${nx.id}">${IC.play} ${nx.kind === 'ear' ? 'Start' : 'Practice'}</button><button class="hbtn ghost" data-act="lopen" data-v="${nx.id}">Study first</button></div>
       </div>
@@ -1903,6 +1929,140 @@ const KINDS = {
       return { mode:'note', pc:pcOf(m), exact:m, ref:{ s:ref.s, f:ref.f, label:nn(pcOf(m)) }, title:`Find this <em>${both(pcOf(m))}</em> on another string`, cells, targets:cells.filter(c => midiAt(c.s, c.f) === m && c.s !== ref.s), found:[], phase:'first', area:'same pitch, frets 0–12' };
     }
   },
+  // ---- the musical alphabet on the neck: seven letters, two frets apart except E–F and B–C
+  alphabet:{
+    label:'Fretboard',
+    meta:() => 'A to G: two frets apart, except E–F and B–C',
+    study(st){
+      const M = [];
+      for (const s of [0, 1]) for (let f = 0; f <= 12; f++){ const a = pcOf(midiAt(s, f)); if ([4,5,11,0].includes(a)) M.push({ kind:'heat', s, f, fill:'rgba(229,165,91,.5)' }); }
+      for (const s of [0, 1]) for (let f = 0; f <= 12; f++){ const pc = pcOf(midiAt(s, f)); if (NAT[pc]) M.push({ s, f, pc, text:SH[pc], kind:'dot' }); }
+      return { marks:M, cap:'A B C D E F G', hl:hlNotes([45,47,48,50,52,53,55,57]),
+        html:`<p style="margin:0">Notes are named with seven letters, <b>A B C D E F G</b>. After G the letters start again at A, one octave higher. On the guitar each fret is one <b>half step</b>, the same as one key on a piano, white or black.</p>
+          <p style="margin:0">Most neighbouring letters are <b>two frets apart</b>, with a sharp or flat in between. Two pairs have nothing between them and sit on <b>neighbouring frets</b>: <b>E–F</b> and <b>B–C</b> (marked in amber on the 6th and 5th strings).</p>
+          <p class="hint">So from any letter you can count to the next one: up two frets, except from E or B, where it's one. Practice: count the frets between letters, then find the next letter on a string.</p>
+          <div class="row"><button class="btn ghost" data-act="kalpha">Hear A up to A</button></div>` };
+    },
+    act(st, a){ if (a === 'kalpha') arp([45,47,48,50,52,53,55,57], .3); },
+    gen(st, prev){
+      if (Math.random() < .4){
+        const pc = pick(notPrev([0,2,4,5,7,9,11], x => prev && prev.pc === x)), nx = LETTER_PC[(LETTERS.indexOf(SH[pc]) + 1) % 7], n = (nx - pc + 12) % 12;
+        return { mode:'mc', pc, title:`From <em>${SH[pc]}</em> up to <em>${SH[nx]}</em>: how many frets?`, small:'On one string, each fret is a half step.',
+          opts:[{ v:'1', label:'1 fret' }, { v:'2', label:'2 frets' }], answer:String(n), wide:true,
+          explain:() => n === 1 ? `${SH[pc]}–${SH[nx]} is one of the two pairs with nothing between them: 1 fret.` : `${SH[pc]} to ${SH[nx]} is 2 frets, with ${SH[(pc + 1) % 12]} / ${FL[(pc + 1) % 12]} in between.`,
+          onAnswer:() => { play(48 + pc); play(48 + pc + n, .45); } };
+      }
+      const up = Math.random() < .6, s = pick(ALL), fs = [];
+      for (let f = 0; f <= 12; f++) if (NAT[pcOf(midiAt(s, f))] && (up ? f <= 10 : f >= 2)) fs.push(f);
+      const f = pick(notPrev(fs, x => prev && prev.ref && prev.ref.s === s && prev.ref.f === x)), pc = pcOf(midiAt(s, f));
+      const tpc = LETTER_PC[(LETTERS.indexOf(SH[pc]) + (up ? 1 : 6)) % 7], cells = cellsIn([s], up ? f : Math.max(0, f - 4), up ? Math.min(FRETS, f + 4) : f);
+      return { mode:'note', pc:tpc, ref:{ s, f, label:SH[pc] }, title:`This is <em>${SH[pc]}</em>. Find <em>${SH[tpc]}</em>, the next letter ${up ? 'up' : 'down'}`,
+        small:`On the ${SORD[s]} string: ${up ? 'up' : 'down'} two frets, or one ${up ? 'from E or B' : 'from F or C'}.`, cells, targets:cells.filter(c => pcOf(midiAt(c.s, c.f)) === tpc), found:[], phase:'first', area:`the ${SORD[s]} string` };
+    }
+  },
+  // ---- half steps, whole steps, sharps and flats
+  steps:{
+    label:'Theory',
+    meta:() => 'half and whole steps, ♯ and ♭',
+    study(st){
+      const M = []; for (let f = 0; f <= 12; f++){ const pc = pcOf(midiAt(0, f)); M.push({ s:0, f, pc, text:SH[pc], kind:'dot' }); }
+      for (let f = 0; f <= 12; f++){ const pc = pcOf(midiAt(1, f)); M.push({ s:1, f, pc, text:NAT[pc] ? SH[pc] : FL[pc], kind:'dot' }); }
+      return { marks:M, cap:'Half steps', hl:hlNotes([52,53,54,55]),
+        html:`<p style="margin:0">One fret is a <b>half step</b>. Two frets are a <b>whole step</b>.</p>
+          <p style="margin:0">A <b>sharp (♯)</b> raises a note one fret; a <b>flat (♭)</b> lowers it one fret. So the fret between F and G is F♯, and it is also G♭: one sound with two names, like the black key between F and G on a piano. The 6th string here is labelled with sharps, the 5th with flats.</p>
+          <p style="margin:0">E–F and B–C are already a half step apart, so a whole step up from E is <b>F♯</b>, and a whole step up from B is <b>C♯</b>.</p>
+          <p class="hint">Scales, keys and the capo all count in half and whole steps. Practice: step up or down from a note, and name the in-between notes.</p>
+          <div class="row"><button class="btn ghost" data-act="khalf">Hear a half step</button><button class="btn ghost" data-act="kwhole">Hear a whole step</button></div>` };
+    },
+    act(st, a){ if (a === 'khalf'){ play(52); play(53, .5); } if (a === 'kwhole'){ play(52); play(54, .5); } },
+    gen(st, prev){
+      const r = Math.random(), label = pc => NAT[pc] ? SH[pc] : `${SH[pc]} / ${FL[pc]}`;
+      if (r < .4){
+        const pc = pick(notPrev([0,2,4,5,7,9,11], x => prev && prev.pc === x)), up = Math.random() < .6, n = Math.random() < .55 ? 2 : 1, ans = (pc + (up ? n : -n) + 12) % 12;
+        const opts = [...new Set([ans, (ans + 1) % 12, (ans + 11) % 12, pc])].map(x => ({ v:String(x), label:label(x) })).sort(() => Math.random() - .5);
+        return { mode:'mc', pc, title:`A <em>${n === 2 ? 'whole' : 'half'} step</em> ${up ? 'up' : 'down'} from <em>${SH[pc]}</em> is…`, small:`${n === 2 ? 'Two frets' : 'One fret'} ${up ? 'higher' : 'lower'}.`,
+          opts, answer:String(ans), wide:true, onAnswer:() => { play(48 + pc); play(48 + pc + (up ? n : -n), .45); },
+          explain:() => `${SH[pc]} ${up ? 'up' : 'down'} ${n === 2 ? 'two frets' : 'one fret'} is ${label(ans)}.${(n === 2 && ((up && (pc === 4 || pc === 11)) || (!up && (pc === 5 || pc === 0)))) ? ` Remember: ${up ? SH[pc] + '–' + SH[(pc + 1) % 12] : SH[(pc + 11) % 12] + '–' + SH[pc]} is only one fret.` : ''}` };
+      }
+      if (r < .65){
+        const pc = pick(notPrev([1,3,6,8,10], x => prev && prev.pc === x)), askSharp = Math.random() < .5;
+        const X = SH[pc][0], Y = FL[pc][0], ask = askSharp ? SH[pc] : FL[pc], ans = askSharp ? FL[pc] : SH[pc];
+        const opts = (askSharp ? [ans, X + '♭', Y + '♯', Y] : [ans, Y + '♯', X + '♭', X]).map(v => ({ v, label:v })).sort(() => Math.random() - .5);
+        return { mode:'mc', pc, title:`What is the other name for <em>${ask}</em>?`, small:'Same fret, same sound, two names.', opts, answer:ans,
+          explain:() => `${ask} and ${ans} are the same fret: ${X} raised a half step is ${Y} lowered a half step.`, onAnswer:() => play(48 + pc) };
+      }
+      const up = Math.random() < .6, n = Math.random() < .6 ? 2 : 1, s = pick(ALL), fs = [];
+      for (let f = 0; f <= 12; f++) if (NAT[pcOf(midiAt(s, f))] && (up ? f + n <= 12 : f - n >= 0)) fs.push(f);
+      const f = pick(fs), pc = pcOf(midiAt(s, f)), tpc = (pc + (up ? n : -n) + 12) % 12, cells = cellsIn([s], up ? f : Math.max(0, f - 4), up ? Math.min(FRETS, f + 4) : f);
+      return { mode:'note', pc:tpc, ref:{ s, f, label:SH[pc] }, title:`This is <em>${SH[pc]}</em>. Play a <em>${n === 2 ? 'whole' : 'half'} step</em> ${up ? 'up' : 'down'}`,
+        small:`On the ${SORD[s]} string, ${n === 2 ? 'two frets' : 'one fret'} ${up ? 'toward the body' : 'toward the nut'}.`, cells, targets:cells.filter(c => pcOf(midiAt(c.s, c.f)) === tpc), found:[], phase:'first', area:`the ${SORD[s]} string` };
+    }
+  },
+  // ---- the major scale: one pattern of whole and half steps
+  majscale:{
+    label:'Theory',
+    meta:st => 'whole, whole, half… in ' + st.keys.map(keyName).join(', '),
+    run(key){ let best = null; for (const s of [3,2,1,0]) for (let f = 0; f <= 3; f++) if (pcOf(midiAt(s, f)) === key && (!best || f < best.f)) best = { s, f }; return { s:best.s, frets:[0,2,4,5,7,9,11,12].map(x => best.f + x) }; },
+    names(key){ return [1,2,3,4,5,6,7].map(d => spell(keyName(key), String(d))); },
+    row(key){ const n = this.names(key).concat([spell(keyName(key), '1')]); return `<div class="scalerow">${n.map((x, i) => x + (i < 7 ? `<i class="${i === 2 || i === 6 ? 'h' : ''}">${i === 2 || i === 6 ? 'half' : 'whole'}</i>` : '')).join('')}</div>`; },
+    study(st){
+      const key = +(S.learn.sel ?? st.keys[0]), R = this.run(key), nm = this.names(key), M = [];
+      for (const i of [2, 3, 6, 7]) M.push({ kind:'heat', s:R.s, f:R.frets[i], fill:'rgba(229,165,91,.5)' });
+      R.frets.forEach((f, i) => M.push({ s:R.s, f, pc:pcOf(midiAt(R.s, f)), text:nm[i % 7], kind:'dot', root:i % 7 === 0 }));
+      const acc = nm.filter(x => x.length > 1);
+      return { marks:M, hl:hlNotes(R.frets.map(f => midiAt(R.s, f))), cap:keyName(key) + ' major',
+        html:`<div><p class="lbl">Key</p><div class="row">${st.keys.map(k => chip('lsel', k, keyName(k), k === key, 'sq')).join('')}</div></div>
+          <p style="margin:0">A <b>major scale</b> is the do-re-mi sound: seven notes and back to the start. Every major scale uses the same pattern of steps: <b>whole, whole, half, whole, whole, whole, half</b>. On one string that is frets 0, 2, 4, 5, 7, 9, 11 and 12 above the starting note; the half steps are marked in amber.</p>
+          ${this.row(key)}
+          <p style="margin:0">${key === 0 ? 'Start the pattern on C and it lands only on letters with no sharps or flats, because E–F and B–C are the two built-in half steps.' : `Starting on ${keyName(key)}, the pattern needs ${acc.length ? acc.join(' and ') : 'no sharps or flats'} to keep its steps. That is why the key of ${keyName(key)} has ${acc.length ? acc.join(' and ') : 'none'}.`} Each letter is used once.</p>
+          <p class="hint">Practice: play the scale up one string, and fill in a missing note.</p>
+          <div class="row"><button class="btn ghost" data-act="kscale">Hear it</button></div>` };
+    },
+    act(st, a){ const key = +(S.learn.sel ?? st.keys[0]), R = this.run(key); if (a === 'kscale') arp(R.frets.map(f => midiAt(R.s, f)), .3); },
+    gen(st, prev){
+      const key = pick(notPrev(st.keys, k => prev && prev.key === k)), nm = this.names(key), K = keyName(key);
+      if (Math.random() < .5){
+        const R = this.run(key), seq = R.frets.map(f => midiAt(R.s, f)), go = () => arp(seq, .3);
+        return { mode:'echo', key, seq, got:[], keep:true, ref:{ s:R.s, f:R.frets[0], label:K }, steps:['whole','whole','half','whole','whole','whole','half'], dir:'up',
+          title:`Play <em>${K} major</em> up the ${SORD[R.s]} string`, small:'Start on the lit note. Whole, whole, half, whole, whole, whole, half.', replay:go, focus:[R.frets[0], R.frets[0] + 5],
+          at:R.frets.map(f => ({ s:R.s, f })), done:() => `That's ${K} major: ${nm.join(' ')} ${K}.` };
+      }
+      const d = 2 + rand(6), ans = nm[d - 1], L = ans[0], li = LETTERS.indexOf(L);
+      const alt = ans.length > 1 ? L : L + '♯';
+      const opts = [...new Set([ans, alt, LETTERS[(li + 1) % 7], LETTERS[(li + 6) % 7]])].map(v => ({ v, label:v })).sort(() => Math.random() - .5);
+      const shown = nm.map((x, i) => i === d - 1 ? '__' : x).concat([K]).join(' ');
+      const step = ['whole','whole','half','whole','whole','whole'][d - 2];
+      return { mode:'mc', key, deg:d, title:`<em>${K} major</em>: ${shown}`, small:'Which note fills the gap?', opts, answer:ans,
+        onAnswer:() => arp(nm.map((x, i) => tonicMidi(key) + MAJ_SEMI[i + 1]).concat([tonicMidi(key) + 12]), .2),
+        explain:ok => `${ans}: a ${step} step above ${nm[d - 2]}${ans.length > 1 ? `, so it needs the ${ans.slice(1) === '♯' ? 'sharp' : 'flat'}` : ''}. ${K} major is ${nm.join(' ')}.` };
+    }
+  },
+  // ---- the scale as a fingering: play it in order in first position
+  scalerun:{
+    label:'Fretboard',
+    meta:st => st.keys.map(k => keyName(k)).join(' and ') + ' major in first position',
+    runs(key){ const out = []; for (let lo = 40; lo + 12 <= 68; lo++) if (pcOf(lo) === key) out.push(lo); return out; },
+    cell(m){ for (let s = 5; s >= 0; s--){ const f = m - TUNING[s]; if (f >= 0 && f <= 4) return { s, f }; } return null; },
+    study(st){
+      const key = +(S.learn.sel ?? st.keys[0]), lo = this.runs(key)[0], M = [];
+      for (let m = lo; m <= 68; m++){ const d = [1,2,3,4,5,6,7].find(x => degPc(key, x) === pcOf(m)), c = this.cell(m); if (d && c) M.push({ s:c.s, f:c.f, pc:pcOf(m), text:spell(keyName(key), String(d)), kind:'dot', root:d === 1 }); }
+      return { marks:M, hl:hlNotes(M.map(x => midiAt(x.s, x.f))), cap:keyName(key) + ' major, first position',
+        html:`<div><p class="lbl">Key</p><div class="row">${st.keys.map(k => chip('lsel', k, keyName(k), k === key, 'sq')).join('')}</div></div>
+          <p style="margin:0">Here is the same scale in <b>first position</b>: frets 0 to 4 across the strings, the way fiddle tunes are played. Go up one string until the next note is on the next string's open note or lower frets, then move across. The square dots are ${keyName(key)}, the home note.</p>
+          <p class="hint">Practice: play the scale up or down in order, following the faint dots. Say the names as you go.</p>
+          <div class="row"><button class="btn ghost" data-act="kscale">Hear it</button></div>` };
+    },
+    act(st, a){ const key = +(S.learn.sel ?? st.keys[0]), lo = this.runs(key)[0]; if (a === 'kscale'){ const ms = []; for (let m = lo; m <= lo + 12; m++) if ([1,2,3,4,5,6,7].some(x => degPc(key, x) === pcOf(m))) ms.push(m); arp(ms, .28); } },
+    gen(st, prev){
+      const key = pick(st.keys), lo = pick(this.runs(key)), up = !(prev && prev.key === key && prev.dir === 'up') || Math.random() < .3, K = keyName(key);
+      let seq = []; for (let m = lo; m <= lo + 12; m++) if ([1,2,3,4,5,6,7].some(x => degPc(key, x) === pcOf(m))) seq.push(m);
+      if (!up) seq = seq.reverse();
+      const faint = seq.map(m => this.cell(m)), c0 = faint[0], st8 = ['whole','whole','half','whole','whole','whole','half'], go = () => arp(seq, .3);
+      return { mode:'echo', key, seq, got:[], keep:true, faint, ref:{ s:c0.s, f:c0.f, label:K }, steps:up ? st8 : st8.slice().reverse(), dir:up ? 'up' : 'down',
+        title:`Play <em>${K} major</em> ${up ? 'up' : 'down'}, ${spell(K, '1')} to ${spell(K, '1')}`, small:'Follow the faint dots in order, starting on the lit note.', replay:go, focus:[0, 4],
+        at:faint, done:() => `That's ${K} major ${up ? 'up' : 'down'} in first position: ${seq.map(m => spell(K, String([1,2,3,4,5,6,7].find(x => degPc(key, x) === pcOf(m))))).join(' ')}.` };
+    }
+  },
   // ---- octave shapes carry note names across strings
   octaves:{
     label:'Fretboard',
@@ -2166,7 +2326,20 @@ const Mic = {
     if (this.stream && this.stream.getAudioTracks().some(t => t.readyState === 'ended')) this.rewire();
   },
   stop(){ clearInterval(this.timer); this.timer = 0; this.on = false; this.lastF = -1; this.release(); this.hist = []; this.level = 0; this.heard = false; this.dead = false; },
-  floor:0.002, quietUntil:0,
+  floor:0.002, quietUntil:0, mine:[], miss:0, prevRms:0, lastOnset:0,
+  // Notes the app plays come out of the speaker and into the microphone. Ignore each one's pitch for about a
+  // second (everything for its first quarter second, and everything while three or more ring together).
+  appNote(m, at){ const now = performance.now(); this.mine = this.mine.filter(x => x.until > now); this.mine.push({ m, from:at, until:at + 1000 }); },
+  isApp(f, now){
+    if (now < this.quietUntil) return true;
+    const m = f2m(f); let n = 0, same = false;
+    for (const x of this.mine){
+      if (x.from > now || x.until <= now) continue;
+      if (now < x.from + 250) return true;
+      n++; const d = Math.abs(m - x.m) % 12; if (d < .6 || d > 11.4) same = true;
+    }
+    return same || n >= 3;
+  },
   tick(){
     if (!this.an || this.fixing) return;
     const c = this.ctx;
@@ -2177,15 +2350,19 @@ const Mic = {
     let peak = 0; for (let i = 0; i < this.buf.length; i += 3){ const v = this.buf[i] < 0 ? -this.buf[i] : this.buf[i]; if (v > peak) peak = v; }
     if (peak === 0){ if (++this.zeros === 24){ if (this.fixes < 2){ this.fixes++; this.rewire(); } else this.dead = true; } }
     else { this.zeros = 0; this.dead = false; }
-    // adaptive noise gate: track the room's quiet level, only listen well above it
-    const gate = Math.max(0.0045, this.floor * 3);
-    const r = detectPitch(this.buf, c.sampleRate, gate);
+    // adaptive noise gate: track the room's quiet level, only listen above it
+    const gate = Math.max(0.003, this.floor * 2.5);
+    const r = detectPitch(this.buf, c.sampleRate, gate), now = performance.now();
     if (r.f < 0 && r.rms < gate) this.floor = this.floor * 0.95 + Math.max(r.rms, 0.0005) * 0.05;
     this.level = r.rms; this.heard = r.rms >= gate;
-    const f = performance.now() < this.quietUntil ? -1 : r.f;
-    if (f > 60 && f < 1400){ this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); }
-    else { this.hist = []; }
-    const med = this.hist.length >= 3 ? [...this.hist].sort((a,b) => a - b)[this.hist.length >> 1] : -1;
+    // a fresh pluck makes the level jump: start a new reading, so the same note played again counts again
+    if (r.rms >= gate && r.rms > this.prevRms * 1.8 && now - this.lastOnset > 160){ this.lastOnset = now; this.hist = []; this.miss = 0; }
+    this.prevRms = r.rms;
+    const f = r.f > 60 && r.f < 1400 && !this.isApp(r.f, now) ? r.f : -1;
+    let med;
+    if (f > 0){ this.miss = 0; this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); med = this.hist.length >= 3 ? [...this.hist].sort((a,b) => a - b)[this.hist.length >> 1] : -1; }
+    else if (this.hist.length >= 3 && ++this.miss <= 2 && r.rms >= gate * .5) med = this.lastF;   // ride over a dropped frame or two while the note rings
+    else { this.hist = []; this.miss = 0; med = -1; }
     this.lastF = med;
     this.subs.forEach(fn => fn(med));
   },
@@ -2214,8 +2391,13 @@ function detectPitch(b, sr, gate){
     let sum = 0; for (let i = 0; i < W; i++){ const x = b[i] - b[i + tau]; sum += x * x; }
     run += sum; d[tau] = run ? sum * tau / run : 1;
   }
-  let tau = -1;
-  for (let t = Math.max(2, minLag); t < maxLag; t++){ if (d[t] < 0.13){ while (t + 1 < maxLag && d[t + 1] < d[t]) t++; tau = t; break; } }
+  let tau = -1, best = -1;
+  for (let t = Math.max(2, minLag); t < maxLag; t++){
+    if (d[t] < 0.15){ while (t + 1 < maxLag && d[t + 1] < d[t]) t++; tau = t; break; }
+    if (best < 0 || d[t] < d[best]) best = t;
+  }
+  // no clear dip: take the deepest one if it is still fairly clear (quiet or fading strings)
+  if (tau < 0 && best > 0 && d[best] < 0.24 && d[best] <= d[best - 1] && d[best] <= d[best + 1]) tau = best;
   if (tau < 0) return { f:-1, rms };
   const a = d[tau - 1], c0 = d[tau], c = d[tau + 1], den = a + c - 2 * c0;
   const t2 = den ? tau + (a - c) / (2 * den) : tau;
@@ -2234,11 +2416,11 @@ const Ear = {
   },
   frame(f){
     const el = document.getElementById('heard');
-    if (f < 0){ if (++this.silent >= 3){ this.armed = true; this.last = null; this.stable = 0; if (el) el.textContent = Mic.dead ? Mic.status() : Mic.heard ? 'Hearing sound…' : 'Listening…'; } return; }
+    if (f < 0){ if (++this.silent >= 2){ this.armed = true; this.last = null; this.stable = 0; if (el) el.textContent = Mic.dead ? Mic.status() : Mic.heard ? 'Hearing sound…' : 'Listening…'; } return; }
     this.silent = 0; const r = Math.round(f2m(f));
     if (el) el.textContent = 'Hearing ' + nn(pcOf(r));
-    if (r === this.last) this.stable++; else { this.last = r; this.stable = 0; this.armed = true; }
-    if (this.stable === 2 && this.armed){ this.armed = false; if (this.handler) this.handler(r); }
+    if (this.last != null && pcOf(r) === pcOf(this.last)) this.stable++; else { this.last = r; this.stable = 0; this.armed = true; }
+    if (this.stable === 1 && this.armed){ this.armed = false; if (this.handler) this.handler(r); }
   },
   stop(){ if (this.fn){ Mic.subs.delete(this.fn); this.fn = null; } if (!Mic.subs.size && Mic.on) Mic.stop(); },
   button(act){ return `<div class="row" style="margin-top:8px">${chip(act, '', this.on ? 'Listening: play it on your guitar' : 'Answer by playing your guitar', this.on)}<span class="hint" id="heard">${this.on ? 'Listening…' : ''}</span></div>`; }
@@ -2306,8 +2488,8 @@ const Tuner = {
   notes(){ return TUNINGS[S.tuner.tuning].notes; },
   ring(i){
     clearInterval(this.loopT); this.sel = i;
-    const m = this.notes()[i]; play(m, 0, 1);
-    if (S.tuner.loop) this.loopT = setInterval(() => play(m, 0, 1), 2600);
+    const m = this.notes()[i]; play(m, 0, 1, { keep:true });
+    if (S.tuner.loop) this.loopT = setInterval(() => play(m, 0, 1, { keep:true }), 2600);
     this.render();
   },
   stopRing(){ clearInterval(this.loopT); this.loopT = 0; },
@@ -2524,6 +2706,7 @@ const Life = {
     };
     if (q.mode === 'cname'){ const fr = q.vc.frets.filter(f => f != null); span(Math.min(...fr), Math.max(...fr, 1)); }
     if (q.mode === 'chord'){ if (q.show){ const fr = q.show.filter(f => f != null); span(Math.min(...fr), Math.max(...fr)); } else span(0, 3); }
+    if (q.focus && q.mode === 'echo'){ span(q.focus[0], q.focus[1]); return; }
     if (q.mode === 'echo' || q.mode === 'mc' || q.mode === 'tap'){ if (q.vc){ const fr = q.vc.frets.filter(f => f != null); span(Math.min(...fr), Math.max(...fr, 1)); } else span(0, 4); }
     if (q.mode === 'note' && q.ref) this.scrollTo(this.along(q.ref.f));
     if (q.mode === 'note' && !q.ref){ const fs = q.cells.map(c => c.f); if (Math.max(...fs) <= 5) span(Math.min(...fs), Math.max(...fs)); }
@@ -2587,6 +2770,7 @@ const Life = {
     else if (q.mode === 'done') pr = ss.type === 'daily' ? `Done for today<small>${dayStreak()}-day streak. Come back tomorrow to keep it going.</small>` : ss.type === 'learn' ? `Stage passed<small>${ss.st.t}</small>` : 'Nice work';
     else if (q.mode === 'name') pr = `${q.title || 'What note is this?'}<small>${SORD[q.s]} string, ${q.f ? 'fret ' + q.f : 'open'}</small>`;
     else if (q.mode === 'mc') pr = `${q.title}${q.small ? `<small>${q.small}</small>` : ''}`;
+    else if (q.mode === 'echo' && q.keep) pr = `${q.title}<small>${q.got.length && q.got.length < q.seq.length ? `${q.got.length} of ${q.seq.length} · next: a ${q.steps[q.got.length - 1]} step ${q.dir}` : q.small}</small>`;
     else if (q.mode === 'echo') pr = `${q.title}<small>${q.got.length ? `${q.got.length} of ${q.seq.length} so far` : q.small}</small>`;
     else if (q.mode === 'tap') pr = `${q.title}<small>${q.small}</small>`;
     else if (q.mode === 'cname') pr = `Which chord is this?`;
@@ -2635,7 +2819,7 @@ const Life = {
     $('#lpad').innerHTML = pad; $('#lpad').hidden = !pad;
     const B = [];
     if (q && q.mode === 'done'){
-      if (ss.type === 'learn'){ const nx = LEARN[LEARN.indexOf(ss.st) + 1]; if (nx) B.push(['nextstage', `Next: ${nx.t}`]); }
+      if (ss.type === 'learn'){ const nx = Learn.after(ss.st); if (nx) B.push(['nextstage', `Next: ${nx.t}`]); }
       B.push(['keep', ss.type === 'daily' ? 'Keep going' : 'Keep practicing']);
     } else if (q && (q.mode === 'note' || q.mode === 'name' || q.mode === 'mc' || q.mode === 'echo')){
       if (q.replay) B.push(['replay','Play again']);
@@ -2670,6 +2854,20 @@ const Life = {
   echoNote(m, s, f){
     const q = this.q; if (!q || q.mode !== 'echo' || this.lock) return;
     const want = q.seq[q.got.length];
+    if (q.keep){   // a scale in order: right notes stay lit, a wrong one is marked once and you carry on
+      const i = q.got.length, at = q.at && q.at[i];
+      if (pcOf(m) === pcOf(want)){
+        q.got.push({ m, s:s != null ? s : at ? at.s : null, f:s != null ? f : at ? at.f : null });
+        if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:!q.missed, t:q.done ? q.done() : 'That\'s it.' }; if (!q.missed) this.progress(true); this.hud(); this.after(1600); }
+        else { this.fb = null; this.hud(); }
+      } else {
+        haptic('error'); if (s != null) this.taps.push({ s, f, ok:false, t:performance.now() });
+        if (!q.missed){ q.missed = true; this.progress(false); }
+        this.fb = { ok:false, t: i === 0 ? `That's ${both(pcOf(m))}. Start on the lit note.` : `That's ${both(pcOf(m))}. The next note is a ${q.steps[i - 1]} step ${q.dir} from the last one.` };
+        this.hud();
+      }
+      return;
+    }
     if (pcOf(m) === pcOf(want)){
       q.got.push({ m, s, f }); if (s != null) this.taps.push({ s, f, ok:true, t:performance.now() });
       if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:true, t:`Yes: ${q.seq.map(x => nn(pcOf(x))).join(' ')}.` }; this.progress(true); this.hud(); this.after(1300); }
@@ -2834,8 +3032,9 @@ const Life = {
       if (Mic.dead && !warned){ warned = true; this.fb = { ok:false, t:Mic.status() }; this.hud(); }
       if (f < 0){ stable = 0; armed = true; return; }
       if (!q || !['note','name','mc','echo'].includes(q.mode) || this.lock) return;
-      const r = Math.round(f2m(f)); if (r === lastR) stable++; else { stable = 0; lastR = r; armed = true; }
-      if (stable !== 2 || !armed) return; armed = false;
+      // a fading string can flip an octave; only a new note name (or a fresh pluck, which reads as a gap) re-arms
+      const r = Math.round(f2m(f)); if (lastR != null && pcOf(r) === pcOf(lastR)) stable++; else { stable = 0; lastR = r; armed = true; }
+      if (stable !== 1 || !armed) return; armed = false;
       if (q.mode === 'echo'){ this.echoNote(r, null, null); return; }
       if (q.mode === 'mc'){ if (q.fromPitch) this.answerMC(q.fromPitch(r)); return; }
       if (q.mode === 'name' && q.opts){ if (q.fromPitch) this.answerName(q.fromPitch(r)); else this.answerName(pcOf(r) === pcOf(midiAt(q.s, q.f)) ? q.answer : '?'); return; }
@@ -2941,8 +3140,10 @@ const Life = {
       for (const x of q.found) dot(x.s, x.f, C.good, nn(q.pc), '#fff');
     }
     if (q && q.anchors) for (const a of q.anchors){ c.globalAlpha = .5; dot(a.s, a.f, C.pearl, '1', '#1C1612'); c.globalAlpha = 1; }
+    if (q && q.faint) for (const a of q.faint){ c.globalAlpha = .32; dot(a.s, a.f, C.pearl, null, null); c.globalAlpha = 1; }
+    if (q && q.mode === 'echo' && q.keep) for (const g of q.got) if (g.s != null) dot(g.s, g.f, C.good, nn(pcOf(g.m)), '#fff');
     if (q && q.ghost) q.ghost.forEach((f, s) => { if (f != null && f > 0){ c.globalAlpha = .38; dot(s, f, C.pearl, null, null); c.globalAlpha = 1; } });
-    if (q && q.ref){ dot(q.ref.s, q.ref.f, C.pearl, q.ref.label, '#1C1612'); c.globalAlpha = .9; dot(q.ref.s, q.ref.f, C.amber, null, null, true); c.globalAlpha = 1; }
+    if (q && q.ref && !(q.mode === 'echo' && q.got.length)){ dot(q.ref.s, q.ref.f, C.pearl, q.ref.label, '#1C1612'); c.globalAlpha = .9; dot(q.ref.s, q.ref.f, C.amber, null, null, true); c.globalAlpha = 1; }
     if (q && q.mode === 'chord' && q.strings){ c.fillStyle = 'rgba(0,0,0,.45)'; for (let s = 0; s < 6; s++){ if (q.strings.includes(s)) continue; const y0 = Math.max(0, yTop), y1 = Math.min(end, yBot), w = (neckW(y0) - 6.8) / 5; c.fillRect(this.sx(this.strX(s, (y0 + y1) / 2) - w / 2), this.sy(y0), w * k, (y1 - y0) * k); } }
     if (q && q.mode === 'mc' && q.vc && q.answered != null) q.vc.frets.forEach((f, s) => { if (f != null && f > 0) dot(s, f, C.good, nn(pcOf(midiAt(s, f))), '#fff'); });
     if (q && q.mode === 'name'){
@@ -3043,8 +3244,10 @@ const Life = {
       q.found.forEach(x => M.push({ s:x.s, f:x.f, kind:'good', text:nn(q.pc) }));
     }
     if (q && q.anchors) q.anchors.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)', text:'1' }));
+    if (q && q.faint) q.faint.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)' }));
+    if (q && q.mode === 'echo' && q.keep) q.got.forEach(g => { if (g.s != null) M.push({ s:g.s, f:g.f, kind:'good', text:nn(pcOf(g.m)) }); });
     if (q && q.ghost) q.ghost.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'ghost', fill:'var(--pearl)' }); });
-    if (q && q.ref) M.push({ s:q.ref.s, f:q.ref.f, kind:'dot', fill:'var(--pearl)', text:q.ref.label }, { s:q.ref.s, f:q.ref.f, kind:'ring' });
+    if (q && q.ref && !(q.mode === 'echo' && q.got.length)) M.push({ s:q.ref.s, f:q.ref.f, kind:'dot', fill:'var(--pearl)', text:q.ref.label }, { s:q.ref.s, f:q.ref.f, kind:'ring' });
     if (q && q.mode === 'mc' && q.vc && q.answered != null) q.vc.frets.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'good', text:nn(pcOf(midiAt(s, f))) }); });
     if (q && q.mode === 'name'){
       const pc = pcOf(midiAt(q.s, q.f));
@@ -3104,7 +3307,7 @@ const Life = {
       if (a === 'tap') this.tapHit();
       if (a === 'cname') this.answerCName(b.dataset.v);
       if (a === 'keep'){ this.done = false; this.pendingDone = false; if (this.session.type === 'learn'){ this.streak = 0; this.hist = []; } this.newQ(); this.hud(); this.focusQ(); }
-      if (a === 'nextstage'){ const nx = LEARN[LEARN.indexOf(this.session.st) + 1]; this.close(); if (nx){ S.learn.id = nx.id; S.learn.phase = 'study'; Learn.detail = true; save(); go('learn'); window.scrollTo(0, 0); } }
+      if (a === 'nextstage'){ const nx = Learn.after(this.session.st); this.close(); if (nx){ S.learn.id = nx.id; S.learn.phase = 'study'; Learn.detail = true; save(); go('learn'); window.scrollTo(0, 0); } }
       if (a === 'check' && !this.lock) this.check();
       if (a === 'strum' && this.q && this.q.mode === 'cname') strum(Chords.midis(this.q.vc));
       if (a === 'strum' && this.q && this.q.mode === 'chord'){ const fr = this.showMe ? this.showMe.frets : this.shape(); strum(fr.map((f, s) => f == null ? null : midiAt(s, f)).filter(x => x != null)); }
@@ -3142,7 +3345,7 @@ const WELCOME = [
 // Placement quiz: questions get harder in sections; the first missed section is where you start.
 const PLACE = [
   { name:'the open strings', stages:['open'], n:2, cells:() => cellsIn(ALL, 0, 0) },
-  { name:'the bass strings in first position', stages:['e6a','a5a'], n:2, cells:() => cellsIn([0,1], 1, 5).filter(c => NAT[pcOf(midiAt(c.s, c.f))]) },
+  { name:'the bass strings in first position', stages:['alphabet','e6a','a5a'], n:2, cells:() => cellsIn([0,1], 1, 5).filter(c => NAT[pcOf(midiAt(c.s, c.f))]) },
   { name:'the top four strings in first position', stages:['high','first'], n:3, cells:() => cellsIn([2,3,4,5], 1, 4).filter(c => NAT[pcOf(midiAt(c.s, c.f))]) },
   { name:'notes up the neck', stages:['octaves','e6b','a5','bass','d4','g3','b2','e1'], n:3, cells:() => cellsIn(ALL, 5, 12).filter(c => NAT[pcOf(midiAt(c.s, c.f))]) },
   { name:'sharps and flats', stages:['sharps','neck'], n:2, cells:() => cellsIn(ALL, 1, 12).filter(c => !NAT[pcOf(midiAt(c.s, c.f))]) }
