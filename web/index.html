@@ -1365,11 +1365,13 @@ const LEARN_ALL = [
     dp:'One fret is one piano key, black keys included: a half step. Sharps and flats work as on the keyboard, so F♯ and G♭ are the same fret.' },
   { id:'majscale', part:'Numbers in the hand', t:'The major scale', kind:'majscale', theory:true, fill:true, keys:[0,7,2], goal:8,
     d:'Do-re-mi is one pattern of steps: whole, whole, half, whole, whole, whole, half. Start it on C and every note is natural; start on G and it needs F♯; start on D and it needs F♯ and C♯. Numbers, keys and chords all build on this.' },
-  { id:'scalerun', part:'Numbers in the hand', t:'G and D major in first position', kind:'scalerun', fill:true, keys:[7,2], goal:6,
-    d:'The same scales as fingerings: G major and D major in frets 0–4, played in order, up and down. Fiddle tunes in G and D are built from these shapes.' },
-  { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', fill:true, strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
+  { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', fill:true, walk:true, sname:'G major in first position', chord:[7,'maj'],
+    shape:'The amber rings are the G chord you know: its G, B and D are the scale\'s 1, 3 and 5, and the other notes fill in around it.',
+    strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
     d:'G A B C D E F♯. Fiddle tunes like "Blackberry Blossom" live in this scale. Every note is a natural except F♯, one fret below G.' },
-  { id:'dmaj', part:'Numbers in the hand', t:'D major, first position', kind:'notes', fill:true, strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
+  { id:'dmaj', part:'Numbers in the hand', t:'D major, first position', kind:'notes', fill:true, walk:true, sname:'D major in first position', chord:[2,'maj'],
+    shape:'The amber rings are the D chord: D, F♯ and A, the 1, 3 and 5. Compared with G major, every C is now C♯.',
+    strings:ALL, range:[0,4], nat:false, pcs:[2,4,6,7,9,11,1], from:50, goal:12,
     d:'D E F♯ G A B C♯. "Soldier\'s Joy" and "Whiskey Before Breakfast" are D tunes. Compared with G major, C becomes C♯.' },
   { id:'deg135', part:'Numbers in the hand', t:'Notes as numbers: 1, 3 and 5', kind:'degrees', theory:true, keys:[7,0,2], degrees:[1,3,5], strings:ALL, range:[0,4], anchor:true, goal:8,
     d:'In any key, the key note is 1, and every other note is numbered by its place in that key\'s major scale. In G (G A B C D E F♯), 1 is G, 3 is B and 5 is D. Those three notes are the G chord.',
@@ -1427,13 +1429,19 @@ const LEARN_ALL = [
     examples:[{ name:'2 chord turnaround: 1 1 2 5', prog:'1 1 2 5' }, { name:'Mountain ♭7: 1 b7 1 1', prog:'1 b7 1 1' }, { name:'Pop staple: 1 6m 4 5', prog:'1 6m 4 5' }], goal:6,
     d:'The same chart game with the 2⁷, the ♭7 and the 6 minor mixed in. Listen for the chord that pulls outside the key.',
     study:'Same game, more colors: the major 2 pushes to 5, the ♭7 drops a whole step below home, and the 6 minor sounds sad. Tap a chart to hear it in G.' },
-  { id:'gpent', part:'Off-chords and roots colour', t:'G major pentatonic', kind:'notes', strings:ALL, range:[0,4], nat:true, pcs:[7,9,11,2,4], from:43, goal:10,
+  { id:'gpent', part:'Off-chords and roots colour', t:'G major pentatonic', kind:'notes', walk:true, sname:'G major pentatonic', chord:[7,'maj'],
+    shape:'G major without C and F♯. The amber rings are the G chord: the pentatonic is the chord plus A and E.',
+    strings:ALL, range:[0,4], nat:true, pcs:[7,9,11,2,4], from:43, goal:10,
     d:'G A B D E: the G major scale without its two leaning notes, C (the 4) and F♯ (the 7). Most bluegrass and country licks in G come from these five.' },
-  { id:'blue', part:'Off-chords and roots colour', t:'The blue note', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[7,9,10,11,2,4], from:43, goal:10,
+  { id:'blue', part:'Off-chords and roots colour', t:'The blue note', kind:'notes', walk:true, sname:'G pentatonic with the blue note', chord:[7,'maj'],
+    shape:'G pentatonic plus B♭, one fret below B. Slide or hammer from B♭ up to B; the amber rings are the G chord.',
+    strings:ALL, range:[0,4], nat:false, pcs:[7,9,10,11,2,4], from:43, goal:10,
     d:'Add B♭, the ♭3 (the 3 lowered a half step), and slide or hammer it up to B, the 3. That bluesy rub is all over bluegrass and blues guitar.' },
   { id:'majscale2', part:'Off-chords and roots colour', t:'Major scales in A, E and F', kind:'majscale', theory:true, fill:true, keys:[9,4,5], goal:8,
     d:'The same whole, whole, half pattern from A, E and F. A major needs F♯, C♯ and G♯; E major adds D♯; F major needs a flat, B♭. Fiddle tunes in A, and the Mixolydian sound next, start here.' },
-  { id:'mixo', part:'Off-chords and roots colour', t:'The ♭7: Mixolydian', kind:'notes', strings:ALL, range:[0,4], nat:false, pcs:[9,11,1,2,4,6,7], from:45, goal:12,
+  { id:'mixo', part:'Off-chords and roots colour', t:'The ♭7: Mixolydian', kind:'notes', walk:true, sname:'A Mixolydian', chord:[9,'7'],
+    shape:'A major with G instead of G♯. The amber rings are A7: its G is the ♭7 that gives the sound.',
+    strings:ALL, range:[0,4], nat:false, pcs:[9,11,1,2,4,6,7], from:45, goal:12,
     d:'A major with a ♭7 (the 7th note lowered a half step): G natural instead of G♯. "Old Joe Clark" is the classic Mixolydian fiddle tune, and "Salt Creek" leans on the same ♭7 chord.' },
   { id:'hearscale', part:'Off-chords and roots colour', t:'Hear the whole scale', kind:'degear', keys:[7,2], degrees:[1,2,3,4,5,6,7], goal:10,
     d:'Now 4 and 7, the two notes that lean: 4 leans down to 3, and 7 leans up to 1.',
@@ -1463,7 +1471,9 @@ const LEARN_ALL = [
     examples:[{ name:'Salty Dog Blues: 1 6⁷ 2⁷ 5⁷ 1', prog:'1 67 2 57 1' }, { name:'Ragtime: 3⁷ 6⁷ 2⁷ 5⁷', prog:'37 67 2 57 1' }], goal:6,
     d:'"Salty Dog" walks 6⁷ 2⁷ 5⁷ 1: each chord is the 5 of the next, stepping around the circle of fifths back home. Ragtime and old-time songs love these chains.',
     study:'In these chains every chord is a dominant 7th that resolves down a fifth to the next one, all the way home. Tap an example to hear it in G.' },
-  { id:'minpent', part:'Blues, circle chains and beyond', t:'Minor pentatonic: the blues box', kind:'notes', strings:ALL, range:[5,8], nat:true, pcs:[9,0,2,4,7], from:45, goal:12,
+  { id:'minpent', part:'Blues, circle chains and beyond', t:'Minor pentatonic: the blues box', kind:'notes', walk:true, sname:'the A minor pentatonic box',
+    shape:'Two notes on every string, inside frets 5 to 8. The square dots are A, the home note.',
+    strings:ALL, range:[5,8], nat:true, pcs:[9,0,2,4,7], from:45, goal:12,
     d:'A C D E G at the 5th fret: the shape behind most blues and rock solos. Same five notes as C major pentatonic, starting from A.' }
 ];
 const LEARN = [];
@@ -1686,6 +1696,11 @@ const Learn = {
   studyBody(st){
     if (st.kind === 'notes'){
       const pcs = [...new Set(this.pool(st).map(c => pcOf(midiAt(c.s,c.f))))];
+      if (st.walk){ const N = Pos.notes(st), taught = (learnProg.taught || {})[st.id];
+        return `<p style="margin:0">${st.shape || ''} One finger per fret: ${Pos.fingers(st)}.</p>
+          <p class="hint">${taught ? 'You\'ve had the walkthrough. Practice now asks notes from this shape and has you play the scale from memory.' : 'Practice starts with a walkthrough: the shape a few notes at a time with finger numbers, each octave from memory, then the whole position. After that come the questions.'}</p>
+          <div class="row">${taught ? '<button class="btn ghost" data-act="lwalk">Walk me through it again</button>' : ''}<button class="btn ghost" data-act="lhear">Hear it</button></div>
+          <p class="hint">${N.length} notes, lowest to highest: ${N.map(n => n.name).join(' ')}</p>`; }
       return `<p class="hint">${st.daily ? 'These are the notes you\'ve learned so far. Practice runs on the life-size neck: name the note at a fret, or find a note and then hunt for its other spots.' : 'The lit notes are this stage\'s whole set. Tap each one, say its name out loud, and listen. Practice runs on the life-size neck, with the names hidden.'}</p>
         <div class="row"><button class="btn ghost" data-act="lhear">Hear them in order</button></div>
         <p class="hint">${pcs.length} note names in this stage: ${[...pcs].sort((a,b) => a - b).map(nn).join(' ')}</p>`;
@@ -1831,6 +1846,8 @@ const Learn = {
     if (a === 'lphase'){ S.learn.phase = v; this.streak = 0; this.reset(); }
     if (a === 'lnext'){ const n = LEARN[this.idx() + 1]; if (n){ S.learn.id = n.id; S.learn.phase = 'study'; S.learn.sel = null; } this.streak = 0; this.reset(); }
     if (a === 'lagain'){ if (st.daily){ DAILY.goal += 10; } else this.streak = 0; this.reset(); }
+    if (a === 'lwalk'){ save(); Life.start({ type:'learn', st, walk:true }); return; }
+    if (a === 'lhear' && st.walk){ arp(Pos.notes(st).map(n => n.m), .24); return; }
     if (a === 'lhear'){ const ms = [...new Set(this.pool(st).map(c => midiAt(c.s,c.f)))].sort((x,y) => x - y).filter(m => !st.from || m >= st.from); arp(ms.slice(0, 16), st.from ? 0.26 : 0.32); return; }
     if (a === 'lsel' && st.kind === 'ear'){ S.learn.sel = v; save(); this.render(); return; }
     if (a === 'lsel'){ S.learn.sel = v; const sel = this.studySel(st); if (st.kind === 'bass') this.boom(sel.r, sel.q); else strum(Chords.midis(openVoicing(sel.r, sel.q))); }
@@ -1901,6 +1918,58 @@ const kindTones = (r, cq) => CQ[cq].f.map(iv => ({ iv, pc:(r + IV[iv]) % 12 }));
 const keyName = k => chordRoot(k);
 const notPrev = (arr, same) => { const f = arr.filter(x => !same(x)); return f.length ? f : arr; };
 
+/* ---------- scale shapes: taught step by step before their quiz ---------- */
+const REL_IV = ['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'];
+const Pos = {
+  // Every pitch of the scale in this position once, on the highest string where it fits.
+  // One finger per fret: in first position fret 1 is the index finger; in a box from fret 5, fret 5 is.
+  notes(st){
+    const [lo, hi] = st.range, key = pcOf(st.from), out = [];
+    for (let m = 36; m <= 90; m++){
+      if (!st.pcs.includes(pcOf(m))) continue;
+      for (let s = 5; s >= 0; s--){ const f = m - TUNING[s];
+        if (f >= lo && f <= hi && st.strings.includes(s)){ out.push({ m, s, f, finger:f === 0 ? 0 : f - Math.max(0, lo - 1), name:spell(keyName(key), REL_IV[(pcOf(m) - key + 12) % 12]), root:pcOf(m) === key }); break; } }
+    }
+    return out;
+  },
+  where(n){ return `${SORD[n.s]} string, ${n.f ? `fret ${n.f}, finger ${n.finger}` : 'open'}`; },
+  fingers(st){ const lo = st.range[0]; return lo === 0 ? 'fret 1 index finger, 2 middle, 3 ring, 4 pinky; 0 is an open string' : `fret ${lo} index finger, ${lo + 1} middle, ${lo + 2} ring, ${lo + 3} pinky`; },
+  // one run of notes to play in order; with dots and a ring on the next note, or from memory
+  run(ns, o){
+    const seq = ns.map(n => n.m), at = ns.map(n => ({ s:n.s, f:n.f }));
+    return { mode:'echo', seq, got:[], keep:true, at, ref:{ s:at[0].s, f:at[0].f, label:ns[0].name }, title:o.title, small:o.small, focus:o.focus,
+      faint:o.memory ? null : ns.map(n => ({ s:n.s, f:n.f, t:String(n.finger) })), guide:!o.memory, memory:!!o.memory, dir:o.down ? 'down' : 'up',
+      replay:() => arp(seq, .3), nextText:i => o.memory ? '' : `next: ${ns[i].name}, ${this.where(ns[i])}`,
+      wrongText:(m, i) => `That's ${both(pcOf(m))}. Next is ${ns[i].name}: ${this.where(ns[i])}.`,
+      done:() => o.done || `${ns.map(n => n.name).join(' ')}.` };
+  },
+  octaves(st){ const N = this.notes(st); return N.filter(n => n.root && N.some(x => x.m === n.m + 12)).map(r => N.filter(n => n.m >= r.m && n.m <= r.m + 12)); },
+  // The walkthrough: meet the shape, each octave in two halves and then from memory, the notes around it, the whole position.
+  lesson(st){
+    const N = this.notes(st), K = keyName(pcOf(st.from)), focus = st.range.slice(), S = [], names = ns => ns.map(n => n.name).join(' ');
+    const ring = st.chord ? openVoicing(st.chord[0], st.chord[1]).frets.map((f, s) => f == null ? null : { s, f }).filter(Boolean) : [];
+    S.push(() => ({ mode:'show', title:`Meet <em>${esc(st.sname || st.t)}</em>`, small:`One finger per fret: ${this.fingers(st)}.`, note:st.shape,
+      dots:N.map(n => ({ s:n.s, f:n.f, t:n.name, root:n.root })), rings:ring, focus, replay:() => arp(N.map(n => n.m), .22) }));
+    const runs = this.octaves(st);
+    runs.forEach((run, i) => {
+      const h = Math.ceil(run.length / 2), a = run.slice(0, h), b = run.slice(h), nth = runs.length > 1 ? (i ? 'the upper ' : 'the lower ') : '';
+      S.push(() => this.run(a, { title:`Play <em>${names(a)}</em>`, small:`The start of ${nth}octave. Numbers on the dots are fingers.`, focus }));
+      S.push(() => this.run(b, { title:`Now <em>${names(b)}</em>`, small:`The rest of ${nth}octave, up to ${K}.`, focus }));
+      S.push(() => this.run(run, { memory:true, title:`From memory: <em>${K}</em> up to <em>${K}</em>`, small:'The dots are gone. A wrong note shows you where to go.', focus, done:`${names(run)}. That's ${nth || 'the '}octave.` }));
+    });
+    const lo = runs.length ? runs[0][0].m : N[0].m, hi = runs.length ? runs[runs.length - 1][runs[runs.length - 1].length - 1].m : N[N.length - 1].m;
+    const below = N.filter(n => n.m <= lo), above = N.filter(n => n.m >= hi);
+    if (below.length > 1) S.push(() => this.run(below, { title:`The notes below <em>${K}</em>: <em>${names(below)}</em>`, small:'The scale carries on under its lowest home note.', focus }));
+    if (above.length > 1) S.push(() => this.run(above, { title:`The notes above: <em>${names(above)}</em>`, small:'And it carries on above the top one.', focus }));
+    if (below.length > 1 || above.length > 1 || runs.length > 1) S.push(() => this.run(N, { memory:true, title:'The whole position, from memory', small:`Lowest to highest: ${N.length} notes.`, focus, done:`That's all of ${st.sname || st.t}.` }));
+    return S;
+  },
+  // a quiz question: one octave from memory, up or down
+  memoryQ(st, prev){
+    const runs = this.octaves(st), run = pick(runs), down = Math.random() < .4, ns = down ? run.slice().reverse() : run, K = keyName(pcOf(st.from));
+    return this.run(ns, { memory:true, down, title:`From memory: <em>${K}</em> ${down ? 'down' : 'up'} to <em>${K}</em>`, small:'Play the scale in order, starting on the lit note.', focus:st.range.slice() });
+  }
+};
 const KINDS = {
   // ---- rhythm: tap the chuck on 2 and 4 while the bass plays 1 and 3
   chuck:{
@@ -2035,32 +2104,6 @@ const KINDS = {
       return { mode:'mc', key, deg:d, title:`<em>${K} major</em>: ${shown}`, small:'Which note fills the gap?', opts, answer:ans,
         onAnswer:() => arp(nm.map((x, i) => tonicMidi(key) + MAJ_SEMI[i + 1]).concat([tonicMidi(key) + 12]), .2),
         explain:ok => `${ans}: a ${step} step above ${nm[d - 2]}${ans.length > 1 ? `, so it needs the ${ans.slice(1) === '♯' ? 'sharp' : 'flat'}` : ''}. ${K} major is ${nm.join(' ')}.` };
-    }
-  },
-  // ---- the scale as a fingering: play it in order in first position
-  scalerun:{
-    label:'Fretboard',
-    meta:st => st.keys.map(k => keyName(k)).join(' and ') + ' major in first position',
-    runs(key){ const out = []; for (let lo = 40; lo + 12 <= 68; lo++) if (pcOf(lo) === key) out.push(lo); return out; },
-    cell(m){ for (let s = 5; s >= 0; s--){ const f = m - TUNING[s]; if (f >= 0 && f <= 4) return { s, f }; } return null; },
-    study(st){
-      const key = +(S.learn.sel ?? st.keys[0]), lo = this.runs(key)[0], M = [];
-      for (let m = lo; m <= 68; m++){ const d = [1,2,3,4,5,6,7].find(x => degPc(key, x) === pcOf(m)), c = this.cell(m); if (d && c) M.push({ s:c.s, f:c.f, pc:pcOf(m), text:spell(keyName(key), String(d)), kind:'dot', root:d === 1 }); }
-      return { marks:M, hl:hlNotes(M.map(x => midiAt(x.s, x.f))), cap:keyName(key) + ' major, first position',
-        html:`<div><p class="lbl">Key</p><div class="row">${st.keys.map(k => chip('lsel', k, keyName(k), k === key, 'sq')).join('')}</div></div>
-          <p style="margin:0">Here is the same scale in <b>first position</b>: frets 0 to 4 across the strings, the way fiddle tunes are played. Go up one string until the next note is on the next string's open note or lower frets, then move across. The square dots are ${keyName(key)}, the home note.</p>
-          <p class="hint">Practice: play the scale up or down in order, following the faint dots. Say the names as you go.</p>
-          <div class="row"><button class="btn ghost" data-act="kscale">Hear it</button></div>` };
-    },
-    act(st, a){ const key = +(S.learn.sel ?? st.keys[0]), lo = this.runs(key)[0]; if (a === 'kscale'){ const ms = []; for (let m = lo; m <= lo + 12; m++) if ([1,2,3,4,5,6,7].some(x => degPc(key, x) === pcOf(m))) ms.push(m); arp(ms, .28); } },
-    gen(st, prev){
-      const key = pick(st.keys), lo = pick(this.runs(key)), up = !(prev && prev.key === key && prev.dir === 'up') || Math.random() < .3, K = keyName(key);
-      let seq = []; for (let m = lo; m <= lo + 12; m++) if ([1,2,3,4,5,6,7].some(x => degPc(key, x) === pcOf(m))) seq.push(m);
-      if (!up) seq = seq.reverse();
-      const faint = seq.map(m => this.cell(m)), c0 = faint[0], st8 = ['whole','whole','half','whole','whole','whole','half'], go = () => arp(seq, .3);
-      return { mode:'echo', key, seq, got:[], keep:true, faint, ref:{ s:c0.s, f:c0.f, label:K }, steps:up ? st8 : st8.slice().reverse(), dir:up ? 'up' : 'down',
-        title:`Play <em>${K} major</em> ${up ? 'up' : 'down'}, ${spell(K, '1')} to ${spell(K, '1')}`, small:'Follow the faint dots in order, starting on the lit note.', replay:go, focus:[0, 4],
-        at:faint, done:() => `That's ${K} major ${up ? 'up' : 'down'} in first position: ${seq.map(m => spell(K, String([1,2,3,4,5,6,7].find(x => degPc(key, x) === pcOf(m))))).join(' ')}.` };
     }
   },
   // ---- octave shapes carry note names across strings
@@ -2600,7 +2643,8 @@ const Life = {
   end(){ return mmPos(FRETS) + 16; },
   view(){ return this.cv.clientHeight / this.K(); },
   minOff(){ return -48; },
-  homeOff(){ const hud = $('.ltop') ? $('.ltop').offsetHeight : 110; return Math.max(this.minOff() - 40, -hud / this.K() - 26); },
+  // the nut just below the top panel; zoomed out, that can be further up the headstock than at real size
+  homeOff(){ const hud = $('.ltop') ? $('.ltop').offsetHeight : 110; return Math.max(-190, -hud / this.K() - 26); },
   maxOff(){ return Math.max(this.minOff(), this.end() + 30 - this.view()); },
   lowOff(){ return Math.min(this.minOff(), this.homeOff()); },
   cx(){ return this.cv.clientWidth / 2 + 8; },
@@ -2609,6 +2653,8 @@ const Life = {
   along(f){ return f === 0 ? -14 : (mmPos(f - 1) + mmPos(f)) / 2 + (mmPos(f) - mmPos(f - 1)) * 0.18; },
   fretAt(mm){ if (mm < 0) return 0; for (let n = 1; n <= FRETS; n++) if (mm < mmPos(n)) return n; return FRETS; },
   start(session = { type:'free' }){
+    const st0 = session.st;
+    this.teach = session.type === 'learn' && st0 && st0.walk && (session.walk || !(learnProg.taught || {})[st0.id]) ? Pos.lesson(st0) : null; this.ti = 0;
     this.session = session; this.done = false; this.count = 0; this.n = 0; this.ok = 0; this.hist = []; this.lastStage = null;
     this.open = true; const el = $('#life'); el.hidden = false; document.body.style.overflow = 'hidden';
     this.cv = $('#lifecv'); this.c = this.cv.getContext('2d');
@@ -2666,7 +2712,7 @@ const Life = {
   },
   stageSpec(st){
     if (KINDS[st.kind]) return { kind:'gen', st };
-    if (st.kind === 'notes') return { kind:'notes', cells:Learn.pool(st) };
+    if (st.kind === 'notes') return { kind:'notes', cells:Learn.pool(st), walk:st.walk ? st : null };
     if (st.kind === 'bass') return { kind:'notes', bass:st, cells:cellsIn([0,1,2], 0, 3), only:'find' };
     if (st.kind === 'chords') return { kind:'chords', set:st.set.map(([r, cq]) => ({ r, cq })), recog:true };
     const set = [];
@@ -2675,7 +2721,7 @@ const Life = {
   },
   goal(){ const ss = this.session; return ss.type === 'learn' ? stageGoal(ss.st) : ss.type === 'daily' ? DAILY_GOAL : 0; },
   progress(ok){
-    const ss = this.session; if (ss.type === 'free') return;
+    const ss = this.session; if (ss.type === 'free' || (this.q && this.q.lesson)) return;
     this.n++; if (ok) this.ok++;
     if (ss.type === 'daily'){ const k = todayKey(); if (ok){ days[k] = (days[k] || 0) + 1; store.set('fretwise.days', days); renderStreak(); } this.count = days[k] || 0; }
     this.streak = ok ? this.streak + 1 : 0;
@@ -2706,7 +2752,7 @@ const Life = {
     };
     if (q.mode === 'cname'){ const fr = q.vc.frets.filter(f => f != null); span(Math.min(...fr), Math.max(...fr, 1)); }
     if (q.mode === 'chord'){ if (q.show){ const fr = q.show.filter(f => f != null); span(Math.min(...fr), Math.max(...fr)); } else span(0, 3); }
-    if (q.focus && q.mode === 'echo'){ span(q.focus[0], q.focus[1]); return; }
+    if (q.focus && (q.mode === 'echo' || q.mode === 'show')){ span(q.focus[0], q.focus[1]); return; }
     if (q.mode === 'echo' || q.mode === 'mc' || q.mode === 'tap'){ if (q.vc){ const fr = q.vc.frets.filter(f => f != null); span(Math.min(...fr), Math.max(...fr, 1)); } else span(0, 4); }
     if (q.mode === 'note' && q.ref) this.scrollTo(this.along(q.ref.f));
     if (q.mode === 'note' && !q.ref){ const fs = q.cells.map(c => c.f); if (Math.max(...fs) <= 5) span(Math.min(...fs), Math.max(...fs)); }
@@ -2723,8 +2769,15 @@ const Life = {
     let sp = this.spec(), stageId = null; const prev = this.q;
     this.hint = false; this.fb = null; this.lock = false; this.t0 = performance.now(); this.taps = []; this.showMe = null;
     if (this.tapLoop){ clearInterval(this.tapLoop); this.tapLoop = 0; }
+    let intro = null;
+    if (this.teach){
+      if (this.ti < this.teach.length){ const q = this.teach[this.ti](); Object.assign(q, { lesson:true, step:this.ti + 1, of:this.teach.length }); this.ti++; this.q = q; if (q.note) this.fb = { ok:null, t:q.note }; return; }
+      (learnProg.taught || (learnProg.taught = {}))[this.session.st.id] = true; store.set('fretwise.learn', learnProg); this.teach = null;
+      intro = { ok:null, t:'That\'s the shape. Now the questions: notes from it, and the scale from memory.' };
+    }
     if (sp.kind === 'mix'){ const st = Review.pickStage(this.lastStage); this.lastStage = st.id; stageId = st.id; sp = this.stageSpec(st); if (sp.kind === 'notes') sp.weighted = true; }
     this.makeQ(sp, prev);
+    if (intro) this.fb = intro;
     if (this.q){ this.q.stage = stageId; if (this.q.onStart){ const q = this.q; setTimeout(() => { if (this.q === q && this.open) q.onStart(); }, 280); } }
   },
   makeQ(sp, prev){
@@ -2739,6 +2792,7 @@ const Life = {
       } else this.q = { mode:'chord', r:c.r, cq:c.cq, title:c.title, fingers:{}, mutes:{} };
       return;
     }
+    if (sp.walk && Math.random() < .25){ this.q = Pos.memoryQ(sp.walk, prev); return; }
     const cells = sp.cells; if (!cells.length){ this.q = null; return; }
     const type = sp.only || (Math.random() < .55 ? 'name' : 'find');
     if (type === 'name'){
@@ -2770,7 +2824,9 @@ const Life = {
     else if (q.mode === 'done') pr = ss.type === 'daily' ? `Done for today<small>${dayStreak()}-day streak. Come back tomorrow to keep it going.</small>` : ss.type === 'learn' ? `Stage passed<small>${ss.st.t}</small>` : 'Nice work';
     else if (q.mode === 'name') pr = `${q.title || 'What note is this?'}<small>${SORD[q.s]} string, ${q.f ? 'fret ' + q.f : 'open'}</small>`;
     else if (q.mode === 'mc') pr = `${q.title}${q.small ? `<small>${q.small}</small>` : ''}`;
-    else if (q.mode === 'echo' && q.keep) pr = `${q.title}<small>${q.got.length && q.got.length < q.seq.length ? `${q.got.length} of ${q.seq.length} · next: a ${q.steps[q.got.length - 1]} step ${q.dir}` : q.small}</small>`;
+    else if (q.mode === 'show') pr = `${q.title}<small>${q.small}</small>`;
+    else if (q.mode === 'echo' && q.keep){ const i = q.got.length, nx = i < q.seq.length ? (q.nextText ? q.nextText(i) : i ? `next: a ${q.steps[i - 1]} step ${q.dir}` : '') : '';
+      pr = `${q.title}<small>${i && i < q.seq.length ? `${i} of ${q.seq.length}${nx ? ' · ' + nx : ''}` : q.small}</small>`; }
     else if (q.mode === 'echo') pr = `${q.title}<small>${q.got.length ? `${q.got.length} of ${q.seq.length} so far` : q.small}</small>`;
     else if (q.mode === 'tap') pr = `${q.title}<small>${q.small}</small>`;
     else if (q.mode === 'cname') pr = `Which chord is this?`;
@@ -2787,7 +2843,8 @@ const Life = {
     const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today' + (qst ? ' · ' + qst.t : '') : ss.type === 'drill' ? 'Note drill' : ss.type === 'chordquiz' ? 'Chord quiz' : '';
     $('#lstat').innerHTML = ss.type === 'free' ? '' : `${esc(label)}`;
     const m = $('#lmeter');
-    if (g && ss.type === 'daily'){ const have = this.count, pct = Math.min(100, Math.round(100 * have / g));
+    if (q && q.lesson){ m.hidden = false; m.innerHTML = `<span>Walkthrough · step ${q.step} of ${q.of}</span><i><b style="width:${Math.round(100 * (q.step - 1) / q.of)}%"></b></i>`; }
+    else if (g && ss.type === 'daily'){ const have = this.count, pct = Math.min(100, Math.round(100 * have / g));
       m.hidden = false; m.innerHTML = `<span>${Math.min(have, g)} of ${g} today${this.bonus ? ` · +${this.bonus} bonus` : ''}</span><i><b style="width:${pct}%"></b></i>`; }
     else if (g){ const w = passWindow(this.hist || [], g), pct = Math.min(100, Math.round(100 * w.right / w.need));
       m.hidden = false; m.innerHTML = `<span>${w.right} of the last ${g} right · need ${w.need}${this.bonus ? ` · +${this.bonus} bonus` : ''}</span><i><b style="width:${pct}%"></b></i>`; }
@@ -2822,16 +2879,17 @@ const Life = {
       if (ss.type === 'learn'){ const nx = Learn.after(ss.st); if (nx) B.push(['nextstage', `Next: ${nx.t}`]); }
       B.push(['keep', ss.type === 'daily' ? 'Keep going' : 'Keep practicing']);
     } else if (q && (q.mode === 'note' || q.mode === 'name' || q.mode === 'mc' || q.mode === 'echo')){
-      if (q.replay) B.push(['replay','Play again']);
+      if (q.replay) B.push(['replay', q.keep ? 'Hear it' : 'Play again']);
       if (q.mode === 'note' && q.phase === 'first') B.push(['hint','Hint']);
       else if (q.mode === 'note' && q.phase === 'bonus') B.push(['reveal','Show them all']);
       B.push(['listen', this.listenFn ? 'Stop listening' : 'Listen to my guitar']);
     }
     else if (q && q.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me']);
+    else if (q && q.mode === 'show') B.push(['replay','Hear it'], ['next','Next']);
     const lv = $('#lview'); lv.hidden = !!(q && q.mode === 'done'); lv.textContent = this.flat ? 'Life size' : 'Whole neck';
     lv.setAttribute('aria-label', this.flat ? 'Switch to the life-size neck' : 'Show the whole neck at once');
-    $('#lskip').hidden = !(q && (q.mode === 'chord' || q.mode === 'echo' || (q.mode === 'note' && q.phase === 'first')));
-    $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' ? ' primary' : ''}" data-l="${a}">${esc(l)}${a === 'listen' && this.listenFn ? '<span class="miclvl" id="llvl" aria-hidden="true"><i></i></span>' : ''}</button>`).join('');
+    $('#lskip').hidden = !(q && (q.lesson || q.mode === 'chord' || q.mode === 'echo' || (q.mode === 'note' && q.phase === 'first'))); $('#lskip').textContent = q && q.lesson ? 'Skip to quiz' : 'Skip';
+    $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' || a === 'next' ? ' primary' : ''}" data-l="${a}">${esc(l)}${a === 'listen' && this.listenFn ? '<span class="miclvl" id="llvl" aria-hidden="true"><i></i></span>' : ''}</button>`).join('');
     if (this.flat){ if (q !== this.flatQ){ this.flatQ = q; this.fitFlat(); } else this.flatDirty = true; }
   },
   answerName(pc){
@@ -2858,12 +2916,14 @@ const Life = {
       const i = q.got.length, at = q.at && q.at[i];
       if (pcOf(m) === pcOf(want)){
         q.got.push({ m, s:s != null ? s : at ? at.s : null, f:s != null ? f : at ? at.f : null });
-        if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:!q.missed, t:q.done ? q.done() : 'That\'s it.' }; if (!q.missed) this.progress(true); this.hud(); this.after(1600); }
+        q.peek = false;
+        if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:q.lesson || !q.missed, t:q.done ? q.done() : 'That\'s it.' }; if (!q.missed) this.progress(true); this.hud(); this.after(1600); }
         else { this.fb = null; this.hud(); }
       } else {
         haptic('error'); if (s != null) this.taps.push({ s, f, ok:false, t:performance.now() });
         if (!q.missed){ q.missed = true; this.progress(false); }
-        this.fb = { ok:false, t: i === 0 ? `That's ${both(pcOf(m))}. Start on the lit note.` : `That's ${both(pcOf(m))}. The next note is a ${q.steps[i - 1]} step ${q.dir} from the last one.` };
+        if (q.memory) q.peek = true;
+        this.fb = { ok:false, t: q.wrongText ? q.wrongText(m, i) : i === 0 ? `That's ${both(pcOf(m))}. Start on the lit note.` : `That's ${both(pcOf(m))}. The next note is a ${q.steps[i - 1]} step ${q.dir} from the last one.` };
         this.hud();
       }
       return;
@@ -2995,7 +3055,7 @@ const Life = {
   cell(s, f){
     const q = this.q; this.flatDirty = true;
     if (q && q.mode === 'echo'){ play(midiAt(s, f)); this.echoNote(midiAt(s, f), s, f); return; }
-    if (q && (q.mode === 'name' || q.mode === 'cname' || q.mode === 'done' || q.mode === 'mc' || q.mode === 'tap')){ play(midiAt(s, f)); return; }
+    if (q && (q.mode === 'name' || q.mode === 'cname' || q.mode === 'done' || q.mode === 'mc' || q.mode === 'tap' || q.mode === 'show')){ play(midiAt(s, f)); return; }
     if (q && q.mode === 'chord'){
       if (this.lock) return;
       if (f === 0){ q.mutes[s] = !q.mutes[s]; if (q.mutes[s]) delete q.fingers[s]; else play(midiAt(s, 0)); }
@@ -3114,9 +3174,9 @@ const Life = {
     }
     // string names above the nut
     if (yTop < -20){ c.font = `600 ${Math.max(11, 2.6 * k)}px ${getComputedStyle(document.body).fontFamily}`; c.fillStyle = C.pearl; for (let s = 0; s < 6; s++) c.fillText(SNAME[s], this.sx(this.strX(s, -26)), this.sy(-26)); }
-    const dot = (s, f, fill, label, ink, ring) => {
+    const dot = (s, f, fill, label, ink, ring, sq) => {
       const y = this.along(f), x = this.strX(s, y), r = Math.min(4.6, (neckW(y) - 6.8) / 10 + 0.6) * k;
-      c.beginPath(); c.arc(this.sx(x), this.sy(y), r, 0, 7);
+      c.beginPath(); if (sq && c.roundRect) c.roundRect(this.sx(x) - r, this.sy(y) - r, 2 * r, 2 * r, r * .38); else c.arc(this.sx(x), this.sy(y), r, 0, 7);
       if (ring){ c.strokeStyle = fill; c.lineWidth = Math.max(2, .7 * k); c.stroke(); return; }
       c.fillStyle = fill; c.fill(); c.strokeStyle = 'rgba(0,0,0,.3)'; c.lineWidth = 1; c.stroke();
       if (label){ c.fillStyle = ink; c.font = `700 ${Math.max(11, r * .9)}px ${getComputedStyle(document.body).fontFamily}`; c.fillText(label, this.sx(x), this.sy(y) + 1); }
@@ -3140,7 +3200,10 @@ const Life = {
       for (const x of q.found) dot(x.s, x.f, C.good, nn(q.pc), '#fff');
     }
     if (q && q.anchors) for (const a of q.anchors){ c.globalAlpha = .5; dot(a.s, a.f, C.pearl, '1', '#1C1612'); c.globalAlpha = 1; }
-    if (q && q.faint) for (const a of q.faint){ c.globalAlpha = .32; dot(a.s, a.f, C.pearl, null, null); c.globalAlpha = 1; }
+    if (q && q.faint) for (const a of q.faint){ c.globalAlpha = a.t ? .55 : .32; dot(a.s, a.f, C.pearl, a.t || null, '#1C1612'); c.globalAlpha = 1; }
+    if (q && q.dots) for (const a of q.dots) dot(a.s, a.f, noteFill(pcOf(midiAt(a.s, a.f))).replace('var(--pearl)', C.pearl), a.t, '#1C1612', false, a.root);
+    if (q && q.rings) for (const a of q.rings) dot(a.s, a.f, C.amber, null, null, true);
+    if (q && q.mode === 'echo' && q.keep && (q.guide || q.peek) && q.at && q.got.length < q.seq.length){ const a = q.at[q.got.length]; c.globalAlpha = .55 + .45 * Math.sin(t / 170); dot(a.s, a.f, C.amber, null, null, true); c.globalAlpha = 1; }
     if (q && q.mode === 'echo' && q.keep) for (const g of q.got) if (g.s != null) dot(g.s, g.f, C.good, nn(pcOf(g.m)), '#fff');
     if (q && q.ghost) q.ghost.forEach((f, s) => { if (f != null && f > 0){ c.globalAlpha = .38; dot(s, f, C.pearl, null, null); c.globalAlpha = 1; } });
     if (q && q.ref && !(q.mode === 'echo' && q.got.length)){ dot(q.ref.s, q.ref.f, C.pearl, q.ref.label, '#1C1612'); c.globalAlpha = .9; dot(q.ref.s, q.ref.f, C.amber, null, null, true); c.globalAlpha = 1; }
@@ -3244,7 +3307,10 @@ const Life = {
       q.found.forEach(x => M.push({ s:x.s, f:x.f, kind:'good', text:nn(q.pc) }));
     }
     if (q && q.anchors) q.anchors.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)', text:'1' }));
-    if (q && q.faint) q.faint.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)' }));
+    if (q && q.faint) q.faint.forEach(a => M.push({ s:a.s, f:a.f, kind:'ghost', fill:'var(--pearl)', text:a.t || '' }));
+    if (q && q.dots) q.dots.forEach(a => M.push({ s:a.s, f:a.f, kind:'dot', pc:pcOf(midiAt(a.s, a.f)), text:a.t, root:a.root }));
+    if (q && q.rings) q.rings.forEach(a => M.push({ s:a.s, f:a.f, kind:'ring' }));
+    if (q && q.mode === 'echo' && q.keep && (q.guide || q.peek) && q.at && q.got.length < q.seq.length) M.push({ s:q.at[q.got.length].s, f:q.at[q.got.length].f, kind:'ring' });
     if (q && q.mode === 'echo' && q.keep) q.got.forEach(g => { if (g.s != null) M.push({ s:g.s, f:g.f, kind:'good', text:nn(pcOf(g.m)) }); });
     if (q && q.ghost) q.ghost.forEach((f, s) => { if (f != null && f > 0) M.push({ s, f, kind:'ghost', fill:'var(--pearl)' }); });
     if (q && q.ref && !(q.mode === 'echo' && q.got.length)) M.push({ s:q.ref.s, f:q.ref.f, kind:'dot', fill:'var(--pearl)', text:q.ref.label }, { s:q.ref.s, f:q.ref.f, kind:'ring' });
@@ -3298,7 +3364,8 @@ const Life = {
     $('#life').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b || b.hidden) return; const a = b.dataset.l;
       if (a === 'exit') this.close();
       if (a === 'hint') this.doHint();
-      if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); }
+      if (a === 'next' && this.q && this.q.mode === 'show'){ this.newQ(); this.hud(); this.focusQ(); }
+      if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.lesson && this.teach) this.ti = this.teach.length; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); this.focusQ(); }
       if (a === 'reveal') this.reveal();
       if (a === 'flat') this.setFlat(!this.flat);
       if (a === 'name') this.answerName(this.q && this.q.opts ? b.dataset.v : +b.dataset.v);
