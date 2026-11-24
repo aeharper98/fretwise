@@ -1365,6 +1365,10 @@ const LEARN_ALL = [
     dp:'One fret is one piano key, black keys included: a half step. Sharps and flats work as on the keyboard, so F♯ and G♭ are the same fret.' },
   { id:'majscale', part:'Numbers in the hand', t:'The major scale', kind:'majscale', theory:true, fill:true, keys:[0,7,2], goal:8,
     d:'Do-re-mi is one pattern of steps: whole, whole, half, whole, whole, whole, half. Start it on C and every note is natural; start on G and it needs F♯; start on D and it needs F♯ and C♯. Numbers, keys and chords all build on this.' },
+  { id:'cmaj', part:'Numbers in the hand', t:'C major, first position', kind:'notes', fill:true, walk:true, sname:'C major in first position', chord:[0,'maj'],
+    shape:'The amber rings are the C chord: C, E and G are the 1, 3 and 5. No sharps or flats, so these are the natural notes you already know, now in scale order.',
+    strings:ALL, range:[0,4], nat:true, pcs:[0,2,4,5,7,9,11], from:48, goal:12,
+    d:'C D E F G A B: the major scale with no sharps or flats, so every note is one you already know from first position. Learning it in order, with the right fingers, is the base the G and D scales build on. "Wildwood Flower" is usually played in C.' },
   { id:'gmaj', part:'Numbers in the hand', t:'G major, first position', kind:'notes', fill:true, walk:true, sname:'G major in first position', chord:[7,'maj'],
     shape:'The amber rings are the G chord you know: its G, B and D are the scale\'s 1, 3 and 5, and the other notes fill in around it.',
     strings:ALL, range:[0,4], nat:false, pcs:[7,9,11,0,2,4,6], from:43, goal:12,
@@ -1523,6 +1527,9 @@ const Review = {
     else if (x.n >= 2){ e.n++; e.due = addDays(REV_GAPS[Math.min(e.n - 1, REV_GAPS.length - 1)]); x.done = true; }
     store.set('fretwise.learn', learnProg);
   },
+  snap(id){ const k = todayKey() + ':' + id; return { r:JSON.stringify(this.rev()[id] || null), x:JSON.stringify(this.tally[k] || null) }; },
+  restore(id, sn){ const k = todayKey() + ':' + id, r = this.rev(), e = JSON.parse(sn.r), x = JSON.parse(sn.x);
+    if (e) r[id] = e; else delete r[id]; if (x) this.tally[k] = x; else delete this.tally[k]; store.set('fretwise.learn', learnProg); },
   pickStage(prevId){
     const fresh = a => { const f = a.filter(st => st.id !== prevId); return f.length ? f : a; };
     let pool = fresh(this.due());
@@ -1940,7 +1947,7 @@ const Pos = {
     return { mode:'echo', seq, got:[], keep:true, at, ref:{ s:at[0].s, f:at[0].f, label:ns[0].name }, title:o.title, small:o.small, focus:o.focus,
       faint:o.memory ? null : ns.map(n => ({ s:n.s, f:n.f, t:String(n.finger) })), guide:!o.memory, memory:!!o.memory, dir:o.down ? 'down' : 'up',
       replay:() => arp(seq, .3), nextText:i => o.memory ? '' : `next: ${ns[i].name}, ${this.where(ns[i])}`,
-      wrongText:(m, i) => `That's ${both(pcOf(m))}. Next is ${ns[i].name}: ${this.where(ns[i])}.`,
+      wrongText:(m, i, mic) => `${mic ? 'Heard' : 'That\'s'} ${both(pcOf(m))}. Next is ${ns[i].name}: ${this.where(ns[i])}.`,
       done:() => o.done || `${ns.map(n => n.name).join(' ')}.` };
   },
   octaves(st){ const N = this.notes(st); return N.filter(n => n.root && N.some(x => x.m === n.m + 12)).map(r => N.filter(n => n.m >= r.m && n.m <= r.m + 12)); },
@@ -2326,7 +2333,7 @@ const Mic = {
       if (!actx()) throw new Error('noaudio');
       await this.wire();
       this.on = true; this.hist = []; this.zeros = 0; this.level = 0; this.heard = false;
-      clearInterval(this.timer); this.timer = setInterval(() => this.tick(), 50);
+      clearInterval(this.timer); this.timer = setInterval(() => this.tick(), 40);
       return true;
     } catch (e){ this.release(); this.err = e && e.name || 'Error'; this.on = false; return false; }
   },
@@ -2343,17 +2350,20 @@ const Mic = {
     if (!c || c.state !== 'running'){ if (c) c.close().catch(() => {}); c = actx(); this.own = false; } else this.own = true;
     this.ctx = c;
     this.src = c.createMediaStreamSource(stream);
+    // keep the guitar's range (about 70 Hz to 1 kHz): rumble and hiss make quiet notes hard to read
+    this.hp = c.createBiquadFilter(); this.hp.type = 'highpass'; this.hp.frequency.value = 65; this.hp.Q.value = .7;
+    this.lp = c.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 1100; this.lp.Q.value = .7;
     this.an = c.createAnalyser(); this.an.fftSize = 4096; this.an.smoothingTimeConstant = 0;
     this.sink = c.createGain(); this.sink.gain.value = 0;              // silent pull so the graph keeps running
-    this.src.connect(this.an); this.an.connect(this.sink); this.sink.connect(c.destination);
+    this.src.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.an); this.an.connect(this.sink); this.sink.connect(c.destination);
     this.buf = new Float32Array(this.an.fftSize); this.zeros = 0; this.t0 = performance.now();
     if (ac && ac.state !== 'running') ac.resume().catch(() => {});
   },
   release(){
     if (this.stream) this.stream.getTracks().forEach(t => { t.onended = null; t.stop(); });
-    try { if (this.src) this.src.disconnect(); if (this.sink) this.sink.disconnect(); } catch(e){}
+    try { if (this.src) this.src.disconnect(); if (this.hp) this.hp.disconnect(); if (this.lp) this.lp.disconnect(); if (this.sink) this.sink.disconnect(); } catch(e){}
     if (this.own && this.ctx && this.ctx.state !== 'closed') this.ctx.close().catch(() => {});
-    this.stream = this.ctx = this.src = this.an = this.sink = null; this.own = false;
+    this.stream = this.ctx = this.src = this.hp = this.lp = this.an = this.sink = null; this.own = false;
   },
   async rewire(){
     if (this.fixing || !this.on) return; this.fixing = true;
@@ -2369,7 +2379,7 @@ const Mic = {
     if (this.stream && this.stream.getAudioTracks().some(t => t.readyState === 'ended')) this.rewire();
   },
   stop(){ clearInterval(this.timer); this.timer = 0; this.on = false; this.lastF = -1; this.release(); this.hist = []; this.level = 0; this.heard = false; this.dead = false; },
-  floor:0.002, quietUntil:0, mine:[], miss:0, prevRms:0, lastOnset:0,
+  floor:0.002, quietUntil:0, mine:[], miss:0, prevRms:0, prevRms2:0, lastOnset:0,
   // Notes the app plays come out of the speaker and into the microphone. Ignore each one's pitch for about a
   // second (everything for its first quarter second, and everything while three or more ring together).
   appNote(m, at){ const now = performance.now(); this.mine = this.mine.filter(x => x.until > now); this.mine.push({ m, from:at, until:at + 1000 }); },
@@ -2391,23 +2401,31 @@ const Mic = {
     // A working microphone never returns exact zeros. A long run of them means the input is dead
     // (iOS does this when the audio session changes under it), so rebuild it, at most twice.
     let peak = 0; for (let i = 0; i < this.buf.length; i += 3){ const v = this.buf[i] < 0 ? -this.buf[i] : this.buf[i]; if (v > peak) peak = v; }
-    if (peak === 0){ if (++this.zeros === 24){ if (this.fixes < 2){ this.fixes++; this.rewire(); } else this.dead = true; } }
+    if (peak === 0){ if (++this.zeros === 30){ if (this.fixes < 2){ this.fixes++; this.rewire(); } else this.dead = true; } }
     else { this.zeros = 0; this.dead = false; }
-    // adaptive noise gate: track the room's quiet level, only listen above it
-    const gate = Math.max(0.003, this.floor * 2.5);
+    // adaptive noise gate: listen a little above the room's quiet level. The level estimate drops
+    // quickly and climbs slowly, and only from frames with no note, so a fading string can't push it up.
+    const gate = Math.max(0.0018, this.floor * 2.2);
     const r = detectPitch(this.buf, c.sampleRate, gate), now = performance.now();
-    if (r.f < 0 && r.rms < gate) this.floor = this.floor * 0.95 + Math.max(r.rms, 0.0005) * 0.05;
+    if (r.f < 0 && r.rms < gate) this.floor = Math.min(0.006, Math.max(0.0004, r.rms < this.floor ? this.floor * .7 + r.rms * .3 : this.floor * .985 + r.rms * .015));
     this.level = r.rms; this.heard = r.rms >= gate;
     // a fresh pluck makes the level jump: start a new reading, so the same note played again counts again
-    if (r.rms >= gate && r.rms > this.prevRms * 1.8 && now - this.lastOnset > 160){ this.lastOnset = now; this.hist = []; this.miss = 0; }
-    this.prevRms = r.rms;
+    // (compared with the quieter of the last two frames: a pluck can land across two of them)
+    if (r.rms >= gate && r.rms > Math.min(this.prevRms, this.prevRms2) * 1.6 && r.rms > Math.max(this.prevRms, this.prevRms2) * 1.15 && now - this.lastOnset > 150){ this.lastOnset = now; this.hist = []; this.miss = 0; }
+    this.prevRms2 = this.prevRms; this.prevRms = r.rms;
     const f = r.f > 60 && r.f < 1400 && !this.isApp(r.f, now) ? r.f : -1;
     let med;
-    if (f > 0){ this.miss = 0; this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); med = this.hist.length >= 3 ? [...this.hist].sort((a,b) => a - b)[this.hist.length >> 1] : -1; }
+    if (f > 0){ this.miss = 0; this.hist.push(f); if (this.hist.length > 5) this.hist.shift(); med = this.steady(); }
     else if (this.hist.length >= 3 && ++this.miss <= 2 && r.rms >= gate * .5) med = this.lastF;   // ride over a dropped frame or two while the note rings
     else { this.hist = []; this.miss = 0; med = -1; }
     this.lastF = med;
     this.subs.forEach(fn => fn(med));
+  },
+  // a reading once three frames are in and at least two of the last three agree with their median
+  steady(){
+    const h = this.hist; if (h.length < 3) return -1;
+    const m = [...h].sort((a, b) => a - b)[h.length >> 1];
+    return h.slice(-3).filter(x => Math.abs(12 * Math.log2(x / m)) < .5).length >= 2 ? m : -1;
   },
   // 0..1 on a log scale, for level meters
   meter(){ const db = 20 * Math.log10(Math.max(this.level, 1e-5)); return Math.max(0, Math.min(1, (db + 62) / 52)); },
@@ -2436,11 +2454,11 @@ function detectPitch(b, sr, gate){
   }
   let tau = -1, best = -1;
   for (let t = Math.max(2, minLag); t < maxLag; t++){
-    if (d[t] < 0.15){ while (t + 1 < maxLag && d[t + 1] < d[t]) t++; tau = t; break; }
+    if (d[t] < 0.18){ while (t + 1 < maxLag && d[t + 1] < d[t]) t++; tau = t; break; }
     if (best < 0 || d[t] < d[best]) best = t;
   }
   // no clear dip: take the deepest one if it is still fairly clear (quiet or fading strings)
-  if (tau < 0 && best > 0 && d[best] < 0.24 && d[best] <= d[best - 1] && d[best] <= d[best + 1]) tau = best;
+  if (tau < 0 && best > 0 && d[best] < 0.3 && d[best] <= d[best - 1] && d[best] <= d[best + 1]) tau = best;
   if (tau < 0) return { f:-1, rms };
   const a = d[tau - 1], c0 = d[tau], c = d[tau + 1], den = a + c - 2 * c0;
   const t2 = den ? tau + (a - c) / (2 * den) : tau;
@@ -2450,20 +2468,22 @@ const f2m = f => 69 + 12 * Math.log2(f / 440);
 
 /* ---------- answer by playing your guitar ---------- */
 const Ear = {
-  fn:null, handler:null, armed:true, last:null, stable:0, silent:0,
+  fn:null, handler:null, last:null, lastOn:0, gapAt:0, silent:0,
   get on(){ return !!this.fn; },
   async toggle(handler){
     if (this.fn){ this.stop(); return false; }
     const ok = await Mic.start(); if (!ok){ toast(Mic.errText()); return false; }
-    this.handler = handler; this.armed = true; this.last = null; this.fn = f => this.frame(f); Mic.subs.add(this.fn); return true;
+    this.handler = handler; this.last = null; this.gapAt = 0; this.fn = f => this.frame(f); Mic.subs.add(this.fn); return true;
   },
   frame(f){
     const el = document.getElementById('heard');
-    if (f < 0){ if (++this.silent >= 2){ this.armed = true; this.last = null; this.stable = 0; if (el) el.textContent = Mic.dead ? Mic.status() : Mic.heard ? 'Hearing sound…' : 'Listening…'; } return; }
-    this.silent = 0; const r = Math.round(f2m(f));
+    if (f < 0){ if (!this.gapAt) this.gapAt = performance.now(); if (++this.silent >= 2 && el) el.textContent = Mic.dead ? Mic.status() : Mic.heard ? 'Hearing sound…' : 'Listening…'; return; }
+    this.silent = 0; const r = Math.round(f2m(f)), now = performance.now();
     if (el) el.textContent = 'Hearing ' + nn(pcOf(r));
-    if (this.last != null && pcOf(r) === pcOf(this.last)) this.stable++; else { this.last = r; this.stable = 0; this.armed = true; }
-    if (this.stable === 1 && this.armed){ this.armed = false; if (this.handler) this.handler(r); }
+    // once per note, as in the practice screen
+    const fresh = this.last == null || pcOf(r) !== pcOf(this.last) || Mic.lastOnset !== this.lastOn || (this.gapAt && now - this.gapAt > 350);
+    this.gapAt = 0; if (!fresh) return; this.last = r; this.lastOn = Mic.lastOnset;
+    if (this.handler) this.handler(r);
   },
   stop(){ if (this.fn){ Mic.subs.delete(this.fn); this.fn = null; } if (!Mic.subs.size && Mic.on) Mic.stop(); },
   button(act){ return `<div class="row" style="margin-top:8px">${chip(act, '', this.on ? 'Listening: play it on your guitar' : 'Answer by playing your guitar', this.on)}<span class="hint" id="heard">${this.on ? 'Listening…' : ''}</span></div>`; }
@@ -2722,6 +2742,7 @@ const Life = {
   goal(){ const ss = this.session; return ss.type === 'learn' ? stageGoal(ss.st) : ss.type === 'daily' ? DAILY_GOAL : 0; },
   progress(ok){
     const ss = this.session; if (ss.type === 'free' || (this.q && this.q.lesson)) return;
+    if (!ok && this.q && this.q.mode !== 'tap') this.undo = { q:this.q, i:(this.hist || []).length, streak:this.streak, rev:this.q.stage ? Review.snap(this.q.stage) : null };
     this.n++; if (ok) this.ok++;
     if (ss.type === 'daily'){ const k = todayKey(); if (ok){ days[k] = (days[k] || 0) + 1; store.set('fretwise.days', days); renderStreak(); } this.count = days[k] || 0; }
     this.streak = ok ? this.streak + 1 : 0;
@@ -2730,6 +2751,22 @@ const Life = {
     if (ss.type === 'drill' && this.streak > stats.best){ stats.best = this.streak; saveStats(); }
     const g = this.goal(), reached = ss.type === 'daily' ? this.count >= g : g && passWindow(this.hist, g).pass;
     if (reached && !this.done) this.pendingDone = true;
+  },
+  // "I got it right": the listener (or a slip of the finger) marked a right answer wrong. Count it right and go on.
+  fixWrong(){
+    const u = this.undo, q = this.q, ss = this.session; if (!u || u.q !== q) return; this.undo = null;
+    if (this.hist[u.i] === false) this.hist[u.i] = true;
+    this.ok++; this.streak = u.streak + 1;
+    if (ss.type === 'daily'){ const k = todayKey(); days[k] = (days[k] || 0) + 1; store.set('fretwise.days', days); renderStreak(); this.count = days[k]; }
+    if (u.rev && q.stage){ Review.restore(q.stage, u.rev); Review.result(q.stage, true); }
+    if (ss.type === 'drill' && this.streak > stats.best){ stats.best = this.streak; saveStats(); }
+    const g = this.goal(); if (!this.done && (ss.type === 'daily' ? this.count >= g : g && passWindow(this.hist, g).pass)) this.pendingDone = true;
+    haptic('success'); q.fixed = true; q.missed = false; q.peek = false;
+    if (q.mode === 'echo' && q.keep && q.got.length < q.seq.length){
+      const i = q.got.length, at = q.at && q.at[i]; q.got.push({ m:q.seq[i], s:at ? at.s : null, f:at ? at.f : null });
+      if (q.got.length < q.seq.length){ this.fb = { ok:true, t:'Counted as right. Carry on.' }; this.hud(); return; }
+    }
+    this.lock = true; this.fb = { ok:true, t:'Counted as right.' }; this.hud(); this.after(800);
   },
   complete(){
     const ss = this.session; this.done = true; this.pendingDone = false; this.lock = true; clearTimeout(this.timer);
@@ -2767,7 +2804,7 @@ const Life = {
   targets(){ return this.q && this.q.targets ? this.q.targets : []; },
   newQ(){
     let sp = this.spec(), stageId = null; const prev = this.q;
-    this.hint = false; this.fb = null; this.lock = false; this.t0 = performance.now(); this.taps = []; this.showMe = null;
+    this.hint = false; this.fb = null; this.lock = false; this.t0 = performance.now(); this.taps = []; this.showMe = null; this.undo = null;
     if (this.tapLoop){ clearInterval(this.tapLoop); this.tapLoop = 0; }
     let intro = null;
     if (this.teach){
@@ -2888,6 +2925,7 @@ const Life = {
     else if (q && q.mode === 'show') B.push(['replay','Hear it'], ['next','Next']);
     const lv = $('#lview'); lv.hidden = !!(q && q.mode === 'done'); lv.textContent = this.flat ? 'Life size' : 'Whole neck';
     lv.setAttribute('aria-label', this.flat ? 'Switch to the life-size neck' : 'Show the whole neck at once');
+    if (this.undo && this.undo.q === q && this.fb && this.fb.ok === false) B.unshift(['override','I got it right']);
     $('#lskip').hidden = !(q && (q.lesson || q.mode === 'chord' || q.mode === 'echo' || (q.mode === 'note' && q.phase === 'first'))); $('#lskip').textContent = q && q.lesson ? 'Skip to quiz' : 'Skip';
     $('#lbtns').innerHTML = B.map(([a, l]) => `<button class="lbtn${a === 'check' || a === 'nextstage' || a === 'next' ? ' primary' : ''}" data-l="${a}">${esc(l)}${a === 'listen' && this.listenFn ? '<span class="miclvl" id="llvl" aria-hidden="true"><i></i></span>' : ''}</button>`).join('');
     if (this.flat){ if (q !== this.flatQ){ this.flatQ = q; this.fitFlat(); } else this.flatDirty = true; }
@@ -2900,7 +2938,7 @@ const Life = {
     t[0]++; if (ok){ t[1]++; t[2] += performance.now() - this.t0; } stats.c[k] = t; saveStats();
     q.answered = pc; this.lock = true; play(m); haptic(ok ? 'success' : 'error');
     this.fb = ok ? { ok:true, t:`Yes, ${both(c)}. ${((performance.now() - this.t0) / 1000).toFixed(1)}s` } : { ok:false, t:`That one is ${both(c)}.` };
-    this.progress(ok); this.hud(); this.after(ok ? 800 : 1700);
+    this.progress(ok); this.hud(); this.after(ok ? 800 : 2600);
   },
   answerMC(v){
     const q = this.q; if (!q || q.mode !== 'mc' || q.answered != null || this.lock) return;
@@ -2911,19 +2949,22 @@ const Life = {
   },
   echoNote(m, s, f){
     const q = this.q; if (!q || q.mode !== 'echo' || this.lock) return;
-    const want = q.seq[q.got.length];
+    const want = q.seq[q.got.length], mic = s == null;
+    // playing again a note you already played (in a scale, anything since the start) is not a mistake
+    if (pcOf(m) !== pcOf(want) && q.got.some((g, j) => (q.keep || j === q.got.length - 1) && pcOf(g.m) === pcOf(m))) return;
     if (q.keep){   // a scale in order: right notes stay lit, a wrong one is marked once and you carry on
       const i = q.got.length, at = q.at && q.at[i];
       if (pcOf(m) === pcOf(want)){
         q.got.push({ m, s:s != null ? s : at ? at.s : null, f:s != null ? f : at ? at.f : null });
         q.peek = false;
-        if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:q.lesson || !q.missed, t:q.done ? q.done() : 'That\'s it.' }; if (!q.missed) this.progress(true); this.hud(); this.after(1600); }
+        if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:q.lesson || !q.missed, t:q.done ? q.done() : 'That\'s it.' }; if (!q.missed && !q.fixed) this.progress(true); this.hud(); this.after(1600); }
         else { this.fb = null; this.hud(); }
       } else {
         haptic('error'); if (s != null) this.taps.push({ s, f, ok:false, t:performance.now() });
-        if (!q.missed){ q.missed = true; this.progress(false); }
+        if (!q.missed && !mic){ q.missed = true; this.progress(false); }   // what the microphone mishears shows the way but doesn't count
         if (q.memory) q.peek = true;
-        this.fb = { ok:false, t: q.wrongText ? q.wrongText(m, i) : i === 0 ? `That's ${both(pcOf(m))}. Start on the lit note.` : `That's ${both(pcOf(m))}. The next note is a ${q.steps[i - 1]} step ${q.dir} from the last one.` };
+        const said = mic ? 'Heard' : 'That\'s';
+        this.fb = { ok:false, t: q.wrongText ? q.wrongText(m, i, mic) : i === 0 ? `${said} ${both(pcOf(m))}. Start on the lit note.` : `${said} ${both(pcOf(m))}. The next note is a ${q.steps[i - 1]} step ${q.dir} from the last one.` };
         this.hud();
       }
       return;
@@ -2933,6 +2974,7 @@ const Life = {
       if (q.got.length === q.seq.length){ haptic('success'); this.lock = true; this.fb = { ok:true, t:`Yes: ${q.seq.map(x => nn(pcOf(x))).join(' ')}.` }; this.progress(true); this.hud(); this.after(1300); }
       else { this.fb = null; this.hud(); }
     } else {
+      if (mic && !q.micMiss){ q.micMiss = true; haptic('error'); this.fb = { ok:false, t:`Heard ${both(pcOf(m))}. That's not the next note: try it again.` }; this.hud(); return; }
       haptic('error'); this.lock = true; if (s != null) this.taps.push({ s, f, ok:false, t:performance.now() });
       this.fb = { ok:false, t:`That's ${both(pcOf(m))}. The phrase was ${q.seq.map(x => nn(pcOf(x))).join(' ')}. Listen again.` };
       this.progress(false); this.hud();
@@ -2973,7 +3015,7 @@ const Life = {
     const [r, cq] = k.split('|'), ok = +r === q.r && cq === q.cq, name = chordRoot(q.r) + CQ[q.cq].sym;
     q.answered = k; this.lock = true; strum(Chords.midis(q.vc)); haptic(ok ? 'success' : 'error');
     this.fb = ok ? { ok:true, t:`Yes, ${name}.` } : { ok:false, t:`This is ${name}.` };
-    this.progress(ok); this.hud(); this.after(ok ? 1300 : 2200);
+    this.progress(ok); this.hud(); this.after(ok ? 1300 : 2600);
   },
   // the neck visible between the top and bottom panels, in mm from the top of the canvas
   gap(){ const t = ($('.ltop') || {}).offsetHeight || 110, b = ($('.lbot') || {}).offsetHeight || 140, k = this.K(); return { top:t / k, mid:(t + (this.cv.clientHeight - t - b) / 2) / k, size:(this.cv.clientHeight - t - b) / k }; },
@@ -3085,20 +3127,26 @@ const Life = {
     if (this.listenFn){ Mic.subs.delete(this.listenFn); this.listenFn = null; Mic.stop(); this.hud(); return; }
     const ok = await Mic.start();
     if (!ok){ this.fb = { ok:false, t:Mic.errText() }; this.hud(); return; }
-    let stable = 0, lastR = null, armed = true, warned = false;
+    let lastR = null, lastOn = 0, gapAt = 0, warned = false, seenQ = null;
     this.listenFn = f => {
       const q = this.q;
+      // a note still ringing from the last question doesn't answer this one
+      if (q !== seenQ){ seenQ = q; if (f > 0){ lastR = Math.round(f2m(f)); lastOn = Mic.lastOnset; gapAt = 0; } }
+      const retry = (ok, act, heard) => { if (ok || q.micMiss){ act(); return; } q.micMiss = true; haptic('error'); this.fb = { ok:false, t:`Heard ${heard}. Not that one: play it again, or tap your answer.` }; this.hud(); };
       const lv = document.getElementById('llvl'); if (lv){ lv.firstChild.style.transform = `scaleX(${Mic.meter().toFixed(3)})`; lv.classList.toggle('on', Mic.heard); }
       if (Mic.dead && !warned){ warned = true; this.fb = { ok:false, t:Mic.status() }; this.hud(); }
-      if (f < 0){ stable = 0; armed = true; return; }
+      if (f < 0){ if (!gapAt) gapAt = performance.now(); return; }
       if (!q || !['note','name','mc','echo'].includes(q.mode) || this.lock) return;
-      // a fading string can flip an octave; only a new note name (or a fresh pluck, which reads as a gap) re-arms
-      const r = Math.round(f2m(f)); if (lastR != null && pcOf(r) === pcOf(lastR)) stable++; else { stable = 0; lastR = r; armed = true; }
-      if (stable !== 1 || !armed) return; armed = false;
+      // A reading answers once per note: a new note name, a fresh pluck, or the same note after a real pause.
+      // A fading string that flips an octave or drops out for a moment is still the same note.
+      const r = Math.round(f2m(f)), now = performance.now();
+      const fresh = lastR == null || pcOf(r) !== pcOf(lastR) || Mic.lastOnset !== lastOn || (gapAt && now - gapAt > 350);
+      gapAt = 0; if (!fresh) return;
+      lastR = r; lastOn = Mic.lastOnset;
       if (q.mode === 'echo'){ this.echoNote(r, null, null); return; }
-      if (q.mode === 'mc'){ if (q.fromPitch) this.answerMC(q.fromPitch(r)); return; }
-      if (q.mode === 'name' && q.opts){ if (q.fromPitch) this.answerName(q.fromPitch(r)); else this.answerName(pcOf(r) === pcOf(midiAt(q.s, q.f)) ? q.answer : '?'); return; }
-      if (q.mode === 'name'){ this.answerName(pcOf(r)); return; }
+      if (q.mode === 'mc'){ if (q.fromPitch){ const v = q.fromPitch(r); retry(String(v) === q.answer, () => this.answerMC(v), both(pcOf(r))); } return; }
+      if (q.mode === 'name' && q.opts){ const v = q.fromPitch ? q.fromPitch(r) : pcOf(r) === pcOf(midiAt(q.s, q.f)) ? q.answer : '?'; retry(String(v) === q.answer, () => this.answerName(v), both(pcOf(r))); return; }
+      if (q.mode === 'name'){ const pc = pcOf(r); retry(pc === pcOf(midiAt(q.s, q.f)), () => this.answerName(pc), both(pc)); return; }
       const open = q.targets.filter(t => !q.found.some(c => c.s === t.s && c.f === t.f));
       const hit = open.find(t => midiAt(t.s, t.f) === r) || open.find(t => pcOf(midiAt(t.s, t.f)) === pcOf(r));
       if (hit){ this.scrollTo(this.along(hit.f)); this.answer(hit.s, hit.f, true); }
@@ -3364,6 +3412,7 @@ const Life = {
     $('#life').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b || b.hidden) return; const a = b.dataset.l;
       if (a === 'exit') this.close();
       if (a === 'hint') this.doHint();
+      if (a === 'override') this.fixWrong();
       if (a === 'next' && this.q && this.q.mode === 'show'){ this.newQ(); this.hud(); this.focusQ(); }
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.lesson && this.teach) this.ti = this.teach.length; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); this.focusQ(); }
       if (a === 'reveal') this.reveal();
