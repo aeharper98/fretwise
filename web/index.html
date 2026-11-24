@@ -188,6 +188,7 @@ main{display:flex;flex-direction:column;gap:16px;padding-block:6px 56px}
 .btn.wide{flex:1}
 .btn:disabled{opacity:.4;cursor:default}
 .chip{min-height:34px;padding:5px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:550;cursor:pointer;line-height:1.25;display:inline-flex;align-items:center;gap:6px}
+.chip svg{width:13px;height:13px;flex:none}
 .chip:hover{border-color:color-mix(in srgb,var(--muted) 60%,var(--line))}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .chip.sq{border-radius:10px;min-width:42px;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:15px}
@@ -644,7 +645,7 @@ const CQ_MAIN = ['maj','min','7','maj7','m7','sus2','sus4','dim','aug','m7b5','d
 const SHAPES = {
   maj:[['E',0,[0,2,2,1,0,0]],['A',1,[null,0,2,2,2,0]],['C',1,[null,0,-1,-3,-2,-3]],['G',0,[0,-1,-3,-3,-3,0]],['D',2,[null,null,0,2,3,2]]],
   min:[['E',0,[0,2,2,0,0,0]],['A',1,[null,0,2,2,1,0]],['D',2,[null,null,0,2,3,1]]],
-  '7':[['E',0,[0,2,0,1,0,0]],['A',1,[null,0,2,0,2,0]],['C',1,[null,0,-1,0,-2,-3]],['D',2,[null,null,0,2,1,2]],['G',0,[0,-1,-3,-3,-3,-2]]],
+  '7':[['E',0,[0,2,0,1,0,0]],['A',1,[null,0,2,0,2,0]],['C',1,[null,0,-1,0,-2,-3]],['C',1,[null,0,-1,0,-2,0]],['D',2,[null,null,0,2,1,2]],['G',0,[0,-1,-3,-3,-3,-2]]],
   maj7:[['E',0,[0,2,1,1,0,0]],['A',1,[null,0,2,1,2,0]],['C',1,[null,0,-1,-3,-3,-3]],['D',2,[null,null,0,2,2,2]],['Jazz',0,[0,null,1,1,0,null]]],
   m7:[['E',0,[0,2,0,0,0,0]],['A',1,[null,0,2,0,1,0]],['D',2,[null,null,0,2,1,1]],['Jazz',0,[0,null,0,0,0,null]]],
   sus2:[['A',1,[null,0,2,2,0,0]],['D',2,[null,null,0,2,3,0]]],
@@ -2912,8 +2913,8 @@ const KeyFind = {
     if (keep !== false && tab === 'tune') Tuner.render();
   },
   // one analyser frame: the strongest spectral peaks between 80 Hz and 2 kHz, folded into 12 note names
-  vec(fd, hz){
-    const lo = Math.max(2, Math.ceil(80 / hz)), hi = Math.min(fd.length - 2, Math.floor(2000 / hz)), v = new Array(12).fill(0);
+  vec(fd, hz, flo = 80, fhi = 2000){
+    const lo = Math.max(2, Math.ceil(flo / hz)), hi = Math.min(fd.length - 2, Math.floor(fhi / hz)), v = new Array(12).fill(0);
     let top = -Infinity; for (let i = lo; i <= hi; i++) if (fd[i] > top) top = fd[i];
     if (top < -85) return null;
     let sum = 0;
@@ -2981,7 +2982,8 @@ const KeyFind = {
         ${(() => { const rl = { key:(r.minor ? r.key + 3 : r.key + 9) % 12, minor:!r.minor };
           return `<p class="hint" style="margin:0">Or its relative, <button class="chip" data-act="kpick" data-v="${rl.key}|${rl.minor ? 1 : 0}">${this.name(rl.key, rl.minor)}</button>: the same notes and the same capo, but ${rl.minor ? 'a minor' : 'a major'} chord feels like home.${!r.manual && r.alt && sure === 'Not sure' ? ` Could also be <button class="chip" data-act="kpick" data-v="${r.alt.key}|${r.alt.minor ? 1 : 0}">${this.name(r.alt.key, r.alt.minor)}</button>.` : ''}</p>`; })()}
         <div class="kpos">${P.map((x, j) => `<div class="kp${j ? '' : ' best'}"><div><b>${x.pos} position</b>${x.capo ? `, capo ${x.capo}` : ', no capo'}${j ? '' : '<span class="ktag">Easiest</span>'}${x.capo > 7 ? '<span class="ktag low">High up</span>' : ''}</div>
-          <small>Play ${x.shapes.join(' ')} shapes${r.minor ? ' (home is ' + x.shapes[0] + ')' : ''}; they sound as ${x.sounds.join(' ')}.${x.hard.length ? ` ${x.hard.join(' and ')} ${x.hard.length > 1 ? 'are barre chords' : 'is a barre chord'}.` : ''}</small></div>`).join('')}</div>
+          <small>Play ${x.shapes.join(' ')} shapes${r.minor ? ' (home is ' + x.shapes[0] + ')' : ''}; they sound as ${x.sounds.join(' ')}.${x.hard.length ? ` ${x.hard.join(' and ')} ${x.hard.length > 1 ? 'are barre chords' : 'is a barre chord'}.` : ''}</small>
+          <div class="row"><button class="${j ? 'chip' : 'btn small'}" data-act="along" data-v="${j}">${IC.play} Play along here</button></div></div>`).join('')}</div>
         <div class="row"><button class="btn ghost" data-act="khear">Hear the key</button></div>
         <p class="hint" style="margin:0">Strum along with the song: if the home chord sounds right, the key is right.</p>`;
     } else body = `<p class="sub" style="margin:0">${r ? 'Not enough music came through. Play the song louder or closer, and try again.' : 'Play a song near your phone (a recording, the radio, or a jam), or on this phone in another app. Fretwise listens for up to 20 seconds, names the key, and tells you where to put the capo for G, C or D shapes.'}</p>`;
@@ -2993,6 +2995,135 @@ const KeyFind = {
         <div class="row">${[7,9,2,4,11,0,5,10,3,8,1,6].map(k => chip('kpick', `${k}|${pick.minor ? 1 : 0}`, keyName(k), r && r.key === k, 'sq')).join('')}</div>
         <div class="row">${seg('kmode', pick.minor ? 'min' : 'maj', [['maj','Major'], ['min','Minor']])}</div></details>`}
     </div>`;
+  }
+};
+/* ---------- play along: a found key, live chords, the scale in your capo position, riffs to try ---------- */
+// Runs as a Life session ('along'): the neck shows the capo, the scale with its numbers, the chord heard now as the
+// shape you'd play (rings), and the note heard now (a lit dot). "Catch that riff" snaps the last few seconds of melody
+// to the scale and turns it into a guided exercise.
+const ALONG_SCALES = {
+  maj:{ pent:['Major pentatonic', [0,2,4,7,9]], major:['Major scale', [0,2,4,5,7,9,11]], blues:['Pentatonic + blue note', [0,2,3,4,7,9]] },
+  min:{ pent:['Minor pentatonic', [0,3,5,7,10]], major:['Natural minor', [0,2,3,5,7,8,10]], blues:['Minor blues', [0,3,5,6,7,10]] }
+};
+const DEGL = { 0:'1', 1:'♭2', 2:'2', 3:'♭3', 4:'3', 5:'4', 6:'♭5', 7:'5', 8:'♭6', 9:'6', 10:'♭7', 11:'7' };
+const Along = {
+  on:false, key:0, minor:false, pos:null, scale:'pent', fn:null, msgUntil:0, heard:null, win:[], lastEval:0, pend:null, pendN:0, chord:null, tally:{}, notes:[], riff:null, q:null,
+  start(key, minor, pos){
+    this.key = key; this.minor = minor; this.pos = pos; this.scale = 'pent'; this.heard = null; this.msgUntil = 0; this.win = []; this.pend = null; this.pendN = 0; this.chord = null; this.tally = {}; this.notes = []; this.riff = null;
+    this.cands = this.candidates();
+    this.q = { mode:'show', along:true, focus:[pos.capo, pos.capo + 4] };
+    Life.start({ type:'along' }); this.paint(); Life.hud();
+    this.listen();
+  },
+  async listen(){
+    if (this.fn) return;
+    const ok = await Mic.start(); if (!ok){ Life.fb = { ok:false, t:Mic.errText() }; Life.hud(); return; }
+    this.on = true; this.fn = f => this.frame(f); Mic.subs.add(this.fn);
+  },
+  stop(){ if (this.fn){ Mic.subs.delete(this.fn); this.fn = null; } this.on = false; if (!Mic.subs.size && Mic.on) Mic.stop(); },
+  // Chords a song in this key is likely to use, as roots above the key note, each with a prior: 7ths and chords from
+  // outside the key have to be clearly heard to win. On test songs with known chords this read 93% of moments right
+  // (without the priors, 33%: melody notes and overtones kept turning D into D7 or Bm).
+  candidates(){
+    const L = this.minor
+      ? [[0,'min','1m',1], [5,'min','4m',.97], [7,'min','5m',.92], [7,'7','5⁷',.9], [7,'maj','5',.85], [3,'maj','♭3',.95], [8,'maj','♭6',.93], [10,'maj','♭7',.93], [5,'maj','4',.85]]
+      : [[0,'maj','1',1], [2,'min','2m',.93], [2,'7','2⁷',.9], [4,'min','3m',.9], [5,'maj','4',1], [7,'maj','5',1], [7,'7','5⁷',.9], [9,'min','6m',.96], [10,'maj','♭7',.9], [0,'7','1⁷',.85]];
+    return L.map(([off, q, lab, prior]) => {
+      const r = (this.key + off) % 12, w = new Array(12).fill(0), iv = { maj:[0,4,7], min:[0,3,7], '7':[0,4,7,10] }[q];
+      iv.forEach((x, i) => { w[(r + x) % 12] += [1, .9, .8, .6][i]; });
+      const t = w.map((x, i) => x + .6 * w[(i + 5) % 12] + .15 * w[(i + 8) % 12]), n = Math.hypot(...t);
+      return { id:off + q, r, q, lab, prior, t:t.map(x => x / n) };
+    });
+  },
+  frame(f){
+    const an = Mic.keyAn(), now = performance.now(); if (!an || !Life.open) return;
+    if (Mic.heard){ an.getFloatFrequencyData(Mic.kbuf); const hz = Mic.ctx.sampleRate / an.fftSize, v = KeyFind.vec(Mic.kbuf, hz), b = KeyFind.vec(Mic.kbuf, hz, 60, 260); if (v) this.win.push({ v, b:b || new Array(12).fill(0), t:now }); }
+    while (this.win.length && now - this.win[0].t > 800) this.win.shift();     // the last 0.8 s
+    if (now - this.lastEval > 200){ this.lastEval = now; this.evalChord(); }
+    // the melody: the clearest pitch above the bass, kept for a few seconds so a riff can be caught
+    if (f > 160 && f < 1100){ const m = Math.round(f2m(f)), last = this.notes[this.notes.length - 1];
+      if (last && last.m === m && now - last.t1 < 250) last.t1 = now; else this.notes.push({ m, t0:now, t1:now }); }
+    while (this.notes.length && now - this.notes[0].t1 > 12000) this.notes.shift();
+    const cur = this.notes[this.notes.length - 1], heard = cur && now - cur.t1 < 400 ? cur.m : null;
+    if (heard !== this.heard){ this.heard = heard; this.paint(); }
+  },
+  evalChord(){
+    if (this.win.length < 6 || !Life.q || !Life.q.along) return;
+    const c = new Array(12).fill(0), bass = new Array(12).fill(0);
+    for (const x of this.win) for (let i = 0; i < 12; i++){ c[i] += x.v[i]; bass[i] += x.b[i]; }
+    const n = Math.hypot(...c) || 1, bm = Math.max(...bass) || 1;
+    const sc = this.cands.map(k => ({ k, s:k.t.reduce((a, w, i) => a + w * c[i], 0) / n * k.prior + .12 * bass[k.r] / bm })).sort((a, b) => b.s - a.s);
+    const best = sc[0];
+    if (best.s < .6 || best.s - sc[1].s < .015){ this.pendN = 0; return; }
+    if (this.pend === best.k) this.pendN++; else { this.pend = best.k; this.pendN = 1; }
+    if (this.chord) this.tally[this.chord.id] = (this.tally[this.chord.id] || 0) + 1;
+    // a new chord shows once it has held for four readings (0.8 s): fewer wrong flashes as one chord gives way to the next
+    if (this.pendN >= 4 && this.chord !== best.k){ this.chord = best.k; this.paint(); Life.hud(); }
+  },
+  // shape name (what you play with the capo) for a chord that sounds at root r
+  shape(r, q){ const sr = (r - this.pos.capo + 12) % 12; return { sr, name:chordRoot(sr) + CQ[q].sym, frets:openVoicing(sr, q).frets.map(f => f == null ? null : f + this.pos.capo) }; },
+  scaleDef(){ return ALONG_SCALES[this.minor ? 'min' : 'maj'][this.scale]; },
+  // the scale in this position: shape frets 0–4 above the capo on every string
+  cells(){
+    const [, ivs] = this.scaleDef(), c = this.pos.capo, out = [];
+    for (let s = 0; s < 6; s++) for (let f = c; f <= c + 4 && f <= FRETS; f++){ const m = midiAt(s, f), rel = (pcOf(m) - this.key + 12) % 12; if (ivs.includes(rel)) out.push({ s, f, m, t:DEGL[rel], root:rel === 0 }); }
+    return out;
+  },
+  near(m){ const C = this.cells(); return C.slice().sort((a, b) => (Math.min((a.m - m + 1200) % 12, (m - a.m + 1200) % 12) - Math.min((b.m - m + 1200) % 12, (m - b.m + 1200) % 12)) || Math.abs(a.m - m) - Math.abs(b.m - m))[0]; },
+  paint(){
+    const q = this.q; if (!q) return;
+    const P = this.pos, c = P.capo, K = keyName(this.key), [sname] = this.scaleDef();
+    q.heat = c ? ALL.map(s => ({ s, f:c })) : null;
+    q.faint = this.cells().map(x => ({ s:x.s, f:x.f, t:x.t }));
+    q.dots = []; q.rings = null;
+    if (this.chord){ const sh = this.shape(this.chord.r, this.chord.q);
+      q.rings = sh.frets.map((f, s) => f == null ? null : { s, f }).filter(Boolean);
+      q.title = `Now: <em>${sh.name}</em> shape`;
+      q.small = `Sounds as ${chordRoot(this.chord.r) + CQ[this.chord.q].sym}, the ${this.chord.lab} chord · ${P.pos} position${c ? ', capo ' + c : ''}`;
+    } else { q.title = 'Listening for the chords…'; q.small = `${this.name()} · ${P.pos} position${c ? ', capo ' + c : ''}. Play the song near the phone.`; }
+    if (this.heard != null){ const x = this.near(this.heard), rel = (pcOf(this.heard) - this.key + 12) % 12, inScale = this.scaleDef()[1].includes(rel);
+      if (x) q.dots = [{ s:x.s, f:x.f, t:inScale ? DEGL[rel] : '~' + x.t, root:x.root }]; }
+    if (this.riff){ q.faint = q.faint.filter(a => !this.riff.some(n => n.s === a.s && n.f === a.f)); this.riff.forEach(n => { if (!q.dots.some(d => d.s === n.s && d.f === n.f)) q.dots.push({ s:n.s, f:n.f, t:n.t, root:n.root }); }); }
+    const heardTxt = this.heard != null ? `Hearing ${nn(pcOf(this.heard))} (${DEGL[(pcOf(this.heard) - this.key + 12) % 12]}). ` : '';
+    const top = Object.entries(this.tally).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => this.cands.find(k => k.id === id)).filter(Boolean);
+    q.note = this.riff ? `Riff: ${this.riff.map(n => n.t).join(' · ')} (lit on the neck). Hear it, then practise it.`
+      : `${heardTxt}${top.length ? `Chords so far: ${top.map(k => `${this.shape(k.r, k.q).name} (${k.lab})`).join(', ')}.` : `Try the ${sname.toLowerCase()} in this position: land on 1, 3 or 5 when the chord changes.`}`;
+    if (Life.open && Life.q === q && performance.now() > this.msgUntil){ Life.fb = { ok:null, t:q.note }; const el = document.getElementById('lfb'); if (el){ el.className = 'lfb'; el.textContent = q.note; } }
+  },
+  name(){ return KeyFind.name(this.key, this.minor); },
+  // the last few seconds of melody, snapped to the scale in this position
+  catchRiff(){
+    const now = performance.now(), ns = this.notes.filter(n => now - n.t1 < 8000 && n.t1 - n.t0 >= 100).slice(-8);
+    if (ns.length < 2){ this.msgUntil = now + 3500; Life.fb = { ok:null, t:'No clear melody yet. Let a phrase play, then tap Catch that riff right after it.' }; Life.hud(); return; }
+    const out = []; for (const n of ns){ const x = this.near(n.m); if (x && !(out.length && out[out.length - 1].s === x.s && out[out.length - 1].f === x.f)) out.push(x); }
+    this.riff = out; this.paint(); Life.hud(); this.playRiff();
+  },
+  playRiff(){ if (this.riff) arp(this.riff.map(n => n.m), .36); },
+  practiseRiff(){
+    if (!this.riff) return; const c = this.pos.capo;
+    const q = Pos.run(this.riff.map(n => ({ m:n.m, s:n.s, f:n.f, finger:n.f - c ? Math.min(4, n.f - c) : 0, name:n.t })), { label:'name', fingerless:true, title:'Try this riff', small:'Numbers are the notes in the key: 1 is home. Play them in order.', focus:[c, c + 4], done:'That\'s the riff. Play it along with the song.' });
+    q.onStart = q.replay; q.heat = c ? ALL.map(s => ({ s, f:c })) : null; Life.q = q; Life.fb = null; Life.lock = false; Life.hud(); Life.focusQ(); setTimeout(() => { if (Life.q === q) q.replay(); }, 250);
+  },
+  cycleScale(){ const o = ['pent','major','blues']; this.scale = o[(o.indexOf(this.scale) + 1) % 3]; this.riff = null; this.paint(); Life.hud(); },
+  learnStage(){
+    const P = this.pos.pos, sc = this.scale;
+    if (sc === 'pent') return this.minor ? (P === 'G' ? 'gpent' : P === 'C' ? 'minpent' : 'hearpent') : (P === 'G' ? 'gpent' : 'hearpent');
+    if (sc === 'major') return P === 'G' ? 'gmaj' : P === 'C' ? 'cmaj' : 'dmaj';
+    return 'blue';
+  },
+  buttons(){
+    const st = LEARN.find(x => x.id === this.learnStage());
+    const B = [['riff', this.riff ? 'Catch another riff' : 'Catch that riff'], ['scale', this.scaleDef()[0]]];
+    if (st) B.push(['learnscale', `Learn: ${st.t}`]);
+    return B;
+  },
+  pad(){ return this.riff ? `<div class="pad" style="grid-template-columns:1fr 1fr"><button class="key snd" data-l="playriff">Hear the riff</button><button class="key snd" data-l="tryriff">Practise it</button></div>` : ''; },
+  act(a){
+    if (a === 'riff') this.catchRiff();
+    if (a === 'scale') this.cycleScale();
+    if (a === 'playriff') this.playRiff();
+    if (a === 'tryriff') this.practiseRiff();
+    if (a === 'learnscale'){ const id = this.learnStage(); Life.close(); S.learn.id = id; S.learn.phase = 'study'; S.learn.sel = null; Learn.detail = true; save(); go('learn'); window.scrollTo(0, 0); }
   }
 };
 const Tuner = {
@@ -3064,6 +3195,7 @@ const Tuner = {
     if (a === 'kpick'){ const [k, mi] = v.split('|'); KeyFind.res = { key:+k, minor:mi === '1', manual:true }; }
     if (a === 'kmode'){ const r = KeyFind.res && KeyFind.res.key != null ? KeyFind.res : { key:7 }; KeyFind.res = { key:r.key, minor:v === 'min', manual:true }; }
     if (a === 'khear' && KeyFind.res){ KeyFind.hearKey(KeyFind.res.key, KeyFind.res.minor); return; }
+    if (a === 'along' && KeyFind.res && KeyFind.res.key != null){ KeyFind.stop(false); Along.start(KeyFind.res.key, KeyFind.res.minor, KeyFind.positions(KeyFind.res.key, KeyFind.res.minor)[+v]); return; }
     save(); this.render();
   },
   input(e){ Metro.input(e); },
@@ -3148,6 +3280,7 @@ const Life = {
     if (this.wl){ try { this.wl.release(); } catch(e){} this.wl = null; }
     if (this.listenFn){ Mic.subs.delete(this.listenFn); this.listenFn = null; Mic.stop(); }
     this.placeBoard(false);
+    if (this.session && this.session.type === 'along') Along.stop();
     MODES[tab].render();
   },
   resize(){
@@ -3184,6 +3317,7 @@ const Life = {
   spec(){
     const ss = this.session || { type:'free' };
     if (ss.type === 'free') return { kind:'free' };
+    if (ss.type === 'along') return { kind:'along' };
     if (ss.type === 'daily') return { kind:'mix' };
     if (ss.type === 'drill') return { kind:'notes', cells:Practice.pool(), only:S.drill.type, weighted:true };
     if (ss.type === 'chordquiz') return { kind:'chords', set:Practice.quizSet().map(([r, cq]) => ({ r, cq })), recog:true };
@@ -3299,6 +3433,7 @@ const Life = {
   },
   makeQ(sp, prev){
     if (sp.kind === 'free'){ this.q = null; return; }
+    if (sp.kind === 'along'){ this.q = Along.q; return; }
     if (sp.kind === 'gen'){ this.q = KINDS[sp.st.kind].gen(sp.st, prev) || null; return; }
     if (sp.kind === 'chords'){
       const opts = sp.set.length > 1 && prev && prev.r != null ? sp.set.filter(c => !(c.r === prev.r && c.cq === prev.cq)) : sp.set;
@@ -3357,7 +3492,7 @@ const Life = {
     $('#lprompt').innerHTML = pr;
     $('#life').classList.toggle('celebrate', !!(q && q.mode === 'done'));
     const qst = q && q.stage ? LEARN.find(x => x.id === q.stage) : null;
-    const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today' + (qst ? ' · ' + qst.t : '') : ss.type === 'drill' ? 'Note drill' : ss.type === 'chordquiz' ? 'Chord quiz' : '';
+    const label = ss.type === 'learn' ? (LEARN.indexOf(ss.st) + 1) + '. ' + ss.st.t : ss.type === 'daily' ? 'Today' + (qst ? ' · ' + qst.t : '') : ss.type === 'drill' ? 'Note drill' : ss.type === 'chordquiz' ? 'Chord quiz' : ss.type === 'along' ? 'Play along · ' + Along.name() : '';
     $('#lstat').innerHTML = ss.type === 'free' ? '' : `${esc(label)}`;
     const m = $('#lmeter');
     if (q && q.lesson){ m.hidden = false; m.innerHTML = `<span>${q.trial ? 'Try it · doesn\'t count' : 'Lesson'} · step ${q.step} of ${q.of}</span><i><b style="width:${Math.round(100 * (q.step - 1) / q.of)}%"></b></i>`; }
@@ -3404,6 +3539,7 @@ const Life = {
       B.push(['listen', this.listenFn ? 'Stop listening' : 'Listen to my guitar']);
     }
     else if (q && q.mode === 'chord') B.push(['check','Check'], ['strum','Strum'], ['showme', this.showMe ? 'Hide' : 'Show me']);
+    else if (q && q.along){ B.push(...Along.buttons()); pad = Along.pad(); $('#lpad').innerHTML = pad; $('#lpad').hidden = !pad; }
     else if (q && q.mode === 'show'){ if (q.replay && !(q.sounds && q.sounds.length)) B.push(['replay','Hear it']); B.push(['next','Next']); }
     const lv = $('#lview'); lv.hidden = !!(q && q.mode === 'done'); lv.textContent = this.flat ? 'Life size' : 'Whole neck';
     lv.setAttribute('aria-label', this.flat ? 'Switch to the life-size neck' : 'Show the whole neck at once');
@@ -3905,6 +4041,7 @@ const Life = {
       if (a === 'exit') this.close();
       if (a === 'hint') this.doHint();
       if (a === 'override') this.fixWrong();
+      if (['riff','scale','learnscale','playriff','tryriff'].includes(a)) Along.act(a);
       if (a === 'snd' && this.q && this.q.sounds){ const x = this.q.sounds[+b.dataset.v]; if (x) x.fn(); }
       if (a === 'next' && this.q && this.q.mode === 'show'){ this.newQ(); this.hud(); this.focusQ(); }
       if (a === 'skip'){ clearTimeout(this.timer); this.tour = null; if (this.q && this.q.lesson && this.teach) this.ti = this.teach.length; if (this.q && this.q.mode === 'note' && this.q.phase === 'first'){ this.streak = 0; } this.newQ(); this.hud(); this.focusQ(); }
@@ -4441,7 +4578,7 @@ $('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input
 document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (Life.open && Life.flat){ Life.fitFlat(); return; } if (ensureBoard()) MODES[tab].render(); }, 120); });
-if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, Drive, KeyFind, actx: () => ac };
+if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, Drive, KeyFind, Along, actx: () => ac };
 if (DISPLAY){ TVView.boot(); return; }
 ensureBoard();
 go((location.hash || '#learn').slice(1), true);
