@@ -4,6 +4,7 @@ Learn the guitar neck in standard tuning, step by step, with a bluegrass slant.
 
 - **Learn**: about 55 stages in six phases (home and three chords, numbers in the hand, chord tones and first breaks, off-chords and roots colour, up the neck, blues and beyond), built from the research in `reports/`. Each stage starts with a short lesson the first time (the idea explained with sounds and the neck marked up, then guided tries that don't count), then the questions. Stages pass at about 90% right and come back on spaced days until mastered.
 - **Practice**: Today's practice (spaced review across every passed stage), note drill, chord quiz and a weak-spots map. All practice runs on a life-size neck (25.5" scale) where you tap or play your answers; the **Whole neck** button at the top swaps it for the normal full fretboard (handy for octave shapes and anything that spans the neck), and the choice is remembered.
+- **Drive mode** (Practice tab): hands-free ear and memory practice for the car. Fretwise asks out loud, waits while you answer out loud, then says the answer; in the iPhone app it shows on CarPlay's Now Playing screen and the steering wheel's next and previous buttons skip or repeat.
 - **Explore**: notes, chords and scales & keys on a tap-to-hear fretboard with a live piano strip.
 - **Tune**: reference tones, a needle tuner that listens through the microphone, and a boom-chuck metronome.
 

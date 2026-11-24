@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import MediaPlayer
 import WebKit
 import Capacitor
 
@@ -26,6 +27,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private var tvView: WKWebView?
     private var tvReady = false
     private var tvLatest: String?
+
+    // Drive mode: audio-only practice for the car. While it runs Fretwise is the "Now Playing" app, so
+    // CarPlay, the lock screen and Control Centre show the question, and the steering wheel's next,
+    // previous and play/pause buttons skip, repeat and pause. The page sends its state on "fwDrive".
+    private var driveOn = false
+    private var driveCommandsAdded = false
+    private lazy var driveArtwork: MPMediaItemArtwork? = {
+        guard let url = Bundle.main.url(forResource: "public/icons/icon-512", withExtension: "png"),
+              let image = UIImage(contentsOfFile: url.path) else { return nil }
+        return MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+    }()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureAudioSession()
@@ -64,8 +76,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
+    /// Drive mode plays through the car like a podcast app: playback only, not mixed with other audio,
+    /// which is what makes Fretwise the Now Playing app. Listening is never on in Drive mode.
+    func configureDriveSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .spokenAudio, options: [])
+            try session.setActive(true)
+        } catch {
+            print("Fretwise: drive audio session setup failed: \(error)")
+        }
+    }
+
     func applicationDidBecomeActive(_ application: UIApplication) {
-        configureAudioSession()
+        if driveOn { configureDriveSession() } else { configureAudioSession() }
         hookPhonePage()
         if tvWindow == nil, let screen = UIScreen.screens.dropFirst().first {
             showTV(on: screen)
@@ -86,6 +110,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func hookPhonePage() {
         guard !phoneHooked, let web = phoneWebView else { return }
         web.configuration.userContentController.add(messages, name: "fwDisplay")
+        web.configuration.userContentController.add(messages, name: "fwDrive")
         phoneHooked = true
     }
 
@@ -157,6 +182,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func received(_ message: WKScriptMessage) {
         guard let body = message.body as? String else { return }
+        if message.name == "fwDrive" {
+            drive(body)
+            return
+        }
         if message.name == "fwTV" {
             if body == "ready" {
                 tvReady = true
@@ -171,6 +200,60 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         tvLatest = body
         sendToTV(body)
+    }
+
+    // MARK: - Drive mode
+
+    /// The page sends {"on": Bool, "title", "artist", "album", "playing": Bool} whenever Drive mode changes.
+    private func drive(_ json: String) {
+        guard let data = json.data(using: .utf8),
+              let msg = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
+        let on = msg["on"] as? Bool ?? false
+        if on != driveOn {
+            driveOn = on
+            if on { startDrive() } else { stopDrive() }
+        }
+        guard on else { return }
+        let playing = msg["playing"] as? Bool ?? true
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: msg["title"] as? String ?? "Fretwise",
+            MPMediaItemPropertyArtist: msg["artist"] as? String ?? "Fretwise Drive",
+            MPMediaItemPropertyAlbumTitle: msg["album"] as? String ?? "Drive mode",
+            MPNowPlayingInfoPropertyPlaybackRate: playing ? 1.0 : 0.0,
+            MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue
+        ]
+        if let art = driveArtwork { info[MPMediaItemPropertyArtwork] = art }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
+    private func startDrive() {
+        configureDriveSession()
+        let rc = MPRemoteCommandCenter.shared()
+        if !driveCommandsAdded {
+            _ = rc.nextTrackCommand.addTarget { [weak self] _ in self?.driveCommand("next"); return .success }
+            _ = rc.previousTrackCommand.addTarget { [weak self] _ in self?.driveCommand("repeat"); return .success }
+            _ = rc.playCommand.addTarget { [weak self] _ in self?.driveCommand("play"); return .success }
+            _ = rc.pauseCommand.addTarget { [weak self] _ in self?.driveCommand("pause"); return .success }
+            _ = rc.togglePlayPauseCommand.addTarget { [weak self] _ in self?.driveCommand("toggle"); return .success }
+            driveCommandsAdded = true
+        }
+        for cmd in [rc.nextTrackCommand, rc.previousTrackCommand, rc.playCommand, rc.pauseCommand, rc.togglePlayPauseCommand] { cmd.isEnabled = true }
+        rc.skipForwardCommand.isEnabled = false
+        rc.skipBackwardCommand.isEnabled = false
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+    }
+
+    private func stopDrive() {
+        let rc = MPRemoteCommandCenter.shared()
+        for cmd in [rc.nextTrackCommand, rc.previousTrackCommand, rc.playCommand, rc.pauseCommand, rc.togglePlayPauseCommand] { cmd.isEnabled = false }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        UIApplication.shared.endReceivingRemoteControlEvents()
+        configureAudioSession()
+    }
+
+    /// A car or headphone button, passed to the page: next, repeat, play, pause or toggle.
+    private func driveCommand(_ cmd: String) {
+        phoneWebView?.evaluateJavaScript("window.__fwDrive && window.__fwDrive('\(cmd)')", completionHandler: nil)
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {

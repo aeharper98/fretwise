@@ -390,6 +390,26 @@ button.sline.danger{color:var(--bad)}
 .wdots span{width:22px;height:4px;border-radius:2px;background:var(--line)}
 .wdots span.on{background:var(--accent)}
 
+/* ---------- drive mode ---------- */
+#drive{position:fixed;inset:0;z-index:31;background:var(--bg);display:flex;flex-direction:column;gap:14px;padding:calc(10px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+#drive[hidden]{display:none}
+.dtop{display:flex;align-items:center;gap:12px}
+.dlab{font:600 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dbody{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;min-height:0;text-align:center}
+.dtopic{font:600 13px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--amber)}
+.dq{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,8vw,44px);line-height:1.08;letter-spacing:-.02em}
+.dstate{font-size:18px;color:var(--muted);min-height:1.3em}
+.dans{font-family:var(--f-display);font-weight:800;font-size:clamp(44px,15vw,84px);color:var(--good);min-height:1.1em;line-height:1}
+.dtime{height:8px;border-radius:99px;background:var(--chip);overflow:hidden;max-width:420px;width:100%;margin:0 auto;opacity:0;transition:opacity .2s}
+#drive.thinking .dtime{opacity:1}
+.dtime i{display:block;height:100%;background:var(--amber);transform-origin:left center;transform:scaleX(0)}
+.dctl{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px}
+.dbtn{height:76px;border-radius:20px;border:1px solid var(--line);background:var(--surface);font:700 19px var(--f-body);color:var(--ink);cursor:pointer}
+.dbtn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:22px}
+.dbtn:active{transform:scale(.97)}
+.dopts{display:flex;flex-direction:column;gap:8px}
+.dopts .row{justify-content:center}
+.dnote{margin:0;text-align:center;font-size:12.5px;color:var(--muted)}
 /* ---------- life-size practice ---------- */
 #life{position:fixed;inset:0;z-index:30;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #lifecv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
@@ -492,6 +512,19 @@ button.sline.danger{color:var(--bad)}
     <div class="row" style="justify-content:space-between;margin-top:18px"><button class="btn ghost" id="wskip">Skip</button><button class="btn" id="wnext">Next</button></div>
   </div>
 </div>
+<div id="drive" hidden>
+  <div class="dtop"><button class="lbtn" data-d="exit">Done</button><span class="dlab">Drive mode</span></div>
+  <div class="dbody">
+    <div class="dtopic" id="dtopic">Drive mode</div>
+    <div class="dq" id="dq"></div>
+    <div class="dstate" id="dstate"></div>
+    <div class="dans" id="dans"></div>
+    <div class="dtime"><i id="dbar"></i></div>
+  </div>
+  <div class="dctl"><button class="dbtn" data-d="repeat">Repeat</button><button class="dbtn main" data-d="toggle" id="dtog">Pause</button><button class="dbtn" data-d="next">Next</button></div>
+  <div class="dopts"><div class="row" id="dtopics"></div><div class="row" id="dthink"></div></div>
+  <p class="dnote">Audio only: answer out loud. Don't read the screen or play the guitar while driving.</p>
+</div>
 <div id="life" hidden>
   <div class="lflat" id="lflat"></div>
   <canvas id="lifecv" aria-label="Life-size guitar neck. Swipe to slide along it, tap a string to play."></canvas>
@@ -543,6 +576,7 @@ const DEF = {
   chords:{ root:0, q:'maj', v:0, labels:'int', map:false, mode:'study', quizQ:['maj','min','7'] },
   life:{ k:null, zoom:1, flat:false, src:'stage', where:'any', nat:true, maxFret:12, labels:false, chords:['7|maj','0|maj','2|maj','9|maj','4|maj'] },
   tuner:{ tuning:'standard', loop:false },
+  drive:{ topic:'mix', think:5 },
   scales:{ root:9, scale:'minpent', labels:'int', sevenths:false, chordSel:null }
 };
 const saved = store.get('fretwise.settings', {});
@@ -670,7 +704,7 @@ const IS_NATIVE = !!(window.Capacitor && (typeof window.Capacitor.isNativePlatfo
 if (IS_NATIVE){ const vp = document.querySelector('meta[name=viewport]'); if (vp) vp.content = 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover'; document.documentElement.style.touchAction = 'manipulation'; }
 ['gesturestart','gesturechange'].forEach(ev => document.addEventListener(ev, e => { if (IS_NATIVE || (typeof Life !== 'undefined' && Life.open)) e.preventDefault(); }, { passive:false }));
 function setSession(type){ try { if (navigator.audioSession && navigator.audioSession.type !== type) navigator.audioSession.type = type; } catch(e){} }
-function wantSession(){ return IS_NATIVE || (typeof Mic !== 'undefined' && Mic.used) ? 'play-and-record' : 'playback'; }
+function wantSession(){ if (typeof Drive !== 'undefined' && Drive.on) return 'playback'; return IS_NATIVE || (typeof Mic !== 'undefined' && Mic.used) ? 'play-and-record' : 'playback'; }
 function unlockAudio(){
   if (!S.sound) return;
   setSession(wantSession());
@@ -921,6 +955,7 @@ const toggle = (act, label, on) => chip(act, '', label, on);
 
 /* ---------- icons and page layout ---------- */
 const IC = {
+  wheel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.4"/><path d="M3.6 10.5c3 .9 5.6.9 8.4.9s5.4 0 8.4-.9M10 14l-3.2 6.2M14 14l3.2 6.2"/></svg>',
   play:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 2.6v10.8L13.2 8z" fill="currentColor"/></svg>',
   check:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.4 6.4l2.4 2.3 4.8-5.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chev:'<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1057,6 +1092,11 @@ const Practice = {
           <p class="hint">${this.quizSet().map(([r, q]) => chordRoot(r) + CQ[q].sym).join(' · ')}</p>
           <div class="acts"><button class="btn" data-act="cquiz">${IC.play} Start quiz</button></div>
         </div>
+        <div class="pcard">
+          <div class="top"><span class="ic">${IC.wheel}</span><div><h3>Drive mode</h3><p>Hands-free practice for the car, like a podcast you answer out loud: Fretwise asks, gives you a few seconds, then says the answer. Numbers and chord changes by ear, notes on the neck, keys and chords.</p></div></div>
+          <p class="hint">With CarPlay or Bluetooth it plays through the car and shows the question on the car's Now Playing screen; the steering wheel's next and previous buttons skip or repeat. Keep Fretwise open on the phone. Never play the guitar or read the screen while driving.</p>
+          <div class="acts"><button class="btn" data-act="drive">${IC.play} Start Drive mode</button></div>
+        </div>
       </div>
       <div class="sechead"><h3>Weak spots</h3><span>${n ? `${Math.round(100 * ok / n)}% right over ${n} answers` : 'Fills in as you practice'}</span></div>`;
     $('#panel').innerHTML = `<div class="card stack">
@@ -1071,6 +1111,7 @@ const Practice = {
     if (a === 'today'){ Life.start({ type:'daily' }); return; }
     if (a === 'dstart'){ if (!this.pool().length){ toast('No notes match these settings. Turn on more strings or widen the frets.'); return; } save(); Life.start({ type:'drill' }); return; }
     if (a === 'cquiz'){ save(); Life.start({ type:'chordquiz' }); return; }
+    if (a === 'drive'){ save(); Drive.start(); return; }
     if (a === 'cqq'){ const q = S.practice.cq; S.practice.cq = q.includes(v) ? (q.length > 1 ? q.filter(x => x !== v) : q) : q.concat([v]); }
     if (a === 'type') d.type = v;
     if (a === 'str'){ const s = +v; if (d.strings.includes(s)){ if (d.strings.length > 1) d.strings = d.strings.filter(x => x !== s); } else d.strings = [...d.strings, s].sort(); }
@@ -3951,6 +3992,163 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet
    In the iPhone app, a TV gets its own window running this page in display mode (window.__FW_DISPLAY).
    The phone stays the controller and sends a small snapshot of what's on screen about eight times a
    second; the native side passes it to the TV page, which draws the whole neck, piano and prompt big. */
+/* ================= DRIVE MODE ================= */
+// Audio-only practice for the car, like a podcast you answer out loud: Fretwise asks, plays the sounds,
+// waits while you say your answer, then says it. In the app it is the Now Playing app while this runs
+// (AppDelegate, "fwDrive"), so CarPlay shows the question and the steering wheel skips and repeats.
+const DSTOP = { stop:true };
+const SAYL = { A:'ay', B:'bee', C:'see', D:'dee', E:'ee', F:'eff', G:'gee' };
+const sayNote = n => SAYL[n[0]] + (n.includes('♯') ? ' sharp' : n.includes('♭') ? ' flat' : '');
+const sayChord = (r, q) => sayNote(chordRoot(r)) + (q === 'min' ? ' minor' : q === '7' ? ' seven' : '');
+const NUMW = ['zero','one','two','three','four','five','six','seven','eight'], ORDW = ['second','third','fourth','fifth','sixth','seventh'];
+const STRW = ['Sixth','Fifth','Fourth','Third','Second','First'];
+const DRIVE_TOPICS = [['mix','Mix'], ['ear','Numbers by ear'], ['changes','Chord changes'], ['notes','Name the note'], ['keys','Keys and chords']];
+const Drive = {
+  on:false, paused:false, gen:0, q:null, phase:'', wl:null,
+  start(){
+    if (Life.open) Life.close();
+    this.on = true; this.paused = false; this.q = null;
+    actx(); setSession('playback'); if (silentEl) silentEl.pause(); if (ac && ac.state !== 'running') ac.resume().catch(() => {});
+    $('#drive').hidden = false; document.body.style.overflow = 'hidden';
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { this.wl = l; }).catch(() => {}); } catch(e){}
+    this.opts(); this.post(); this.run();
+  },
+  stop(){
+    this.gen++; this.on = false; this.paused = false; this.q = null; this.hush();
+    $('#drive').hidden = true; document.body.style.overflow = '';
+    if (this.wl){ try { this.wl.release(); } catch(e){} this.wl = null; }
+    this.post(); setSession(wantSession()); if (silentEl && S.sound) silentEl.play().catch(() => {});
+  },
+  hush(){ try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e){} },
+  // the question loop; a new run cancels the old one (next, repeat, pause, a new topic)
+  async run(first){
+    const g = ++this.gen; this.hush();
+    try {
+      let q = first || this.make();
+      for (;;){
+        this.q = q;
+        this.phase = 'ask'; this.draw(); this.post();
+        await q.ask(g);
+        this.phase = 'think'; this.draw();
+        await this.wait(S.drive.think * 1000, g, true);
+        this.phase = 'answer'; this.draw(); this.post();
+        await q.reveal(g);
+        await this.wait(900, g);
+        q = this.make();
+      }
+    } catch(e){ if (e !== DSTOP) console.error(e); }
+  },
+  next(){ if (!this.on) return; this.paused = false; this.run(); },
+  repeat(){ if (!this.on || !this.q) return; this.paused = false; this.run(this.q); },
+  pause(){ if (!this.on || this.paused) return; this.paused = true; this.gen++; this.hush(); this.draw(); this.post(); },
+  resume(){ if (!this.on || !this.paused) return; this.paused = false; this.run(this.q || undefined); },
+  toggle(){ if (this.paused) this.resume(); else this.pause(); },
+  wait(ms, g, count){
+    return new Promise((res, rej) => {
+      const t0 = performance.now();
+      const tick = () => { if (g !== this.gen) return rej(DSTOP); const el = performance.now() - t0;
+        if (count){ const b = document.getElementById('dbar'); if (b) b.style.transform = `scaleX(${Math.max(0, 1 - el / ms).toFixed(3)})`; }
+        if (el >= ms) return res(); setTimeout(tick, 50); };
+      tick();
+    });
+  },
+  say(text, g){
+    return new Promise((res, rej) => {
+      if (g !== this.gen) return rej(DSTOP);
+      let done = false;
+      const fin = ok => { if (done) return; done = true; clearInterval(iv); if (ok && g === this.gen) res(); else rej(DSTOP); };
+      const iv = setInterval(() => { if (g !== this.gen){ this.hush(); fin(false); } }, 80);
+      setTimeout(() => fin(true), 1800 + text.length * 85);           // in case the voice never says it finished
+      const T = window.speechSynthesis;
+      if (!T || !window.SpeechSynthesisUtterance || !S.sound){ setTimeout(() => fin(true), 500 + text.length * 45); return; }
+      try { const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 1; u.onend = () => fin(true); u.onerror = () => fin(true); T.speak(u); }
+      catch(e){ setTimeout(() => fin(true), 400); }
+    });
+  },
+  // ---- questions, drawn from what you've passed
+  make(){
+    const t = S.drive.topic === 'mix' ? pick(['ear','changes','notes','keys']) : S.drive.topic;
+    return this[t]();
+  },
+  ear(){
+    const d0 = learnProg.done, ds = d0.hearscale ? [1,2,3,4,5,6,7] : d0.hearpent ? [1,2,3,5,6] : [1,3,5];
+    const key = pick([7, 2, 9, 0]), K = keyName(key), d = pick(notPrev(ds, x => this.q && this.q.deg === x)), m = degMidi(key, d), nm = spell(K, String(d));
+    return { topic:'Numbers by ear', deg:d, title:`Key of ${K}: which number?`, answer:`${d} (${nm})`,
+      ask:async g => { await this.say(`Key of ${sayNote(K)}. Which number is this?`, g); const t = cadence(key); await this.wait(t * 1000, g); play(m, 0, 1); await this.wait(1500, g); },
+      reveal:async g => { await this.say(`That was ${NUMW[d]}. ${sayNote(nm)}.`, g); play(m, 0, 1); if (d !== 1) play(tonicMidi(key), .75, 1); await this.wait(1800, g); } };
+  },
+  changes(){
+    const d0 = learnProg.done, opts = [['1','one'], ['4','four'], ['5','five']];
+    if (d0.ear2) opts.push(['6m','six minor']); if (d0.offchord) opts.push(['2','two'], ['b7','flat seven']);
+    const key = pick([7, 2, 9, 0]), K = keyName(key), [v, w] = pick(opts), [off, q] = PROG[v], r = (key + off) % 12;
+    const I = Chords.midis(openVoicing(key, 'maj')), X = Chords.midis(openVoicing(r, q)), hear = () => { strum(I, .03, .05); strum(X, .03, 1.3); };
+    return { topic:'Chord changes', title:`Key of ${K}: the 1, then which chord?`, answer:`${progLabel(v)} (${chordRoot(r) + CQ[q].sym})`,
+      ask:async g => { await this.say(`Key of ${sayNote(K)}. The one chord, then a change.`, g); hear(); await this.wait(2700, g); },
+      reveal:async g => { await this.say(`The ${w} chord: ${sayChord(r, q)}.`, g); hear(); await this.wait(2600, g); } };
+  },
+  notes(){
+    let cells = LEARN.filter(st => st.kind === 'notes' && !st.pcs && learnProg.done[st.id]).flatMap(st => Learn.pool(st));
+    if (!cells.length) cells = cellsIn(ALL, 0, 3).filter(c => NAT[pcOf(midiAt(c.s, c.f))]);
+    const c = pick(cells), m = midiAt(c.s, c.f), pc = pcOf(m);
+    return { topic:'Name the note', title:`${SORD[c.s]} string, ${c.f ? 'fret ' + c.f : 'open'}: what note?`, answer:both(pc),
+      ask:async g => { await this.say(`${STRW[c.s]} string, ${c.f ? 'fret ' + c.f : 'open'}. What note?`, g); },
+      reveal:async g => { await this.say(NAT[pc] ? `${sayNote(SH[pc])}.` : `${sayNote(SH[pc])}, also called ${sayNote(FL[pc])}.`, g); play(m, 0, 1); await this.wait(1300, g); } };
+  },
+  keys(){
+    const d0 = learnProg.done, kinds = ['step'];
+    if (d0.majscale || d0.cmaj || d0.gmaj) kinds.push('spell', 'spell');
+    if (d0.num1) kinds.push('chord');
+    if (d0.capo) kinds.push('capo');
+    if (d0.tones) kinds.push('tone');
+    const k = pick(kinds), Q = (title, spoken, answer, said, sound) => ({ topic:'Keys and chords', title, answer,
+      ask:async g => { await this.say(spoken, g); }, reveal:async g => { await this.say(said, g); if (sound) sound(); await this.wait(1400, g); } });
+    if (k === 'spell'){ const key = pick([0, 7, 2, 9, 4, 5]), K = keyName(key), d = 2 + rand(6), nm = spell(K, String(d));
+      return Q(`${K} major: the ${ORDW[d - 2]} note?`, `In ${sayNote(K)} major, what's the ${ORDW[d - 2]} note?`, nm, `${sayNote(nm)}.`, () => arp([1,2,3,4,5,6,7].slice(0, d).map(x => degMidi(key, x)), .22)); }
+    if (k === 'chord'){ const key = pick([7, 0, 2, 9]), K = keyName(key), ds = d0.num2 ? [4, 5, 2, 6] : [4, 5], d = pick(ds), r = (key + MAJ_SEMI[d]) % 12, q = DEG_Q[d];
+      return Q(`In ${K}, the ${DEG_R[d]} chord?`, `In ${sayNote(K)}, what's the ${NUMW[d]}${q === 'min' ? ' minor' : ''} chord?`, chordRoot(r) + CQ[q].sym, `${sayChord(r, q)}.`, () => strum(Chords.midis(openVoicing(r, q)))); }
+    if (k === 'capo'){ const sh = pick([7, 0, 2, 9]), c = 1 + rand(5), key = (sh + c) % 12;
+      return Q(`${keyName(sh)} shapes, capo ${c}: what key?`, `${sayNote(keyName(sh))} shapes, capo on fret ${NUMW[c]}. What key?`, keyName(key), `${sayNote(keyName(key))}.`, () => strum(Chords.midis(openVoicing(sh, 'maj')).map(m => m + c))); }
+    if (k === 'tone'){ const r = pick([7, 0, 2, 9, 4]), iv = pick(['3', '5']), nm = spell(chordRoot(r), iv);
+      return Q(`The ${iv === '3' ? '3rd' : '5th'} of ${chordRoot(r)}?`, `What's the ${iv === '3' ? 'third' : 'fifth'} of ${sayNote(chordRoot(r))}?`, nm, `${sayNote(nm)}.`, () => strum(Chords.midis(openVoicing(r, 'maj')))); }
+    const pc = pick([0, 2, 4, 5, 7, 9, 11]), up = Math.random() < .6, n = Math.random() < .5 ? 2 : 1, ans = (pc + (up ? n : -n) + 12) % 12, said = NAT[ans] ? sayNote(SH[ans]) : `${sayNote(SH[ans])}, or ${sayNote(FL[ans])}`;
+    return Q(`A ${n === 2 ? 'whole' : 'half'} step ${up ? 'up' : 'down'} from ${SH[pc]}?`, `A ${n === 2 ? 'whole' : 'half'} step ${up ? 'up' : 'down'} from ${sayNote(SH[pc])}?`, both(ans), `${said}.`, () => { play(48 + pc); play(48 + ans, .45); });
+  },
+  // ---- screen and Now Playing
+  draw(){
+    const q = this.q;
+    $('#dtopic').textContent = q ? q.topic : 'Drive mode';
+    $('#dq').textContent = q ? q.title : '';
+    $('#dstate').textContent = this.paused ? 'Paused' : this.phase === 'ask' ? 'Listen…' : this.phase === 'think' ? 'Say your answer out loud' : '';
+    $('#dans').textContent = !this.paused && this.phase === 'answer' && q ? q.answer : '';
+    $('#dtog').textContent = this.paused ? 'Play' : 'Pause';
+    $('#drive').classList.toggle('thinking', this.phase === 'think' && !this.paused);
+    if (this.phase !== 'think'){ const b = document.getElementById('dbar'); if (b) b.style.transform = 'scaleX(0)'; }
+  },
+  opts(){
+    $('#dtopics').innerHTML = DRIVE_TOPICS.map(([v, l]) => `<button class="chip" data-d="topic" data-v="${v}" aria-pressed="${S.drive.topic === v}">${l}</button>`).join('');
+    $('#dthink').innerHTML = `<span class="lbl" style="margin:0">Time to answer</span>` + [3, 5, 8].map(n => `<button class="chip sq" data-d="think" data-v="${n}" aria-pressed="${S.drive.think === n}">${n}s</button>`).join('');
+  },
+  post(){
+    const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.fwDrive; if (!h) return;
+    const q = this.q, title = !q ? 'Drive mode' : this.phase === 'answer' ? `${q.title} ${q.answer}` : q.title;
+    try { h.postMessage(JSON.stringify(this.on ? { on:true, title, artist:'Fretwise Drive', album:q ? q.topic : 'Drive mode', playing:!this.paused } : { on:false })); } catch(e){}
+  },
+  bind(){
+    $('#drive').addEventListener('click', e => {
+      const b = e.target.closest('[data-d]'); if (!b) return; const a = b.dataset.d;
+      if (a === 'exit') this.stop();
+      if (a === 'next') this.next();
+      if (a === 'repeat') this.repeat();
+      if (a === 'toggle') this.toggle();
+      if (a === 'topic'){ S.drive.topic = b.dataset.v; save(); this.opts(); this.next(); }
+      if (a === 'think'){ S.drive.think = +b.dataset.v; save(); this.opts(); }
+    });
+    // locking the phone or leaving the app pauses; car and headphone buttons arrive from the app
+    document.addEventListener('visibilitychange', () => { if (!this.on) return; if (document.visibilityState === 'hidden') this.pause(); else { setSession('playback'); try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { this.wl = l; }).catch(() => {}); } catch(e){} } });
+    window.__fwDrive = cmd => { if (!this.on) return; ({ next:() => this.next(), repeat:() => this.repeat(), play:() => this.resume(), pause:() => this.pause(), toggle:() => this.toggle() }[cmd] || (() => {}))(); };
+  }
+};
+
 const TV = {
   on:false, timer:0, last:'', snd:[],
   link(){ const w = window.webkit; return w && w.messageHandlers && w.messageHandlers.fwDisplay; },
@@ -4067,6 +4265,7 @@ const DISPLAY = !!window.__FW_DISPLAY || /[?&]display\b/.test(location.search);
 const MODES = { learn:Learn, practice:Practice, explore:ExploreTab, tune:Tuner };
 const ALIAS = { drill:'practice', chords:'explore', scales:'explore', tuner:'tune', life:'explore' };
 Life.bind();
+Drive.bind();
 function renderStreak(){
   const el = $('#daystreak'); if (!el) return;
   const n = dayStreak(), t = days[todayKey()] || 0;
@@ -4096,7 +4295,7 @@ $('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input
 document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (Life.open && Life.flat){ Life.fitFlat(); return; } if (ensureBoard()) MODES[tab].render(); }, 120); });
-if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, actx: () => ac };
+if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, Drive, actx: () => ac };
 if (DISPLAY){ TVView.boot(); return; }
 ensureBoard();
 go((location.hash || '#learn').slice(1), true);
