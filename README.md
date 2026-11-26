@@ -8,6 +8,8 @@ Learn the guitar neck in standard tuning, step by step, with a bluegrass slant.
 - **Explore**: notes, chords and scales & keys on a tap-to-hear fretboard with a live piano strip.
 - **Tune**: reference tones, a needle tuner that listens through the microphone, a boom-chuck metronome, and a key finder that listens to a song and says where to put the capo for G, C or D shapes, then plays along: it shows the chord shapes it hears for your capo, the scale's numbers on the neck, and catches a riff for you to practise.
 
+- **Mac app**: the same Fretwise in a resizable Mac window, with a menu bar (Cmd-1 to Cmd-4 for the tabs, Cmd-K to find a song's key and play along). Practice starts on the whole neck. Progress (passed stages, lessons, re-checks, daily practice, note stats and your onboarding answers) syncs between the iPhone and Mac apps through iCloud when both are signed in to the same Apple Account.
+
 Live site: https://aeharper98.github.io/fretwise/
 
 ## Layout
@@ -20,10 +22,12 @@ web/                  the app (plain HTML/CSS/JS, no build step)
   icons/              app icons, 1024px master included
   privacy.html        privacy policy for the App Store listing
 ios/                  Capacitor iOS project (Swift Package Manager, iPhone only, portrait)
+mac/                  Mac app: AppKit window around web/ (Xcode project generated from project.yml)
+ci/                   helpers for the TestFlight workflow (App Store Connect API, signing checks)
 capacitor.config.json bundle ID com.aeharper98.fretwise, serves web/
 .github/workflows/
   pages.yml           website deploy on every push to main
-  testflight.yml      builds the iPhone app on a GitHub Mac and uploads it to TestFlight
+  testflight.yml      builds the iPhone and Mac apps on a GitHub Mac and uploads them to TestFlight
 ```
 
 ## Run locally
@@ -40,7 +44,8 @@ In the iPhone app, AirPlay Screen Mirroring (Control Centre, Screen Mirroring, p
 
 ## Shipping to TestFlight
 
-The **Build for TestFlight** workflow runs from the Actions tab (Run workflow) or when a `v*` tag is pushed.
+The **Build for TestFlight** workflow runs from the Actions tab (Run workflow, then pick iPhone, Mac or both)
+or when a `v*` tag is pushed.
 It needs four repository secrets (Settings > Secrets and variables > Actions):
 
 | Secret | Where it comes from |
@@ -52,6 +57,15 @@ It needs four repository secrets (Settings > Secrets and variables > Actions):
 
 The key needs the **Admin** role so Xcode can create the distribution certificate and profile automatically.
 Build numbers come from the workflow run number; bump `MARKETING_VERSION` in the Xcode project for a new version.
+
+The Mac app shares the iPhone app's bundle ID and App Store Connect record (universal purchase). Before
+its first upload, add the platform once: App Store Connect > Apps > Fretwise > Add Platform (the + next to
+iOS App) > macOS. Mac builds then show up in TestFlight for Mac. The workflow turns on iCloud for the
+app ID itself (needed for progress sync); if that ever fails, builds still ship without sync and the run
+shows a warning.
+
+To build the Mac app on a Mac: `brew install xcodegen && xcodegen generate --spec mac/project.yml`, then
+open `mac/Fretwise.xcodeproj`.
 
 Native details: `ios/App/App/AppDelegate.swift` sets the audio session to play-and-record on the
 loudspeaker (works with the silent switch on); `Info.plist` holds the microphone permission text.

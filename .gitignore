@@ -5,3 +5,4 @@ node_modules/
 *.p12
 .env
 research_notes/
+mac/*.xcodeproj

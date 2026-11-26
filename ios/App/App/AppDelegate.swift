@@ -39,12 +39,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return MPMediaItemArtwork(boundsSize: image.size) { _ in image }
     }()
 
+    // Progress sync with the Mac app: the page keeps progress in localStorage and mirrors it to iCloud
+    // key-value storage on "fwSync" ({"op":"hello"} or {"op":"put","key","value"}); iCloud's values go
+    // back to the page through window.__fwSyncIn, which merges them. The Mac app does the same.
+    private let cloud = NSUbiquitousKeyValueStore.default
+    private let syncKeys = ["learn", "days", "stats", "prefs"]
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         configureAudioSession()
         messages.delegate = self
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(screenDidConnect(_:)), name: UIScreen.didConnectNotification, object: nil)
         center.addObserver(self, selector: #selector(screenDidDisconnect(_:)), name: UIScreen.didDisconnectNotification, object: nil)
+        center.addObserver(self, selector: #selector(cloudChanged(_:)), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: cloud)
+        cloud.synchronize()
         return true
     }
 
@@ -91,6 +99,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(_ application: UIApplication) {
         if driveOn { configureDriveSession() } else { configureAudioSession() }
         hookPhonePage()
+        cloud.synchronize()
+        sendCloudToPage(nil)
         if tvWindow == nil, let screen = UIScreen.screens.dropFirst().first {
             showTV(on: screen)
         }
@@ -111,6 +121,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard !phoneHooked, let web = phoneWebView else { return }
         web.configuration.userContentController.add(messages, name: "fwDisplay")
         web.configuration.userContentController.add(messages, name: "fwDrive")
+        web.configuration.userContentController.add(messages, name: "fwSync")
         phoneHooked = true
     }
 
@@ -182,6 +193,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func received(_ message: WKScriptMessage) {
         guard let body = message.body as? String else { return }
+        if message.name == "fwSync" {
+            sync(body)
+            return
+        }
         if message.name == "fwDrive" {
             drive(body)
             return
@@ -200,6 +215,37 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         tvLatest = body
         sendToTV(body)
+    }
+
+    // MARK: - Progress sync
+
+    private func sync(_ json: String) {
+        guard let data = json.data(using: .utf8),
+              let msg = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let op = msg["op"] as? String else { return }
+        if op == "hello" {
+            cloud.synchronize()
+            sendCloudToPage(nil)
+        } else if op == "put", let key = msg["key"] as? String, syncKeys.contains(key), let value = msg["value"] as? String {
+            if cloud.string(forKey: key) != value { cloud.set(value, forKey: key) }
+        }
+    }
+
+    @objc private func cloudChanged(_ note: Notification) {
+        let keys = note.userInfo?[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String]
+        DispatchQueue.main.async { self.sendCloudToPage(keys) }
+    }
+
+    /// Hands iCloud's copy of the given keys (all of them for nil) to the page, which merges it.
+    private func sendCloudToPage(_ keys: [String]?) {
+        guard let web = phoneWebView else { return }
+        var values: [String: String] = [:]
+        for key in keys ?? syncKeys where syncKeys.contains(key) {
+            if let value = cloud.string(forKey: key) { values[key] = value }
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: values),
+              let json = String(data: data, encoding: .utf8) else { return }
+        web.callAsyncJavaScript("if (window.__fwSyncIn) window.__fwSyncIn(JSON.parse(s));", arguments: ["s": json], in: nil, in: .page, completionHandler: nil)
     }
 
     // MARK: - Drive mode

@@ -1,8 +1,14 @@
 name: Build for TestFlight
 
-# Run by hand from the Actions tab, or by pushing a tag like v1.0.0.
+# Run by hand from the Actions tab (choose iPhone, Mac or both), or by pushing a tag like v1.0.0.
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Which app to build
+        type: choice
+        options: [both, ios, mac]
+        default: both
   push:
     tags: ['v*']
 
@@ -10,8 +16,12 @@ concurrency:
   group: testflight
   cancel-in-progress: false
 
+env:
+  BUNDLE_ID: com.aeharper98.fretwise
+
 jobs:
   ios:
+    if: inputs.platform != 'mac'
     runs-on: macos-latest
     timeout-minutes: 45
     env:
@@ -48,10 +58,17 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
           printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8"
+          echo "ASC_KEY_PATH=$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8" >> "$GITHUB_ENV"
+
+      # Progress sync between the iPhone and Mac apps uses iCloud key-value storage, which the
+      # app's identifier has to allow before a profile can carry the entitlement.
+      - name: Turn on iCloud for the app ID
+        continue-on-error: true   # without it the build still ships, just without progress sync
+        run: python3 ci/asc.py icloud "$BUNDLE_ID"
 
       # Build the archive unsigned. Signing it here made Xcode create a new Apple Development
-      # certificate on every fresh runner until the account hit Apple's limit. The export step
-      # below signs for the App Store with Apple's cloud-managed distribution certificate.
+      # certificate on every fresh runner until the account hit Apple's limit. The export steps
+      # below sign for the App Store with Apple's cloud-managed distribution certificate.
       - name: Archive
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
@@ -64,30 +81,185 @@ jobs:
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             archive
 
-      - name: Sign and upload to TestFlight
+      # An unsigned app has no entitlements for the export to keep, so sign it ad hoc with them first.
+      - name: Add the entitlements
         run: |
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          cp -R "$RUNNER_TEMP/Fretwise.xcarchive" "$RUNNER_TEMP/Fretwise-unsigned.xcarchive"
+          ci/presign.sh "$RUNNER_TEMP/Fretwise.xcarchive" ios/App/App/App.entitlements
+
+      - name: Sign for the App Store and check the entitlements
+        run: |
+          write_options() {
+            cat > "$RUNNER_TEMP/ExportOptions-$1.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
+            <key>destination</key><string>$1</string>
             <key>teamID</key><string>$APPLE_TEAM_ID</string>
             <key>signingStyle</key><string>automatic</string>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict>
           </plist>
           PLIST
+          }
+          write_options export
+          write_options upload
+          export_to() {
+            rm -rf "$RUNNER_TEMP/export"
+            xcodebuild -exportArchive \
+              -archivePath "$1" \
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions-export.plist" \
+              -exportPath "$RUNNER_TEMP/export" \
+              -allowProvisioningUpdates \
+              -authenticationKeyPath "$ASC_KEY_PATH" \
+              -authenticationKeyID "$ASC_KEY_ID" \
+              -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          }
+          ARCHIVE="$RUNNER_TEMP/Fretwise.xcarchive"
+          if ! export_to "$ARCHIVE"; then
+            echo "::warning::Signing with the iCloud entitlement failed (see above). Shipping this build without progress sync."
+            ARCHIVE="$RUNNER_TEMP/Fretwise-unsigned.xcarchive"
+            export_to "$ARCHIVE"
+          fi
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+          ci/check-entitlements.sh "$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)" '?com.apple.developer.ubiquity-kvstore-identifier'
+
+      - name: Upload to TestFlight
+        run: |
           xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/Fretwise.xcarchive" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            -exportPath "$RUNNER_TEMP/export" \
+            -archivePath "$ARCHIVE" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions-upload.plist" \
+            -exportPath "$RUNNER_TEMP/upload" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8" \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
-          echo "Uploaded build ${{ github.run_number }}. It appears in TestFlight after Apple finishes processing (usually 5–30 minutes)."
+          echo "Uploaded iPhone build ${{ github.run_number }}. It appears in TestFlight after Apple finishes processing (usually 5–30 minutes)."
+
+      - name: Remove the key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
+
+  mac:
+    if: inputs.platform != 'ios'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    steps:
+      - name: Check that the Apple secrets are set
+        run: |
+          missing=0
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 APPLE_TEAM_ID; do
+            if [ -z "${!v}" ]; then echo "::error::Add the repository secret $v (Settings > Secrets and variables > Actions)."; missing=1; fi
+          done
+          exit $missing
+
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # The Mac app is a window around the same web/ folder; its Xcode project is generated from mac/project.yml.
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate --spec mac/project.yml
+
+      - name: Write the App Store Connect key
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8"
+          echo "ASC_KEY_PATH=$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8" >> "$GITHUB_ENV"
+
+      # Same app record and bundle ID as the iPhone app (universal purchase), so App Store Connect
+      # needs the macOS platform added to it once, by hand.
+      - name: Check the App Store Connect app record
+        continue-on-error: true
+        run: |
+          python3 ci/asc.py icloud "$BUNDLE_ID"
+          python3 ci/asc.py macos "$BUNDLE_ID"
+
+      - name: Archive
+        run: |
+          xcodebuild -project mac/Fretwise.xcodeproj -scheme Fretwise -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/FretwiseMac.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            archive
+
+      - name: Add the entitlements
+        run: |
+          cp -R "$RUNNER_TEMP/FretwiseMac.xcarchive" "$RUNNER_TEMP/FretwiseMac-unsigned.xcarchive"
+          ci/presign.sh "$RUNNER_TEMP/FretwiseMac.xcarchive" mac/Fretwise/Fretwise.entitlements
+
+      - name: Sign for the Mac App Store and check the entitlements
+        run: |
+          write_options() {
+            cat > "$RUNNER_TEMP/ExportOptions-$1.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>$1</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+          }
+          write_options export
+          write_options upload
+          export_to() {
+            rm -rf "$RUNNER_TEMP/export"
+            xcodebuild -exportArchive \
+              -archivePath "$1" \
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions-export.plist" \
+              -exportPath "$RUNNER_TEMP/export" \
+              -allowProvisioningUpdates \
+              -authenticationKeyPath "$ASC_KEY_PATH" \
+              -authenticationKeyID "$ASC_KEY_ID" \
+              -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          }
+          ARCHIVE="$RUNNER_TEMP/FretwiseMac.xcarchive"
+          if ! export_to "$ARCHIVE"; then
+            echo "::warning::Signing with the iCloud entitlement failed (see above). Trying without progress sync."
+            ARCHIVE="$RUNNER_TEMP/FretwiseMac-unsigned.xcarchive"
+            cp mac/Fretwise/Fretwise.entitlements "$RUNNER_TEMP/nosync.entitlements"
+            /usr/libexec/PlistBuddy -c 'Delete :com.apple.developer.ubiquity-kvstore-identifier' "$RUNNER_TEMP/nosync.entitlements"
+            ci/presign.sh "$ARCHIVE" "$RUNNER_TEMP/nosync.entitlements"
+            export_to "$ARCHIVE"
+          fi
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+          ls -la "$RUNNER_TEMP/export"
+          ci/check-entitlements.sh "$(ls "$RUNNER_TEMP"/export/*.pkg | head -1)" \
+            com.apple.security.app-sandbox com.apple.security.device.audio-input com.apple.security.network.client \
+            '?com.apple.developer.ubiquity-kvstore-identifier'
+
+      - name: Upload to TestFlight
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions-upload.plist" \
+            -exportPath "$RUNNER_TEMP/upload" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          echo "Uploaded Mac build ${{ github.run_number }}. It appears in TestFlight for Mac after Apple finishes processing."
 
       - name: Remove the key
         if: always()

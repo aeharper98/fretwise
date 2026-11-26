@@ -587,7 +587,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 /* ---------- storage ---------- */
 const store = {
   get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} if (store.onSet) store.onSet(k); },
+  onSet:null   // set by Sync in the iPhone and Mac apps
 };
 const DEF = {
   acc:'sharp', color:true, sound:true, labels:'all',
@@ -608,6 +609,9 @@ let tab = 'learn';
 if (!S.life.chords) S.life.chords = ['7|maj','0|maj','2|maj','9|maj','4|maj'];
 // The old in-page whole-neck practice became the whole-neck option of the practice screen.
 if (S.learn.view === 'classic'){ S.learn.view = 'life'; S.life.flat = true; }
+// The Mac app (mac/) sets __FW_MAC. A life-size neck means nothing on a Mac screen, so practice starts on the whole neck.
+const MAC = !!window.__FW_MAC;
+if (MAC && !saved.life) S.life.flat = true;
 const save = () => store.set('fretwise.settings', S);
 const stats = store.get('fretwise.stats', { c:{}, best:0, chordBest:0 });
 const saveStats = () => store.set('fretwise.stats', stats);
@@ -1114,11 +1118,11 @@ const Practice = {
           <p class="hint">${this.quizSet().map(([r, q]) => chordRoot(r) + CQ[q].sym).join(' · ')}</p>
           <div class="acts"><button class="btn" data-act="cquiz">${IC.play} Start quiz</button></div>
         </div>
-        <div class="pcard">
+        ${MAC ? '' : `        <div class="pcard">
           <div class="top"><span class="ic">${IC.wheel}</span><div><h3>Drive mode</h3><p>Hands-free practice for the car, like a podcast you answer out loud: Fretwise asks, gives you a few seconds, then says the answer. Numbers and chord changes by ear, notes on the neck, keys and chords.</p></div></div>
           <p class="hint">With CarPlay or Bluetooth it plays through the car and shows the question on the car's Now Playing screen; the steering wheel's next and previous buttons skip or repeat. Keep Fretwise open on the phone. Never play the guitar or read the screen while driving.</p>
           <div class="acts"><button class="btn" data-act="drive">${IC.play} Start Drive mode</button></div>
-        </div>
+        </div>`}
       </div>
       <div class="sechead"><h3>Weak spots</h3><span>${n ? `${Math.round(100 * ok / n)}% right over ${n} answers` : 'Fills in as you practice'}</span></div>`;
     $('#panel').innerHTML = `<div class="card stack">
@@ -1583,7 +1587,7 @@ const LIFE_OK = st => st.kind !== 'ear' && st.kind !== 'chuck';
 const Review = {
   tally:{},
   rev(){ return learnProg.rev || (learnProg.rev = {}); },
-  passed(id){ learnProg.done[id] = true; const r = this.rev(); if (!r[id]) r[id] = { n:0, due:addDays(1) }; store.set('fretwise.learn', learnProg); },
+  passed(id){ learnProg.done[id] = true; const r = this.rev(); if (!r[id]) r[id] = { n:0, due:addDays(1), t:Date.now() }; store.set('fretwise.learn', learnProg); },
   mastered(id){ const r = this.rev()[id]; return !!(learnProg.done[id] && r && r.n >= 2); },
   dueIn(id){ const r = this.rev()[id]; if (!r) return 0; const t = new Date(todayKey() + 'T12:00'), d = new Date(r.due + 'T12:00'); return Math.round((d - t) / 864e5); },
   due(){ const t = todayKey(), r = this.rev(); return LEARN.filter(st => learnProg.done[st.id] && LIFE_OK(st) && (!r[st.id] || r[st.id].due <= t)); },
@@ -1597,11 +1601,11 @@ const Review = {
     x.n++;
     if (!ok){ e.n = Math.max(0, e.n - 1); e.due = addDays(1); x.done = true; }
     else if (x.n >= 2){ e.n++; e.due = addDays(REV_GAPS[Math.min(e.n - 1, REV_GAPS.length - 1)]); x.done = true; }
-    store.set('fretwise.learn', learnProg);
+    e.t = Date.now(); store.set('fretwise.learn', learnProg);
   },
   snap(id){ const k = todayKey() + ':' + id; return { r:JSON.stringify(this.rev()[id] || null), x:JSON.stringify(this.tally[k] || null) }; },
   restore(id, sn){ const k = todayKey() + ':' + id, r = this.rev(), e = JSON.parse(sn.r), x = JSON.parse(sn.x);
-    if (e) r[id] = e; else delete r[id]; if (x) this.tally[k] = x; else delete this.tally[k]; store.set('fretwise.learn', learnProg); },
+    if (e){ e.t = Date.now(); r[id] = e; } else delete r[id]; if (x) this.tally[k] = x; else delete this.tally[k]; store.set('fretwise.learn', learnProg); },
   pickStage(prevId){
     const fresh = a => { const f = a.filter(st => st.id !== prevId); return f.length ? f : a; };
     let pool = fresh(this.due());
@@ -4247,7 +4251,7 @@ const Settings = {
     if (k === 'place'){ $('#sheet').hidden = true; Welcome.show(WELCOME.findIndex(w => w.place)); return; }
     if (k === 'reset'){
       if (!this.confirmReset){ this.confirmReset = true; this.render(); return; }
-      learnProg.done = {}; store.set('fretwise.learn', learnProg);
+      Sync.newEpoch(); learnProg.done = {}; store.set('fretwise.learn', learnProg);
       for (const d in days) delete days[d]; store.set('fretwise.days', days);
       stats.c = {}; stats.best = 0; saveStats();
       S.learn.id = 'open'; S.learn.phase = 'study'; Learn.detail = false; this.confirmReset = false; save();
@@ -4545,6 +4549,112 @@ const TVView = {
 };
 const DISPLAY = !!window.__FW_DISPLAY || /[?&]display\b/.test(location.search);
 
+/* ---------- iCloud sync between the iPhone and Mac apps ---------- */
+// The native apps keep a copy of progress in iCloud key-value storage (NSUbiquitousKeyValueStore) under
+// learn, days, stats and prefs, each a JSON envelope. The page talks to them on "fwSync" ({op:'hello'} or
+// {op:'put', key, value}) and gets iCloud's values back through window.__fwSyncIn. Progress only merges
+// upward (SYNC_MERGE), so two devices that practised apart both keep what they did. "Reset progress"
+// starts a new epoch (e), which wipes the other device's progress before it merges. prefs (onboarding
+// answers, sharps or flats, the open stage) travel whole and the newest (t) wins. Envelopes are written
+// with sorted keys, and merges give the same result on either side, so the two devices settle.
+const canon = v => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
+const unionOf = (a, b) => { const o = {}; for (const k in a || {}) if (a[k]) o[k] = true; for (const k in b || {}) if (b[k]) o[k] = true; return o; };
+// the later of two re-check entries; a tie goes to the larger by content, so both devices pick the same one
+const newerOf = (x, y) => { const tx = +x.t || 0, ty = +y.t || 0; if (tx !== ty) return tx > ty ? x : y; return canon(x) >= canon(y) ? x : y; };
+const cmpArr = (x, y) => { for (let i = 0; i < Math.max(x.length, y.length); i++){ const d = (+x[i] || 0) - (+y[i] || 0); if (d) return d; } return 0; };
+const SYNC_MERGE = {
+  learn(a, b){
+    const rev = {}, ra = a.rev || {}, rb = b.rev || {};
+    for (const id of new Set([...Object.keys(ra), ...Object.keys(rb)])) rev[id] = !ra[id] ? rb[id] : !rb[id] ? ra[id] : newerOf(ra[id], rb[id]);
+    return { done:unionOf(a.done, b.done), taught:unionOf(a.taught, b.taught), rev };
+  },
+  days(a, b){ const o = {}; for (const k in a) o[k] = +a[k] || 0; for (const k in b) o[k] = Math.max(o[k] || 0, +b[k] || 0); return o; },
+  stats(a, b){
+    const c = {}, ca = a.c || {}, cb = b.c || {};
+    for (const k of new Set([...Object.keys(ca), ...Object.keys(cb)])) c[k] = !ca[k] ? cb[k] : !cb[k] ? ca[k] : cmpArr(ca[k], cb[k]) >= 0 ? ca[k] : cb[k];
+    return { c, best:Math.max(+a.best || 0, +b.best || 0), chordBest:Math.max(+a.chordBest || 0, +b.chordBest || 0) };
+  }
+};
+const SYNC_SET = {
+  learn(m){ learnProg.done = m.done; learnProg.taught = m.taught; learnProg.rev = m.rev; store.set('fretwise.learn', learnProg); },
+  days(m){ for (const k in days) delete days[k]; Object.assign(days, m); store.set('fretwise.days', days); },
+  stats(m){ stats.c = m.c; stats.best = m.best; stats.chordBest = m.chordBest; saveStats(); }
+};
+const Sync = {
+  ready:false, applying:false, timer:0, sent:{}, dirty:new Set(), lastPrefs:'',
+  epoch:+store.get('fretwise.epoch', 0) || 0,
+  // when this device last changed prefs; 0 means never, so a fresh install takes the other device's
+  prefsT:+store.get('fretwise.prefsT', store.get('fretwise.welcomed2', false) ? 1 : 0) || 0,
+  KEY:{ 'fretwise.learn':'learn', 'fretwise.days':'days', 'fretwise.stats':'stats', 'fretwise.settings':'prefs', 'fretwise.welcomed2':'prefs' },
+  handler(){ const h = window.webkit && window.webkit.messageHandlers; return h && h.fwSync; },
+  post(o){ const h = this.handler(); if (h) try { h.postMessage(JSON.stringify(o)); } catch(e){} },
+  start(){
+    if (!this.handler()) return;
+    this.lastPrefs = canon(this.prefs());
+    store.onSet = k => this.changed(k);
+    window.__fwSyncIn = m => this.in(m || {});
+    this.post({ op:'hello' });
+  },
+  prefs(){ return { profile:S.profile || {}, acc:S.acc, learnId:S.learn.id, welcomed:!!store.get('fretwise.welcomed2', false) }; },
+  data(key){
+    if (key === 'learn') return { done:learnProg.done || {}, taught:learnProg.taught || {}, rev:learnProg.rev || {} };
+    if (key === 'stats') return { c:stats.c || {}, best:+stats.best || 0, chordBest:+stats.chordBest || 0 };
+    if (key === 'days') return days;
+    return this.prefs();
+  },
+  env(key){ return canon(key === 'prefs' ? { v:this.prefs(), t:this.prefsT } : { v:this.data(key), e:this.epoch }); },
+  // nothing worth sending: a fresh install must not overwrite iCloud's copy before it has arrived
+  empty(key){
+    if (key === 'prefs') return !this.prefsT;
+    if (this.epoch) return false;
+    const v = this.data(key);
+    return key === 'learn' ? !Object.keys(v.done).length && !Object.keys(v.taught).length && !Object.keys(v.rev).length
+      : key === 'stats' ? !Object.keys(v.c).length && !v.best && !v.chordBest : !Object.keys(v).length;
+  },
+  changed(k){
+    const key = this.KEY[k]; if (!key || this.applying) return;
+    if (key === 'prefs'){ const p = canon(this.prefs()); if (p === this.lastPrefs) return; this.lastPrefs = p; this.prefsT = Date.now(); store.set('fretwise.prefsT', this.prefsT); }
+    this.dirty.add(key); clearTimeout(this.timer); this.timer = setTimeout(() => this.flush(), 1500);
+  },
+  flush(){ if (!this.ready) return; for (const key of this.dirty) this.put(key); this.dirty.clear(); },
+  put(key){ if (this.empty(key)) return; const s = this.env(key); if (this.sent[key] === s) return; this.sent[key] = s; this.post({ op:'put', key, value:s }); },
+  newEpoch(){ this.epoch = Date.now(); store.set('fretwise.epoch', this.epoch); },
+  wipe(){ learnProg.done = {}; store.set('fretwise.learn', learnProg); for (const d in days) delete days[d]; store.set('fretwise.days', days); stats.c = {}; stats.best = 0; saveStats(); },
+  // iCloud's current values ({key: envelope string}); some keys may be missing
+  in(m){
+    const got = {}; for (const key of ['learn','days','stats','prefs']) if (typeof m[key] === 'string') try { got[key] = JSON.parse(m[key]); } catch(e){}
+    let ui = false; this.applying = true;
+    try {
+      const e = Math.max(0, ...['learn','days','stats'].map(k => got[k] ? +got[k].e || 0 : 0));
+      if (e > this.epoch){ this.epoch = e; store.set('fretwise.epoch', e); this.wipe(); ui = true; }
+      for (const key of ['learn','days','stats']){
+        const r = got[key]; if (!r || (+r.e || 0) !== this.epoch || !r.v || typeof r.v !== 'object') continue;
+        const cur = this.data(key), merged = SYNC_MERGE[key](cur, r.v);
+        if (canon(merged) !== canon(cur)){ SYNC_SET[key](merged); ui = true; }
+      }
+      const p = got.prefs, pt = p ? +p.t || 0 : 0;
+      if (p && p.v && typeof p.v === 'object' && (pt > this.prefsT || (pt === this.prefsT && pt && canon(p.v) > canon(this.prefs())))){
+        this.applyPrefs(p.v); this.prefsT = pt; store.set('fretwise.prefsT', pt); ui = true;
+      }
+      this.lastPrefs = canon(this.prefs());
+    } finally { this.applying = false; }
+    this.ready = true;
+    for (const key of ['learn','days','stats','prefs']){ const mine = this.env(key); if (m[key] === mine) this.sent[key] = mine; else this.put(key); }
+    this.dirty.clear();
+    if (ui) this.refresh();
+  },
+  applyPrefs(v){
+    const pianist = isPianist();
+    S.profile = Object.assign({ piano:null }, v.profile && typeof v.profile === 'object' ? v.profile : {});
+    if (v.acc === 'sharp' || v.acc === 'flat') S.acc = v.acc;
+    if (v.learnId === 'daily' || LEARN_ALL.some(x => x.id === v.learnId)) S.learn.id = v.learnId;
+    save();
+    if (v.welcomed){ store.set('fretwise.welcomed2', true); store.set('fretwise.welcomed', true); $('#welcome').hidden = true; }
+    if (pianist !== isPianist()) rebuildPath();
+  },
+  refresh(){ renderStreak(); if (!Life.open && MODES[tab]) MODES[tab].render(); }
+};
+
 const MODES = { learn:Learn, practice:Practice, explore:ExploreTab, tune:Tuner };
 const ALIAS = { drill:'practice', chords:'explore', scales:'explore', tuner:'tune', life:'explore' };
 Life.bind();
@@ -4578,13 +4688,19 @@ $('#main').addEventListener('input', e => { MODES[tab].input && MODES[tab].input
 document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input,textarea')) return; if (!$('#sheet').hidden || !$('#welcome').hidden) return; MODES[tab].key && MODES[tab].key(e); });
 window.addEventListener('hashchange', () => go(location.hash.slice(1), true));
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (Life.open && Life.flat){ Life.fitFlat(); return; } if (ensureBoard()) MODES[tab].render(); }, 120); });
-if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, Drive, KeyFind, Along, actx: () => ac };
+if (/[?&]fwtest\b/.test(location.search)) window.__fw = { Life, Learn, S, LEARN, KINDS, Review, Practice, learnProg, Mic, Tuner, TV, TVView, Drive, KeyFind, Along, Sync, days, stats, Welcome, actx: () => ac };
 if (DISPLAY){ TVView.boot(); return; }
 ensureBoard();
 go((location.hash || '#learn').slice(1), true);
 renderStreak();
 if (!store.get('fretwise.welcomed2', false)) Welcome.show();
 TV.hello();
+Sync.start();
+// The Mac app's menu bar: tabs on Cmd-1 to Cmd-4, and Find the Key (Cmd-K) to start the key finder.
+window.__fwMac = cmd => {
+  if (MODES[cmd]){ if (Life.open) Life.close(); go(cmd); window.scrollTo(0, 0); return; }
+  if (cmd === 'key'){ if (Life.open) Life.close(); go('tune'); if (!KeyFind.on) KeyFind.start(); setTimeout(() => { const c = $('.keycard'); if (c) c.scrollIntoView({ block:'center', behavior:'smooth' }); }, 60); }
+};
 window.__openV = (r, q) => openVoicing(r, q).frets;   // test hook for automated checks only
 })();
 </script>
